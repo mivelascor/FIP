@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vantrust — Generador de Folletos</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --black:   #0a0a0a;
+  --white:   #ffffff;
+  --gray-1:  #f4f4f2;
+  --gray-2:  #e8e8e4;
+  --gray-3:  #aaaaaa;
+  --gray-4:  #666666;
+  --accent:  #0a0a0a;
+  --green:   #1a7a4a;
+  --red:     #c0392b;
+  --amber:   #d97706;
+  --radius:  4px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--gray-1);
+  color: var(--black);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+header {
+  background: var(--black);
+  padding: 0 40px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-logo {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  color: var(--white);
+  letter-spacing: -0.3px;
+}
+
+.header-badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: var(--gray-3);
+  text-transform: uppercase;
+}
+
+/* ── Layout ── */
+main {
+  flex: 1;
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+/* ── Page title ── */
+.page-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: var(--gray-4);
+  margin-bottom: 40px;
+  line-height: 1.5;
+}
+
+/* ── Month indicator ── */
+.month-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--black);
+  color: var(--white);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 100px;
+  margin-bottom: 36px;
+}
+
+.month-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ade80;
+  animation: blink 1.8s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.2; }
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--white);
+  border: 1px solid var(--gray-2);
+  border-radius: 8px;
+  padding: 28px 28px 24px;
+  margin-bottom: 16px;
+}
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--black);
+}
+
+.card-desc {
+  font-size: 12px;
+  color: var(--gray-3);
+  margin-top: 3px;
+  line-height: 1.5;
+}
+
+.card-status {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray-3);
+  white-space: nowrap;
+  margin-left: 16px;
+}
+
+.card-status.ok  { color: var(--green); }
+.card-status.err { color: var(--red);   }
+
+/* ── Upload zone ── */
+.upload-zone {
+  border: 1.5px dashed var(--gray-2);
+  border-radius: var(--radius);
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.upload-zone:hover, .upload-zone.drag-over {
+  border-color: var(--black);
+  background: var(--gray-1);
+}
+
+.upload-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.upload-icon {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.upload-text {
+  font-size: 13px;
+  color: var(--gray-4);
+  line-height: 1.6;
+}
+
+.upload-text strong { color: var(--black); }
+
+.upload-filename {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green);
+  display: none;
+}
+
+/* ── Textareas ── */
+.field-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--gray-4);
+  margin-bottom: 8px;
+  margin-top: 18px;
+  display: block;
+}
+
+.field-label:first-of-type { margin-top: 0; }
+
+textarea {
+  width: 100%;
+  border: 1px solid var(--gray-2);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--black);
+  resize: vertical;
+  min-height: 100px;
+  transition: border-color 0.15s;
+  background: var(--white);
+}
+
+textarea:focus {
+  outline: none;
+  border-color: var(--black);
+}
+
+textarea::placeholder { color: var(--gray-3); }
+
+.char-count {
+  font-size: 11px;
+  color: var(--gray-3);
+  text-align: right;
+  margin-top: 4px;
+}
+
+/* ── Token ── */
+.token-input {
+  width: 100%;
+  border: 1px solid var(--gray-2);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-family: 'DM Sans', monospace;
+  font-size: 13px;
+  color: var(--black);
+  transition: border-color 0.15s;
+}
+
+.token-input:focus {
+  outline: none;
+  border-color: var(--black);
+}
+
+.token-link {
+  font-size: 11px;
+  color: var(--gray-4);
+  margin-top: 6px;
+  display: block;
+}
+
+.token-link a { color: var(--black); }
+
+/* ── CTA Button ── */
+.cta-row {
+  margin-top: 32px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn-generar {
+  background: var(--black);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius);
+  padding: 14px 32px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  letter-spacing: 0.3px;
+}
+
+.btn-generar:hover   { opacity: 0.85; }
+.btn-generar:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--gray-4);
+  border: 1px solid var(--gray-2);
+  border-radius: var(--radius);
+  padding: 13px 20px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+/* ── Status panel ── */
+#status-panel {
+  margin-top: 24px;
+  border-radius: 8px;
+  overflow: hidden;
+  display: none;
+}
+
+.status-header {
+  background: var(--black);
+  color: var(--white);
+  padding: 14px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.status-body {
+  background: #1a1a1a;
+  padding: 16px 20px;
+  font-family: 'DM Sans', monospace;
+  font-size: 12px;
+  color: #8fffb0;
+  line-height: 1.7;
+  max-height: 220px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+.status-footer {
+  background: var(--white);
+  border: 1px solid var(--gray-2);
+  border-top: none;
+  padding: 14px 20px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* ── Download section ── */
+#download-section {
+  margin-top: 16px;
+  display: none;
+  padding: 20px 28px;
+  background: var(--white);
+  border: 1px solid var(--gray-2);
+  border-radius: 8px;
+}
+
+.download-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  color: var(--green);
+}
+
+.download-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.download-list li a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--black);
+  text-decoration: none;
+  padding: 8px 12px;
+  border: 1px solid var(--gray-2);
+  border-radius: var(--radius);
+  transition: background 0.1s;
+}
+
+.download-list li a:hover { background: var(--gray-1); }
+
+/* ── Footer ── */
+footer {
+  background: var(--black);
+  padding: 20px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+footer a {
+  font-size: 12px;
+  color: var(--gray-3);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+footer a:hover { color: var(--white); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-logo">Vantrust Capital</div>
+  <div class="header-badge">Generador de Folletos</div>
+</header>
+
+<main>
+  <div id="month-pill" class="month-pill">
+    <span class="month-dot"></span>
+    <span id="mes-label">Cargando...</span>
+  </div>
+
+  <h1 class="page-title">Folletos<br>comerciales</h1>
+  <p class="page-subtitle">
+    Sube la composición de cartera y los comentarios del portfolio manager.<br>
+    El sistema extrae el ICP, valores cuota y competencia automáticamente.
+  </p>
+
+  <!-- Cartera -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Composición de cartera</div>
+        <div class="card-desc">Excel exportado del sistema (cartera.xlsx)</div>
+      </div>
+      <div class="card-status" id="status-cartera">Pendiente</div>
+    </div>
+    <div class="upload-zone" id="zone-cartera">
+      <input type="file" id="file-cartera" accept=".xlsx,.xls"
+             onchange="onFileCartera(this)">
+      <div class="upload-icon">📊</div>
+      <div class="upload-text">
+        <strong>Clic o arrastra</strong> el archivo aquí<br>
+        <span style="font-size:11px;color:#aaa">cartera.xlsx — formato habitual de la query</span>
+      </div>
+      <div class="upload-filename" id="fn-cartera"></div>
+    </div>
+  </div>
+
+  <!-- Comentarios PM -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Comentarios del Portfolio Manager</div>
+        <div class="card-desc">Un comentario para fondos CLP y uno para fondos USD</div>
+      </div>
+    </div>
+
+    <label class="field-label" for="clp">Fondos CLP</label>
+    <textarea id="clp" placeholder="Comentario para los fondos en pesos chilenos..."
+              oninput="cnt('clp','cnt-clp')"></textarea>
+    <div class="char-count" id="cnt-clp">0 caracteres</div>
+
+    <label class="field-label" for="usd">Fondos USD</label>
+    <textarea id="usd" placeholder="Comentario para los fondos en dólares..."
+              oninput="cnt('usd','cnt-usd')"></textarea>
+    <div class="char-count" id="cnt-usd">0 caracteres</div>
+  </div>
+
+  <!-- Auth -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Autenticación GitHub</div>
+        <div class="card-desc">Token personal con permiso <strong>repo</strong> — se guarda en tu navegador</div>
+      </div>
+    </div>
+    <input type="password" class="token-input" id="token"
+           placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+    <span class="token-link">
+      ¿No tienes token?
+      <a href="https://github.com/settings/tokens/new?scopes=repo&description=vantrust-folletos"
+         target="_blank">Crear en GitHub →</a>
+    </span>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-row">
+    <button class="btn-generar" id="btn-generar" onclick="generar()">
+      ▶ Generar folletos del mes
+    </button>
+    <a class="btn-secondary"
+       href="https://github.com/mivelascor/fondos-financieros/actions"
+       target="_blank">Ver ejecuciones →</a>
+  </div>
+
+  <!-- Status -->
+  <div id="status-panel">
+    <div class="status-header">
+      <div class="status-spinner" id="spinner"></div>
+      <span id="status-title">Iniciando workflow...</span>
+    </div>
+    <div class="status-body" id="log-body"></div>
+    <div class="status-footer" id="status-footer"></div>
+  </div>
+
+  <!-- Download -->
+  <div id="download-section">
+    <div class="download-title">✅ Folletos generados</div>
+    <ul class="download-list" id="download-list"></ul>
+  </div>
+
+</main>
+
+<footer>
+  <a href="https://github.com/mivelascor/fondos-financieros" target="_blank">
+    mivelascor/fondos-financieros
+  </a>
+  <a href="https://github.com/mivelascor/fondos-financieros/actions" target="_blank">
+    GitHub Actions →
+  </a>
+</footer>
+
+<script>
+const REPO   = "mivelascor/fondos-financieros";
+const BRANCH = "main";
+const MESES  = ["","Enero","Febrero","Marzo","Abril","Mayo","Junio",
+                "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+let cartBase64 = null;
+let runId      = null;
+let polling    = null;
+let targetMes  = null;
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+window.onload = () => {
+  // Mes anterior
+  const hoy = new Date();
+  const mes = hoy.getMonth() === 0 ? 12 : hoy.getMonth();
+  const yr  = hoy.getMonth() === 0 ? hoy.getFullYear() - 1 : hoy.getFullYear();
+  targetMes = `${yr}-${String(mes).padStart(2,'0')}`;
+  document.getElementById("mes-label").textContent = `${MESES[mes]} ${yr}`;
+
+  // Restore token
+  const t = localStorage.getItem("vt_token");
+  if (t) document.getElementById("token").value = t;
+};
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function cnt(id, cntId) {
+  document.getElementById(cntId).textContent =
+    document.getElementById(id).value.length + " caracteres";
+}
+
+function token() {
+  const t = document.getElementById("token").value.trim();
+  if (t) localStorage.setItem("vt_token", t);
+  return t;
+}
+
+function log(msg) {
+  const el = document.getElementById("log-body");
+  el.textContent += msg + "\n";
+  el.scrollTop = el.scrollHeight;
+}
+
+function setStatus(title, spinning = true) {
+  document.getElementById("status-title").textContent = title;
+  document.getElementById("spinner").style.display = spinning ? "block" : "none";
+}
+
+// ── File upload ───────────────────────────────────────────────────────────────
+function onFileCartera(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    cartBase64 = e.target.result.split(",")[1];
+    document.getElementById("fn-cartera").style.display = "block";
+    document.getElementById("fn-cartera").textContent   = "✓ " + file.name;
+    document.getElementById("status-cartera").textContent = "Listo";
+    document.getElementById("status-cartera").className   = "card-status ok";
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Drag & drop ───────────────────────────────────────────────────────────────
+["zone-cartera"].forEach(id => {
+  const zone = document.getElementById(id);
+  zone.addEventListener("dragover",  e => { e.preventDefault(); zone.classList.add("drag-over"); });
+  zone.addEventListener("dragleave", () => zone.classList.remove("drag-over"));
+  zone.addEventListener("drop", e => {
+    e.preventDefault();
+    zone.classList.remove("drag-over");
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      document.getElementById("file-cartera").files = e.dataTransfer.files;
+      onFileCartera(document.getElementById("file-cartera"));
+    }
+  });
+});
+
+// ── GitHub API ────────────────────────────────────────────────────────────────
+async function ghPut(path, content, message, sha = null) {
+  const tk = token();
+  const body = { message, content, branch: BRANCH };
+  if (sha) body.sha = sha;
+  const r = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `token ${tk}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error(`GitHub PUT ${path}: ${r.status} ${await r.text()}`);
+  return r.json();
+}
+
+async function ghGet(path) {
+  const tk = token();
+  const r  = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
+    headers: { Authorization: `token ${tk}` },
+  });
+  if (r.status === 404) return null;
+  if (!r.ok) throw new Error(`GitHub GET ${path}: ${r.status}`);
+  return r.json();
+}
+
+async function dispatchWorkflow(targetMonth) {
+  const tk = token();
+  const r  = await fetch(
+    `https://api.github.com/repos/${REPO}/dispatches`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `token ${tk}`,
+        Accept: "application/vnd.github.v3+json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        event_type: "generar-folletos",
+        client_payload: { target_month: targetMonth },
+      }),
+    }
+  );
+  if (!r.ok) throw new Error(`Dispatch: ${r.status} ${await r.text()}`);
+}
+
+async function getLatestRunId() {
+  const tk = token();
+  const r  = await fetch(
+    `https://api.github.com/repos/${REPO}/actions/runs?event=repository_dispatch&per_page=5`,
+    { headers: { Authorization: `token ${tk}` } }
+  );
+  const data = await r.json();
+  return data.workflow_runs?.[0]?.id || null;
+}
+
+async function getRunStatus(id) {
+  const tk = token();
+  const r  = await fetch(
+    `https://api.github.com/repos/${REPO}/actions/runs/${id}`,
+    { headers: { Authorization: `token ${tk}` } }
+  );
+  return r.json();
+}
+
+// ── Main flow ─────────────────────────────────────────────────────────────────
+async function generar() {
+  const tk = token();
+  if (!tk) { alert("Ingresa tu token de GitHub primero."); return; }
+
+  const clp = document.getElementById("clp").value.trim();
+  const usd = document.getElementById("usd").value.trim();
+
+  if (!clp && !usd) {
+    if (!confirm("Los comentarios están vacíos. ¿Continuar de todas formas?")) return;
+  }
+
+  document.getElementById("btn-generar").disabled = true;
+  document.getElementById("status-panel").style.display = "block";
+  document.getElementById("download-section").style.display = "none";
+  document.getElementById("log-body").textContent = "";
+  setStatus("Subiendo archivos al repositorio...");
+
+  try {
+    // 1. Subir comentarios.json
+    log("📝 Subiendo comentarios.json...");
+    const comentariosB64 = btoa(unescape(encodeURIComponent(
+      JSON.stringify({ clp, usd }, null, 2)
+    )));
+    const existing = await ghGet("inputs/comentarios.json");
+    await ghPut(
+      "inputs/comentarios.json",
+      comentariosB64,
+      `💬 Comentarios PM ${targetMes}`,
+      existing?.sha || null
+    );
+    log("   ✓ comentarios.json subido.");
+
+    // 2. Subir cartera.xlsx si se seleccionó
+    if (cartBase64) {
+      log("📊 Subiendo cartera.xlsx...");
+      const existingCart = await ghGet("inputs/cartera.xlsx");
+      await ghPut(
+        "inputs/cartera.xlsx",
+        cartBase64,
+        `📊 Cartera ${targetMes}`,
+        existingCart?.sha || null
+      );
+      log("   ✓ cartera.xlsx subido.");
+    } else {
+      log("⚠  cartera.xlsx no subido (se usará el del mes anterior si existe).");
+    }
+
+    // 3. Disparar workflow
+    log("\n🚀 Disparando workflow en GitHub Actions...");
+    await dispatchWorkflow(targetMes);
+    log("   ✓ Workflow disparado.");
+
+    // 4. Esperar a que el run aparezca
+    setStatus("Esperando inicio del workflow...");
+    await sleep(4000);
+    for (let i = 0; i < 10; i++) {
+      runId = await getLatestRunId();
+      if (runId) break;
+      await sleep(3000);
+    }
+
+    if (!runId) {
+      log("⚠  No se encontró el run. Revisa GitHub Actions manualmente.");
+      setStatus("Workflow no detectado — revisa GitHub Actions", false);
+      return;
+    }
+
+    log(`   ID del run: ${runId}`);
+    setStatus(`Ejecutando workflow #${runId}...`);
+    startPolling();
+
+  } catch (e) {
+    log(`\n❌ Error: ${e.message}`);
+    setStatus("Error — revisa la consola del navegador", false);
+    document.getElementById("btn-generar").disabled = false;
+  }
+}
+
+function startPolling() {
+  let dots = 0;
+  polling = setInterval(async () => {
+    dots = (dots + 1) % 4;
+    try {
+      const run = await getRunStatus(runId);
+      const { status, conclusion } = run;
+
+      document.getElementById("status-title").textContent =
+        `Workflow #${runId} — ${status}${"...".slice(0, dots)}`;
+
+      if (status === "completed") {
+        clearInterval(polling);
+        if (conclusion === "success") {
+          log("\n✅ Folletos generados con éxito.");
+          setStatus("✅ Completado", false);
+          showDownloads();
+        } else {
+          log(`\n❌ El workflow terminó con estado: ${conclusion}`);
+          setStatus(`❌ ${conclusion}`, false);
+          document.getElementById("status-footer").innerHTML =
+            `<a href="https://github.com/${REPO}/actions/runs/${runId}" target="_blank" class="btn-secondary">Ver log de error →</a>`;
+        }
+        document.getElementById("btn-generar").disabled = false;
+      }
+    } catch(e) {
+      log(`[polling error] ${e.message}`);
+    }
+  }, 8000);
+}
+
+async function showDownloads() {
+  const mes    = targetMes;
+  const repoUrl = `https://github.com/${REPO}/tree/${BRANCH}/folletos/${mes}`;
+  const zipUrl  = `https://github.com/${REPO}/raw/${BRANCH}/folletos/folletos_${mes}.zip`;
+
+  document.getElementById("download-section").style.display = "block";
+  document.getElementById("download-list").innerHTML = `
+    <li><a href="${zipUrl}" target="_blank">
+      📦 folletos_${mes}.zip — todos los folletos
+    </a></li>
+    <li><a href="${repoUrl}" target="_blank">
+      📂 Carpeta folletos/${mes}/ en GitHub
+    </a></li>
+    <li><a href="https://github.com/${REPO}/actions/runs/${runId}" target="_blank">
+      🔍 Ver log del workflow
+    </a></li>
+  `;
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>
