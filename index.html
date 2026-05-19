@@ -1,64 +1,100 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fondos Financieros — Vantrust</title>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vantrust Capital — Acceso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
-:root{--bg:#0a0a0a;--surface:#111;--border:#1e1e1e;--border2:#2a2a2a;--text:#e8e8e8;--muted:#555;--green:#22c55e;--red:#ef4444;}
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap');
+:root{
+  --bg:#090909;
+  --panel:#111111;
+  --panel-2:#171717;
+  --border:#262626;
+  --text:#f4f4f4;
+  --muted:#8f8f8f;
+}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px;}
-.brand{margin-bottom:52px;text-align:center;}
-.brand-top{font-size:10px;font-weight:600;letter-spacing:4px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
-.brand-title{font-family:'DM Serif Display',serif;font-size:44px;font-weight:400;letter-spacing:-1.5px;line-height:1.05;}
-.brand-title em{color:var(--muted);font-style:italic;}
-.card{background:var(--surface);border:1px solid var(--border);padding:36px 32px;width:100%;max-width:340px;}
-.card-eyebrow{font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:22px;}
-input[type="password"]{width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 13px;outline:none;transition:border-color .15s;border-radius:1px;margin-bottom:12px;}
-input[type="password"]:focus{border-color:var(--text);}
-input::placeholder{color:var(--muted);}
-.btn{width:100%;background:var(--text);color:var(--bg);border:none;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:12px;cursor:pointer;transition:opacity .15s;border-radius:1px;}
-.btn:hover{opacity:.87;}
-.fb{margin-top:14px;font-size:12px;text-align:center;min-height:16px;}
-.fb.err{color:var(--red);}
-.fb.ok{color:var(--green);}
-.footer{margin-top:36px;font-size:11px;color:var(--muted);letter-spacing:.5px;}
-@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
-.shake{animation:shake .35s ease;}
+body{
+  background: radial-gradient(circle at top,#1b1b1b 0%,#090909 60%);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+}
+.login-card{
+  width:100%;
+  max-width:420px;
+  background:#111;
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:48px;
+}
+.logo{
+  font-family:'DM Serif Display',serif;
+  font-size:34px;
+  margin-bottom:8px;
+}
+.subtitle{
+  color:var(--muted);
+  margin-bottom:40px;
+  line-height:1.7;
+}
+.label{
+  display:block;
+  margin-bottom:10px;
+  font-size:12px;
+  text-transform:uppercase;
+  color:#bbb;
+}
+.input{
+  width:100%;
+  background:#181818;
+  border:1px solid #2b2b2b;
+  border-radius:12px;
+  padding:16px;
+  color:white;
+  margin-bottom:18px;
+}
+.btn{
+  width:100%;
+  border:none;
+  background:white;
+  color:black;
+  border-radius:12px;
+  padding:16px;
+  font-weight:700;
+  cursor:pointer;
+}
+.error{
+  color:#ff7b7b;
+  margin-top:14px;
+  display:none;
+}
 </style>
 </head>
 <body>
- 
-<div class="brand">
-  <div class="brand-top">Vantrust Capital</div>
-  <div class="brand-title">Fondos<br><em>Financieros</em></div>
+<div class="login-card">
+  <div class="logo">Vantrust Capital</div>
+  <div class="subtitle">Plataforma de generación automática de folletos financieros.</div>
+  <label class="label">Contraseña</label>
+  <input type="password" class="input" id="password" placeholder="Ingresa tu contraseña" />
+  <button class="btn" onclick="login()">Ingresar</button>
+  <div class="error" id="error">Contraseña incorrecta.</div>
 </div>
- 
-<div class="card" id="card">
-  <div class="card-eyebrow">Acceso</div>
-  <input type="password" id="pwd" placeholder="Contraseña" onkeydown="if(event.key==='Enter')go()">
-  <button class="btn" onclick="go()">Ingresar</button>
-  <div class="fb" id="fb"></div>
-</div>
- 
-<div class="footer">Solo acceso autorizado</div>
- 
 <script>
-const CORRECT="1234";
-function playOk(){try{const c=new AudioContext,o=c.createOscillator(),g=c.createGain();o.type="sine";o.frequency.setValueAtTime(520,c.currentTime);o.frequency.exponentialRampToValueAtTime(880,c.currentTime+.18);g.gain.setValueAtTime(.22,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.28);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.3);}catch(e){}}
-function playErr(){try{const c=new AudioContext,o=c.createOscillator(),g=c.createGain();o.type="sawtooth";o.frequency.setValueAtTime(300,c.currentTime);o.frequency.exponentialRampToValueAtTime(80,c.currentTime+.25);g.gain.setValueAtTime(.15,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.28);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.3);}catch(e){}}
-function go(){
-  const v=document.getElementById("pwd").value,fb=document.getElementById("fb"),card=document.getElementById("card");
-  if(v===CORRECT){
-    playOk();fb.textContent="✓ Correcto";fb.className="fb ok";
-    confetti({particleCount:50,spread:45,origin:{y:.65},colors:['#e8e8e8','#888','#444']});
-    setTimeout(()=>location.href="menu_principal.html",700);
-  }else{
-    playErr();fb.textContent="Contraseña incorrecta";fb.className="fb err";
-    card.classList.remove("shake");void card.offsetWidth;card.classList.add("shake");
-    document.getElementById("pwd").value="";
+const PASSWORD = "vantrust";
+function login(){
+  const pass = document.getElementById("password").value;
+  if(pass === PASSWORD){
+    window.location.href = "MenuFF.html";
+  } else {
+    document.getElementById("error").style.display = "block";
   }
 }
 </script>
