@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vantrust — Menú Principal</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap');
+:root{
+  --bg:#090909;
+  --card:#131313;
+  --border:#262626;
+  --text:#f3f3f3;
+  --muted:#8f8f8f;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:#090909;
+  color:var(--text);
+  min-height:100vh;
+}
+header{
+  height:72px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 42px;
+}
+.logo{
+  font-family:'DM Serif Display',serif;
+  font-size:24px;
+}
+.badge{
+  font-size:11px;
+  letter-spacing:2px;
+  color:var(--muted);
+  text-transform:uppercase;
+}
+main{
+  max-width:1200px;
+  margin:auto;
+  padding:60px 28px;
+}
+.title{
+  font-family:'DM Serif Display',serif;
+  font-size:52px;
+  margin-bottom:12px;
+}
+.subtitle{
+  color:var(--muted);
+  margin-bottom:50px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:22px;
+}
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:30px;
+  text-decoration:none;
+  color:var(--text);
+  transition:.2s;
+}
+.card:hover{
+  transform:translateY(-4px);
+  border-color:#3a3a3a;
+}
+.icon{
+  font-size:40px;
+  margin-bottom:20px;
+}
+.card-title{
+  font-size:22px;
+  margin-bottom:8px;
+}
+.card-desc{
+  color:var(--muted);
+  line-height:1.7;
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Vantrust Capital</div>
+  <div class="badge">Fondos Financieros</div>
+</header>
+<main>
+<h1 class="title">Panel principal</h1>
+<p class="subtitle">Accede a la generación de folletos y panel de fondos.</p>
+<div class="grid">
+<a href="admin.html" class="card">
+<div class="icon">⚙️</div>
+<div class="card-title">Generar folletos</div>
+<div class="card-desc">Workflow automático de folletos.</div>
+</a>
+<a href="fondos.html" class="card">
+<div class="icon">📈</div>
+<div class="card-title">Fondos financieros</div>
+<div class="card-desc">Visualización de fondos y descarga.</div>
+</a>
+</div>
+</main>
+</body>
+</html>

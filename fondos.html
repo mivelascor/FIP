@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fondos — Vantrust</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap');
+:root{
+  --bg:#090909;
+  --card:#131313;
+  --border:#262626;
+  --text:#f5f5f5;
+  --muted:#909090;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+}
+main{
+  max-width:1200px;
+  margin:auto;
+  padding:60px 28px;
+}
+.title{
+  font-family:'DM Serif Display',serif;
+  font-size:52px;
+  margin-bottom:14px;
+}
+.subtitle{
+  color:var(--muted);
+  margin-bottom:50px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:22px;
+}
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:28px;
+}
+.fondo{
+  font-size:24px;
+  margin-bottom:12px;
+}
+.desc{
+  color:var(--muted);
+  line-height:1.7;
+  margin-bottom:24px;
+}
+.btn{
+  display:inline-block;
+  text-decoration:none;
+  background:white;
+  color:black;
+  padding:12px 18px;
+  border-radius:10px;
+  font-weight:600;
+}
+</style>
+</head>
+<body>
+<main>
+<h1 class="title">Fondos financieros</h1>
+<p class="subtitle">Descarga los folletos actualizados.</p>
+<div class="grid">
+<div class="card">
+<div class="fondo">Fondo Deuda Corporativa</div>
+<div class="desc">Renta fija corporativa nacional.</div>
+<a href="#" class="btn">Descargar folleto</a>
+</div>
+<div class="card">
+<div class="fondo">Fondo Liquidez USD</div>
+<div class="desc">Instrumentos de corto plazo en dólares.</div>
+<a href="#" class="btn">Descargar folleto</a>
+</div>
+</div>
+</main>
+</body>
+</html>
