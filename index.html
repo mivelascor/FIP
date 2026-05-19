@@ -88,17 +88,13 @@ body{
   <div class="error" id="error">Contraseña incorrecta.</div>
 </div>
 <script>
-const PASSWORD = "1234";
+const PASSWORD = "vantrust";
 function login(){
   const pass = document.getElementById("password").value;
   if(pass === PASSWORD){
-    playOk();fb.textContent="✓ Correcto";fb.className="fb ok";
-    confetti({particleCount:50,spread:45,origin:{y:.65},colors:['#e8e8e8','#888','#444']});
-    setTimeout(()=>location.href="MenuFF.html",700);
-  }else{
-    playErr();fb.textContent="Contraseña incorrecta";fb.className="fb err";
-    card.classList.remove("shake");void card.offsetWidth;card.classList.add("shake");
-    document.getElementById("pwd").value="";
+    window.location.href = "MenuFF.html";
+  } else {
+    document.getElementById("error").style.display = "block";
   }
 }
 </script>
