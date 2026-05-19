@@ -1,236 +1,279 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fondos Financieros</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'DM Serif Display',serif;
-      background: #0d1117; color: #e6edf3;
-      display: flex; justify-content: center;
-      align-items: flex-start; min-height: 100vh; padding: 40px 20px;
-    }
-    .container { text-align: center; width: 100%; max-width: 960px; }
-    .back { color: #8b949e; text-decoration: none; font-size: 13px;
-            display: inline-block; margin-bottom: 20px; transition: 0.2s; }
-    .back:hover { color: #8b949e; }
-    h1 { font-size: 2.5rem; margin-bottom: 8px; color: #e6edf3; }
-    .subtitle { color: #8b949e; margin-bottom: 28px; }
-    .search-container {
-      margin-bottom: 32px; display: flex;
-      justify-content: center; gap: 10px; flex-wrap: wrap;
-    }
-    .search-container input {
-      padding: 10px 16px; width: 280px; border-radius: 8px;
-      border: 1px solid #30363d; background: #161b22;
-      color: #e6edf3; font-size: 14px;
-    }
-    .search-container input:focus { outline: none; border-color: #8b949e; }
-    .search-container button {
-      padding: 10px 18px; border: none; border-radius: 8px;
-      background: #8b949e; color: #0d1117; font-weight: bold;
-      cursor: pointer; transition: 0.2s;
-    }
-    .search-container button:hover { background: #8b949e; }
-    .grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-      gap: 16px; align-items: stretch;
-    }
-    .card {
-      background: #161b22; border: 1px solid #30363d; border-radius: 12px;
-      padding: 22px 16px; text-decoration: none; color: #e6edf3;
-      transition: all 0.2s; display: flex; justify-content: center;
-      align-items: center; text-align: center; min-height: 90px;
-    }
-    .card:hover {
-      border-color: #8b949e; transform: translateY(-3px);
-      box-shadow: 0 8px 24px rgba(88,166,255,0.15);
-    }
-    .card h2 { font-size: 0.88rem; line-height: 1.4; font-weight: 600; }
-    /* Descargas */
-    .downloads-section {
-      margin-top: 48px; padding: 28px;
-      background: #161b22; border: 1px solid #30363d; border-radius: 14px;
-    }
-    .downloads-section h3 { color: #8b949e; margin-bottom: 20px; font-size: 1rem; }
-    .downloads-row {
-      display: flex; gap: 14px; justify-content: center;
-      flex-wrap: wrap; margin-bottom: 20px;
-    }
-    .download-btn {
-      padding: 11px 20px; border-radius: 10px; background: #8b949e;
-      color: #0d1117; border: none; font-weight: bold;
-      font-size: 13px; cursor: pointer; transition: 0.2s;
-    }
-    .download-btn:hover { background: #8b949e; }
-    .download-btn.secondary {
-      background: #21262d; color: #e6edf3; border: 1px solid #30363d;
-    }
-    .download-btn.secondary:hover { border-color: #8b949e; color: #8b949e; }
-    /* Historial por mes */
-    .historial-row {
-      display: flex; gap: 10px; justify-content: center;
-      align-items: center; flex-wrap: wrap;
-      margin-top: 16px; padding-top: 16px; border-top: 1px solid #30363d;
-    }
-    .historial-row span { color: #8b949e; font-size: 13px; }
-    .historial-row select {
-      padding: 9px 14px; border-radius: 8px; border: 1px solid #30363d;
-      background: #0d1117; color: #e6edf3; font-size: 13px; cursor: pointer;
-    }
-    .historial-row select:focus { outline: none; border-color: #8b949e; }
-    .admin-link {
-      display: inline-block; margin-top: 28px; color: #8b949e;
-      font-size: 12px; text-decoration: none; transition: 0.2s;
-    }
-    .admin-link:hover { color: #8b949e; }
-    #meses-loading { color: #8b949e; font-size: 12px; margin-top: 8px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fichas de Fondos — Vantrust</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+:root{--bg:#0a0a0a;--surface:#111;--border:#1e1e1e;--border2:#2a2a2a;--text:#e8e8e8;--muted:#555;--accent:#3b82f6;--green:#22c55e;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 60px;}
+ 
+.topbar{
+  border-bottom:1px solid var(--border);padding:16px 32px;
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;
+  background:var(--bg);z-index:50;
+}
+.topbar-left{display:flex;align-items:center;gap:16px;}
+.topbar-back{font-size:12px;color:var(--muted);text-decoration:none;transition:color .15s;letter-spacing:.3px;}
+.topbar-back:hover{color:var(--text);}
+.topbar-title{font-family:'DM Serif Display',serif;font-size:17px;font-weight:400;color:var(--text);}
+.topbar-sep{color:var(--border2);font-size:18px;}
+ 
+.search-bar{
+  padding:28px 32px 20px;
+  display:flex;align-items:center;gap:12px;
+}
+.search-input{
+  flex:1;max-width:320px;
+  background:var(--surface);border:1px solid var(--border);color:var(--text);
+  font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 13px;outline:none;
+  transition:border-color .15s;border-radius:1px;
+}
+.search-input:focus{border-color:var(--border2);}
+.search-input::placeholder{color:var(--muted);}
+.search-count{font-size:12px;color:var(--muted);margin-left:4px;}
+ 
+.section-label{
+  padding:0 32px 12px;
+  font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--muted);
+}
+ 
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+  gap:1px;
+  background:var(--border);
+  border:1px solid var(--border);
+  margin:0 32px 32px;
+}
+ 
+.fund-card{
+  background:var(--bg);padding:20px 18px;text-decoration:none;color:var(--text);
+  transition:background .15s;display:flex;flex-direction:column;gap:6px;min-height:80px;
+}
+.fund-card:hover{background:var(--surface);}
+.fund-name{font-size:12px;font-weight:500;line-height:1.4;color:var(--text);}
+.fund-tag{font-size:10px;color:var(--muted);letter-spacing:.3px;}
+ 
+/* Downloads section */
+.downloads{
+  margin:0 32px;padding:28px;
+  background:var(--surface);border:1px solid var(--border);
+}
+.downloads-title{font-family:'DM Serif Display',serif;font-size:18px;font-weight:400;margin-bottom:20px;color:var(--text);}
+.dl-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;align-items:center;}
+.dl-btn{
+  padding:9px 18px;background:transparent;border:1px solid var(--border2);
+  color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;
+  cursor:pointer;transition:all .15s;border-radius:1px;letter-spacing:.3px;
+}
+.dl-btn:hover{border-color:var(--text);background:var(--surface);}
+.dl-btn.primary{background:var(--text);color:var(--bg);border-color:var(--text);}
+.dl-btn.primary:hover{opacity:.87;}
+.dl-label{font-size:12px;color:var(--muted);margin-right:4px;}
+.dl-select{
+  background:var(--surface);border:1px solid var(--border2);color:var(--text);
+  font-family:'DM Sans',sans-serif;font-size:12px;padding:8px 12px;outline:none;
+  transition:border-color .15s;border-radius:1px;cursor:pointer;
+}
+.dl-select:focus{border-color:var(--text);}
+ 
+@media(max-width:600px){
+  .topbar{padding:14px 20px;}
+  .search-bar,.section-label,.grid,.downloads{padding-left:20px;padding-right:20px;margin-left:0;margin-right:0;}
+  .grid{margin:0 0 24px;}
+  .downloads{margin:0;}
+}
+</style>
 </head>
 <body>
-  <div class="container">
-    <a class="back" href="menu_principal.html">← Volver al menú principal</a>
-    <h1>Fondos Financieros</h1>
-    <p class="subtitle">Selecciona un fondo para ver sus documentos</p>
-
-    <div class="search-container">
-      <input list="fondosList" id="searchInput" placeholder="Buscar fondo...">
-      <datalist id="fondosList">
-        <option value="LIQUIDEZ ACTIVA"><option value="LIQUIDEZ ALTO APORTE">
-        <option value="LIQUIDEZ ALTO CAPITAL"><option value="LIQUIDEZ ALTO MONTO">
-        <option value="LIQUIDEZ CAJA"><option value="LIQUIDEZ CONTINUA">
-        <option value="LIQUIDEZ CORRIENTE"><option value="LIQUIDEZ CORTO PLAZO">
-        <option value="LIQUIDEZ DISPONIBLE I"><option value="LIQUIDEZ DOLAR">
-        <option value="LIQUIDEZ DOLAR CAJA"><option value="LIQUIDEZ EFECTIVO">
-        <option value="LIQUIDEZ FLEXIBLE"><option value="LIQUIDEZ I">
-        <option value="LIQUIDEZ LOCAL"><option value="LIQUIDEZ MONETARIO I">
-        <option value="LIQUIDEZ PERMANENTE"><option value="LIQUIDEZ PLUS">
-        <option value="LIQUIDEZ PRESENTE"><option value="LIQUIDEZ RECURRENTE">
-        <option value="LIQUIDEZ RENDIMIENTO"><option value="LIQUIDEZ RESERVA DOLAR">
-        <option value="LIQUIDEZ SENCILLO"><option value="LIQUIDEZ TEMPORAL">
-      </datalist>
-      <button onclick="buscarFondos()">Buscar</button>
-    </div>
-
-    <div class="grid" id="fondosGrid">
-      <a class="card" href="O1FipVantrustLiquidezActiva.html"><h2>FIP VANTRUST LIQUIDEZ ACTIVA</h2></a>
-      <a class="card" href="O2FipVantrustLiquidezAltoAporte.html"><h2>FIP VANTRUST LIQUIDEZ ALTO APORTE</h2></a>
-      <a class="card" href="O3FipVantrustLiquidezAltoCapital.html"><h2>FIP VANTRUST LIQUIDEZ ALTO CAPITAL</h2></a>
-      <a class="card" href="O4FipVantrustLiquidezAltoMonto.html"><h2>FIP VANTRUST LIQUIDEZ ALTO MONTO</h2></a>
-      <a class="card" href="O5FipVantrustLiquidezCaja.html"><h2>FIP VANTRUST LIQUIDEZ CAJA</h2></a>
-      <a class="card" href="O6FipVantrustLiquidezContinua.html"><h2>FIP VANTRUST LIQUIDEZ CONTINUA</h2></a>
-      <a class="card" href="O7FipVantrustLiquidezCorriente.html"><h2>FIP VANTRUST LIQUIDEZ CORRIENTE</h2></a>
-      <a class="card" href="O8FipVantrustLiquidezCortoPlazo.html"><h2>FIP VANTRUST LIQUIDEZ CORTO PLAZO</h2></a>
-      <a class="card" href="O9FipVantrustLiquidezDisponibleI.html"><h2>FIP VANTRUST LIQUIDEZ DISPONIBLE I</h2></a>
-      <a class="card" href="O10FipVantrustLiquidezDolar.html"><h2>FIP VANTRUST LIQUIDEZ DOLAR</h2></a>
-      <a class="card" href="O11FipVantrustLiquidezDolarCaja.html"><h2>FIP VANTRUST LIQUIDEZ DOLAR CAJA</h2></a>
-      <a class="card" href="O12FipVantrustLiquidezEfectivo.html"><h2>FIP VANTRUST LIQUIDEZ EFECTIVO</h2></a>
-      <a class="card" href="O13FipVantrustLiquidezFlexible.html"><h2>FIP VANTRUST LIQUIDEZ FLEXIBLE</h2></a>
-      <a class="card" href="O14FipVantrustLiquidezI.html"><h2>FIP VANTRUST LIQUIDEZ I</h2></a>
-      <a class="card" href="O15FipVantrustLiquidezLocal.html"><h2>FIP VANTRUST LIQUIDEZ LOCAL</h2></a>
-      <a class="card" href="O16FipVantrustLiquidezMonetarioI.html"><h2>FIP VANTRUST LIQUIDEZ MONETARIO I</h2></a>
-      <a class="card" href="O17FipVantrustLiquidezPermanente.html"><h2>FIP VANTRUST LIQUIDEZ PERMANENTE</h2></a>
-      <a class="card" href="O18FipVantrustLiquidezPlus.html"><h2>FIP VANTRUST LIQUIDEZ PLUS</h2></a>
-      <a class="card" href="O19FipVantrustLiquidezPresente.html"><h2>FIP VANTRUST LIQUIDEZ PRESENTE</h2></a>
-      <a class="card" href="O20FipVantrustLiquidezRecurrente.html"><h2>FIP VANTRUST LIQUIDEZ RECURRENTE</h2></a>
-      <a class="card" href="O21FipVantrustLiquidezRendimiento.html"><h2>FIP VANTRUST LIQUIDEZ RENDIMIENTO</h2></a>
-      <a class="card" href="O22FipVantrustLiquidezReservaDolar.html"><h2>FIP VANTRUST LIQUIDEZ RESERVA DOLAR</h2></a>
-      <a class="card" href="O23FipVantrustLiquidezSencillo.html"><h2>FIP VANTRUST LIQUIDEZ SENCILLO</h2></a>
-      <a class="card" href="O24FipVantrustLiquidezTemporal.html"><h2>FIP VANTRUST LIQUIDEZ TEMPORAL</h2></a>
-    </div>
-
-    <div class="downloads-section">
-      <h3>📥 Descargas masivas</h3>
-      <div class="downloads-row">
-        <button class="download-btn secondary" onclick="descargarReglamentos()">
-          📄 Todos los Reglamentos Internos
-        </button>
-        <button class="download-btn" onclick="descargarFolletos()">
-          📑 Folletos del mes más reciente
-        </button>
-      </div>
-      <div class="historial-row">
-        <span>Mes anterior:</span>
-        <select id="selectMes">
-          <option value="">Cargando meses...</option>
-        </select>
-        <button class="download-btn secondary" onclick="descargarMesHistorial()">
-          Descargar ZIP
-        </button>
-      </div>
-      <div id="meses-loading"></div>
-    </div>
-
-    <a class="admin-link" href="menu_principal.html">← Menú principal</a>
+ 
+<div class="topbar">
+  <div class="topbar-left">
+    <a class="topbar-back" href="menu_principal.html">← Menú</a>
+    <span class="topbar-sep">|</span>
+    <span class="topbar-title">Fichas de Fondos</span>
   </div>
-
-  <script>
-    const REPO   = "mivelascor/fondos-financieros";
-    const BRANCH = "main";
-    const input  = document.getElementById("searchInput");
-
-    function buscarFondos() {
-      const filtro = input.value.toLowerCase();
-      document.querySelectorAll(".card").forEach(card => {
-        card.style.display =
-          card.innerText.toLowerCase().includes(filtro) || !filtro ? "flex" : "none";
-      });
-    }
-    input.addEventListener("keypress", e => { if (e.key === "Enter") buscarFondos(); });
-    input.addEventListener("input",    () => { if (!input.value) buscarFondos(); });
-
-    async function cargarMeses() {
-      try {
-        const resp = await fetch(
-          `https://api.github.com/repos/${REPO}/contents/folletos`,
-          { headers: { "Accept": "application/vnd.github+json" } }
-        );
-        if (!resp.ok) return;
-        const items = await resp.json();
-        const meses = items
-          .filter(i => i.type === "dir" && /^\d{4}-\d{2}$/.test(i.name))
-          .map(i => i.name).sort().reverse();
-        const sel = document.getElementById("selectMes");
-        if (meses.length === 0) {
-          sel.innerHTML = '<option value="">Sin folletos aún</option>';
-          return;
-        }
-        sel.innerHTML = meses.map(m => `<option value="${m}">${m}</option>`).join("");
-      } catch(e) {
-        document.getElementById("meses-loading").textContent = "No se pudieron cargar los meses.";
-      }
-    }
-
-    async function descargarReglamentos() {
-      const resp = await fetch(`https://api.github.com/repos/${REPO}/contents/regl.int`);
-      const data = await resp.json();
-      data.filter(f => f.name.endsWith(".pdf")).forEach((file, i) => {
-        setTimeout(() => {
-          const a = document.createElement("a");
-          a.href = file.download_url; a.download = file.name; a.click();
-        }, i * 400);
-      });
-    }
-
-    function descargarFolletos() {
-      const a = document.createElement("a");
-      a.href = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/folletos/latest.zip`;
-      a.download = "folletos_ultimo_mes.zip";
-      a.click();
-    }
-
-    function descargarMesHistorial() {
-      const mes = document.getElementById("selectMes").value;
-      if (!mes) { alert("Selecciona un mes"); return; }
-      const a = document.createElement("a");
-      a.href = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/folletos/${mes}/folletos_${mes}.zip`;
-      a.download = `folletos_${mes}.zip`;
-      a.click();
-    }
-
-    cargarMeses();
-  </script>
+</div>
+ 
+<div class="search-bar">
+  <input class="search-input" id="searchInput" placeholder="Buscar fondo..." oninput="filtrar()" type="search">
+  <span class="search-count" id="count"></span>
+</div>
+ 
+<div class="section-label">Fondos activos</div>
+ 
+<div class="grid" id="grid">
+ 
+  <a class="fund-card" href="O1FipVantrustLiquidezActiva.html">
+    <div class="fund-name">FIP Liquidez<br>Activa</div>
+    <div class="fund-tag">CLP</div>
+  </a>
+  <a class="fund-card" href="O2FipVantrustLiquidezAltoAporte.html">
+    <div class="fund-name">FIP Liquidez<br>Alto Aporte</div>
+    <div class="fund-tag">CLP</div>
+  </a>
+  <a class="fund-card" href="O3FipVantrustLiquidezAltoCapital.html">
+    <div class="fund-name">FIP Liquidez<br>Alto Capital</div>
+    <div class="fund-tag">CLP</div>
+  </a>
+  <a class="fund-card" href="O4FipVantrustLiquidezAltoMonto.html">
+    <div class="fund-name">FIP Liquidez<br>Alto Monto</div>
+    <div class="fund-tag">CLP</div>
+  </a>
+  <a class="fund-card" href="O5FipVantrustLiquidezCaja.html">
+    <div class="fund-name">FIP Liquidez<br>Caja</div>
+    <div class="fund-tag">CLP</div>
+  </a>
+  <a class="fund-card" href="O6FipVantrustLiquidezContinua.html">
+    <div class="fund-name">FIP Liquidez<br>Continua</div>
+    <div class="fund-tag">CLP</div>
+  </a>
+  <a class="fund-card" href="O7FipVantrustLiquidezCorriente.html">
+    <div class="fund-name">FIP Liquidez<br>Corriente</div>
+    <div class="fund-tag">CLP</div>
+  </a>
+  <a class="fund-card" href="O8FipVantrustLiquidezCortoPlazo.html">
+    <div class="fund-name">FIP Liquidez<br>Corto Plazo</div>
+    <div class="fund-tag">CLP</div>
+  </a>
+  <a class="fund-card" href="O9FipVantrustLiquidezDisponibleI.html">
+    <div class="fund-name">FIP Liquidez<br>Disponible I</div>
+    <div class="fund-tag">CLP</div>
+  </a>
+  <a class="fund-card" href="O10FipVantrustLiquidezDolar.html">
+    <div class="fund-name">FIP Liquidez<br>Dólar</div>
+    <div class="fund-tag">USD</div>
+  </a>
+  <a class="fund-card" href="O11FipVantrustLiquidezDolarCaja.html">
+    <div class="fund-name">FIP Liquidez<br>Dólar Caja</div>
+    <div class="fund-tag">USD</div>
+  </a>
+  <a class="fund-card" href="O12FipVantrustLiquidezEfectivo.html">
+    <div class="fund-name">FIP Liquidez<br>Efectivo</div>
+    <div class="fund-tag">CLP</div>
+  </a>
+  <a class="fund-card" href="O13FipVantrustLiquidezFlexible.html">
+    <div class="fund-name">FIP Liquidez<br>Flexible</div>
+    <div class="fund-tag">CLP</div>
+  </a>
+  <a class="fund-card" href="O14FipVantrustLiquidezI.html">
+    <div class="fund-name">FIP Liquidez I<br>(Uno)</div>
+    <div class="fund-tag">CLP</div>
+  </a>
+  <a class="fund-card" href="O15FipVantrustLiquidezLocal.html">
+    <div class="fund-name">FIP Liquidez<br>Local</div>
+    <div class="fund-tag">CLP</div>
+  </a>
+  <a class="fund-card" href="O16FipVantrustLiquidezMonetarioI.html">
+    <div class="fund-name">FIP Liquidez<br>Monetario I</div>
+    <div class="fund-tag">CLP</div>
+  </a>
+  <a class="fund-card" href="O17FipVantrustLiquidezPermanente.html">
+    <div class="fund-name">FIP Liquidez<br>Permanente</div>
+    <div class="fund-tag">CLP</div>
+  </a>
+  <a class="fund-card" href="O18FipVantrustLiquidezPlus.html">
+    <div class="fund-name">FIP Liquidez<br>Plus</div>
+    <div class="fund-tag">CLP</div>
+  </a>
+  <a class="fund-card" href="O19FipVantrustLiquidezPresente.html">
+    <div class="fund-name">FIP Liquidez<br>Presente</div>
+    <div class="fund-tag">CLP</div>
+  </a>
+  <a class="fund-card" href="O21FipVantrustLiquidezRendimiento.html">
+    <div class="fund-name">FIP Liquidez<br>Rendimiento</div>
+    <div class="fund-tag">CLP</div>
+  </a>
+  <a class="fund-card" href="O22FipVantrustLiquidezReservaDolar.html">
+    <div class="fund-name">FIP Liquidez<br>Reserva Dólar</div>
+    <div class="fund-tag">USD</div>
+  </a>
+  <a class="fund-card" href="O23FipVantrustLiquidezSencillo.html">
+    <div class="fund-name">FIP Liquidez<br>Sencillo</div>
+    <div class="fund-tag">CLP</div>
+  </a>
+  <a class="fund-card" href="O24FipVantrustLiquidezTemporal.html">
+    <div class="fund-name">FIP Liquidez<br>Temporal</div>
+    <div class="fund-tag">USD</div>
+  </a>
+  <a class="fund-card" href="O20FipVantrustFondoFacturaDolar.html">
+    <div class="fund-name">FIP Factura<br>Dólar</div>
+    <div class="fund-tag">USD</div>
+  </a>
+ 
+</div>
+ 
+<div class="downloads">
+  <div class="downloads-title">Descargas</div>
+  <div class="dl-row">
+    <button class="dl-btn primary" onclick="dlFolletos()">📦 Folletos último mes</button>
+    <button class="dl-btn" onclick="dlReglamentos()">📄 Todos los reglamentos</button>
+  </div>
+  <div class="dl-row">
+    <span class="dl-label">Mes anterior:</span>
+    <select class="dl-select" id="selMes"><option value="">Cargando...</option></select>
+    <button class="dl-btn" onclick="dlHistorial()">Descargar ZIP</button>
+  </div>
+</div>
+ 
+<script>
+const REPO="mivelascor/FIP", BRANCH="main";
+ 
+function filtrar(){
+  const q=document.getElementById("searchInput").value.toLowerCase();
+  const cards=[...document.querySelectorAll(".fund-card")];
+  let vis=0;
+  cards.forEach(c=>{
+    const show=!q||c.innerText.toLowerCase().includes(q);
+    c.style.display=show?"flex":"none";
+    if(show)vis++;
+  });
+  const ct=document.getElementById("count");
+  ct.textContent=q?`${vis} resultado${vis!==1?"s":""}`:`${cards.length} fondos`;
+}
+ 
+async function cargarMeses(){
+  try{
+    const r=await fetch(`https://api.github.com/repos/${REPO}/contents/folletos`,
+      {headers:{"Accept":"application/vnd.github+json"}});
+    if(!r.ok)return;
+    const items=await r.json();
+    const meses=items.filter(i=>i.type==="dir"&&/^\d{4}-\d{2}$/.test(i.name)).map(i=>i.name).sort().reverse();
+    const sel=document.getElementById("selMes");
+    sel.innerHTML=meses.length
+      ?meses.map(m=>`<option value="${m}">${m}</option>`).join("")
+      :"<option value=''>Sin datos aún</option>";
+  }catch(e){document.getElementById("selMes").innerHTML="<option>Error</option>";}
+}
+ 
+function dlFolletos(){
+  const a=document.createElement("a");
+  a.href=`https://raw.githubusercontent.com/${REPO}/${BRANCH}/folletos/latest.zip`;
+  a.download="folletos_ultimo_mes.zip";a.click();
+}
+ 
+async function dlReglamentos(){
+  try{
+    const r=await fetch(`https://api.github.com/repos/${REPO}/contents/regl.int`);
+    const data=await r.json();
+    data.filter(f=>f.name.endsWith(".pdf")).forEach((f,i)=>{
+      setTimeout(()=>{const a=document.createElement("a");a.href=f.download_url;a.download=f.name;a.click();},i*350);
+    });
+  }catch(e){alert("No se pudo acceder a los reglamentos.");}
+}
+ 
+function dlHistorial(){
+  const mes=document.getElementById("selMes").value;
+  if(!mes){alert("Selecciona un mes.");return;}
+  const a=document.createElement("a");
+  a.href=`https://raw.githubusercontent.com/${REPO}/${BRANCH}/folletos/${mes}/folletos_${mes}.zip`;
+  a.download=`folletos_${mes}.zip`;a.click();
+}
+ 
+document.addEventListener("DOMContentLoaded",()=>{filtrar();cargarMeses();});
+</script>
 </body>
 </html>
