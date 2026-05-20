@@ -3,68 +3,72 @@
 <head><meta charset="UTF-8"><title>FIP Alto Aporte – Mayo 2026</title>
 <style>@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Barlow:wght@300;400;500;600;700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Barlow',Arial,sans-serif;background:#fff;color:#0a0a0a;font-size:10.5pt;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-.page{display:table;width:210mm;height:297mm;table-layout:fixed;page-break-after:always;background:linear-gradient(to right,#0a0a0a 72mm,#ffffff 72mm);}
-.col-left{display:table-cell;width:72mm;vertical-align:top;padding:0;}
+body{font-family:'Barlow',Arial,sans-serif;background:#fff;color:#0a0a0a;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.page{display:table;width:210mm;min-height:297mm;height:297mm;table-layout:fixed;page-break-after:always;background:linear-gradient(to right,#0a0a0a 68mm,#ffffff 68mm);}
+.col-left{display:table-cell;width:68mm;vertical-align:top;padding:0;}
 .col-right{display:table-cell;vertical-align:top;background:#fff;padding:0;}
-.logo-block{padding:48pt 16pt 0pt 16pt;}
-.logo-nombre{font-family:'Barlow',Arial,sans-serif;font-size:24pt;font-weight:700;line-height:1.1;color:#ffffff;letter-spacing:-0.3pt;}
-.logo-fondo-row{display:table;width:100%;margin-top:10pt;padding-bottom:12pt;border-bottom:0.75pt solid #ffffff;}
+.logo-block{padding:32pt 14pt 0pt 14pt;}
+.logo-nombre{font-family:'Barlow',Arial,sans-serif;font-size:20pt;font-weight:700;line-height:1.1;color:#ffffff;letter-spacing:-0.3pt;}
+.logo-fondo-row{display:table;width:100%;margin-top:8pt;padding-bottom:8pt;border-bottom:0.75pt solid #ffffff;}
 .logo-fondo-spacer{display:table-cell;}
-.logo-sub{display:table-cell;font-size:6pt;letter-spacing:3.5pt;color:#ffffff;font-weight:400;text-transform:uppercase;text-align:right;white-space:nowrap;vertical-align:bottom;}
-.left-section{padding:10pt 16pt 9pt;border-bottom:1pt solid rgba(255,255,255,0.08);}
-.left-section-title{font-size:7.5pt;font-weight:700;color:#ffffff;margin-bottom:10pt;}
+.logo-sub{display:table-cell;font-size:5.5pt;letter-spacing:3pt;color:#ffffff;font-weight:400;text-transform:uppercase;text-align:right;white-space:nowrap;vertical-align:bottom;}
+.left-section{padding:7pt 14pt 6pt;border-bottom:1pt solid rgba(255,255,255,0.08);}
+.left-section-title{font-size:7pt;font-weight:700;color:#ffffff;margin-bottom:7pt;}
 .info-table{width:100%;border-collapse:collapse;}
-.info-table tr td{padding:2.5pt 0;border-bottom:1pt solid rgba(255,255,255,0.05);vertical-align:top;font-size:7.5pt;line-height:1.4;}
+.info-table tr td{padding:2pt 0;border-bottom:1pt solid rgba(255,255,255,0.05);vertical-align:top;font-size:7pt;line-height:1.35;}
 .info-table tr:last-child td{border-bottom:none;}
-.info-table td.label{color:rgba(255,255,255,0.60);white-space:nowrap;padding-right:4pt;width:44%;}
+.info-table td.label{color:rgba(255,255,255,0.55);white-space:nowrap;padding-right:4pt;width:44%;}
 .info-table td.value{color:#ffffff;font-weight:400;}
-.left-text{font-size:8pt;color:rgba(255,255,255,0.52);line-height:1.55;}
-.comp-item{padding:3pt 0;border-bottom:1pt solid rgba(255,255,255,0.05);}
+.left-text{font-size:7pt;color:rgba(255,255,255,0.50);line-height:1.5;}
+.comp-item{padding:2.5pt 0;border-bottom:1pt solid rgba(255,255,255,0.05);}
 .comp-item:last-child{border-bottom:none;}
 .comp-row{display:table;width:100%;}
-.comp-label{display:table-cell;color:rgba(255,255,255,0.45);font-size:7.5pt;}
-.comp-val{display:table-cell;color:#fff;font-size:7.5pt;font-weight:700;text-align:right;white-space:nowrap;}
-.bar-track{background:rgba(255,255,255,0.1);border-radius:1pt;height:2.5pt;margin-top:2pt;}
-.bar-fill{height:2.5pt;border-radius:1pt;background:rgba(255,255,255,0.55);}
-.right-inner{padding:26pt 22pt 28pt 20pt;}
-.section-title{font-family:'EB Garamond',serif;font-size:16pt;font-weight:500;border-bottom:1.5pt solid #0a0a0a;padding-bottom:5pt;margin-bottom:8pt;letter-spacing:-0.2pt;color:#0a0a0a;}
-.comentario-box{border-left:2.5pt solid #0a0a0a;padding:7pt 10pt;font-size:8.5pt;color:#1c1c1c;line-height:1.65;font-style:italic;background:#f7f7f5;margin-bottom:14pt;}
-.chart-section{margin-bottom:14pt;}
-.chart-container{border:0.75pt solid #d8d8d8;background:#f7f7f5;padding:7pt 8pt 5pt;}
-.chart-label-row{display:table;width:100%;margin-bottom:3pt;}
-.chart-label{display:table-cell;font-size:6.5pt;letter-spacing:0.8pt;text-transform:uppercase;color:#aaa;}
-.chart-label-right{display:table-cell;text-align:right;font-size:6pt;color:#ccc;}
-.chart-legend-row{margin-top:5pt;}
-.legend-item{display:inline-block;margin-right:12pt;font-size:7pt;color:#666;vertical-align:middle;}
-.legend-line-solid{display:inline-block;width:14pt;height:1.5pt;vertical-align:middle;margin-right:3pt;border-radius:1pt;}
-.legend-line-dashed{display:inline-block;width:14pt;height:0;border-top:1.5pt dashed #aaa;vertical-align:middle;margin-right:3pt;}
-.tbl-resumen{width:100%;border-collapse:collapse;margin-bottom:12pt;font-size:8pt;}
-.tbl-resumen thead th{background:#0a0a0a;color:#fff;padding:5pt 4pt;text-align:center;font-weight:500;font-size:7pt;letter-spacing:0.2pt;white-space:nowrap;}
-.tbl-resumen thead th:first-child{text-align:left;padding-left:6pt;}
-.tbl-resumen tbody td{padding:5pt 4pt;text-align:center;border-bottom:0.75pt solid #d8d8d8;font-size:8.5pt;color:#1c1c1c;}
-.tbl-resumen tbody td:first-child{text-align:left;padding-left:6pt;font-weight:600;}
+.comp-label{display:table-cell;color:rgba(255,255,255,0.45);font-size:7pt;}
+.comp-val{display:table-cell;color:#fff;font-size:7pt;font-weight:700;text-align:right;white-space:nowrap;}
+.bar-track{background:rgba(255,255,255,0.1);border-radius:1pt;height:2pt;margin-top:1.5pt;}
+.bar-fill{height:2pt;border-radius:1pt;background:rgba(255,255,255,0.55);}
+.right-inner{padding:18pt 18pt 12pt 16pt;}
+.section-title{font-family:'EB Garamond',serif;font-size:13pt;font-weight:500;border-bottom:1.5pt solid #0a0a0a;padding-bottom:3pt;margin-bottom:6pt;letter-spacing:-0.2pt;color:#0a0a0a;}
+.comentario-box{border-left:2.5pt solid #0a0a0a;padding:5pt 8pt;font-size:7.5pt;color:#1c1c1c;line-height:1.55;font-style:italic;background:#f7f7f5;margin-bottom:10pt;}
+.chart-section{margin-bottom:10pt;}
+.chart-container{border:0.75pt solid #d8d8d8;background:#f7f7f5;padding:5pt 6pt 3pt;}
+.chart-label-row{display:table;width:100%;margin-bottom:2pt;}
+.chart-label{display:table-cell;font-size:6pt;letter-spacing:0.8pt;text-transform:uppercase;color:#aaa;}
+.chart-label-right{display:table-cell;text-align:right;font-size:5.5pt;color:#ccc;}
+.chart-legend-row{margin-top:3pt;}
+.legend-item{display:inline-block;margin-right:10pt;font-size:6.5pt;color:#666;vertical-align:middle;}
+.legend-line-solid{display:inline-block;width:12pt;height:1.5pt;vertical-align:middle;margin-right:2pt;border-radius:1pt;}
+.legend-line-dashed{display:inline-block;width:12pt;height:0;border-top:1.5pt dashed #aaa;vertical-align:middle;margin-right:2pt;}
+/* Summary table — compact */
+.tbl-resumen{width:100%;border-collapse:collapse;margin-bottom:8pt;font-size:7pt;}
+.tbl-resumen thead th{background:#0a0a0a;color:#fff;padding:3.5pt 3pt;text-align:center;font-weight:500;font-size:6.5pt;white-space:nowrap;}
+.tbl-resumen thead th:first-child{text-align:left;padding-left:5pt;}
+.tbl-resumen tbody td{padding:3.5pt 3pt;text-align:center;border-bottom:0.75pt solid #d8d8d8;font-size:7.5pt;color:#1c1c1c;}
+.tbl-resumen tbody td:first-child{text-align:left;padding-left:5pt;font-weight:600;}
 .tbl-resumen tbody tr:nth-child(odd) td{background:#f7f7f5;}
 .tbl-resumen tbody tr.fip td{background:#0a0a0a;color:#fff;font-weight:700;border-bottom:none;}
-.tbl-hist{width:100%;border-collapse:collapse;font-size:6.2pt;}
-.tbl-hist thead th{background:#0a0a0a;color:#fff;padding:3.5pt 2pt;text-align:center;font-weight:500;font-size:6pt;white-space:nowrap;}
-.tbl-hist thead th:first-child{text-align:left;padding-left:5pt;width:22pt;}
-.tbl-hist thead th:nth-child(2){text-align:left;width:52pt;}
+/* History table — compact */
+.tbl-hist{width:100%;border-collapse:collapse;font-size:5.5pt;}
+.tbl-hist thead th{background:#0a0a0a;color:#fff;padding:2.5pt 1.5pt;text-align:center;font-weight:500;font-size:5.5pt;white-space:nowrap;}
+.tbl-hist thead th:first-child{text-align:left;padding-left:4pt;width:18pt;}
+.tbl-hist thead th:nth-child(2){text-align:left;width:46pt;}
 .tbl-hist tbody tr.tr-icp td{background:#fff;}
 .tbl-hist tbody tr.tr-comp td{background:#f7f7f5;}
 .tbl-hist tbody tr.tr-fip td{background:#ebebeb;font-weight:700;}
-.tbl-hist tbody tr.tr-sp td{height:3pt;padding:0;border:none;background:transparent!important;}
-.tbl-hist td{padding:2.5pt 2pt;text-align:center;color:#333;border-bottom:0.5pt solid rgba(0,0,0,0.045);}
-.tbl-hist td:first-child{text-align:left;padding-left:5pt;font-weight:700;color:#0a0a0a;}
-.tbl-hist td:nth-child(2){text-align:left;font-size:5.8pt;color:#666;}
+.tbl-hist tbody tr.tr-sp td{height:2pt;padding:0;border:none;background:transparent!important;}
+.tbl-hist td{padding:1.8pt 1.5pt;text-align:center;color:#333;border-bottom:0.5pt solid rgba(0,0,0,0.04);}
+.tbl-hist td:first-child{text-align:left;padding-left:4pt;font-weight:700;color:#0a0a0a;}
+.tbl-hist td:nth-child(2){text-align:left;font-size:5pt;color:#666;}
 .tbl-hist td:last-child{font-weight:700;}
-.glos-item{margin-bottom:9pt;}
-.glos-term{font-weight:700;font-size:8.5pt;margin-bottom:2pt;color:#0a0a0a;}
-.glos-def{font-size:8pt;color:#666;line-height:1.55;}
-.disclaimer-box{border:0.75pt solid #d8d8d8;padding:9pt 11pt;font-size:8pt;color:#666;line-height:1.6;background:#f7f7f5;}
+/* Glossary */
+.glos-item{margin-bottom:7pt;}
+.glos-term{font-weight:700;font-size:8pt;margin-bottom:2pt;color:#0a0a0a;}
+.glos-def{font-size:7.5pt;color:#666;line-height:1.5;}
+.disclaimer-box{border:0.75pt solid #d8d8d8;padding:7pt 9pt;font-size:7.5pt;color:#666;line-height:1.5;background:#f7f7f5;}
 @media print{body{background:#fff;}.page{page-break-after:always;}}
 @page{size:A4;margin:0;}</style></head>
 <body>
+<!-- ═══════════ PÁGINA 1: todo el contenido ═══════════ -->
 <div class="page">
   <div class="col-left">
     <div class="logo-block"><div class="logo-nombre">Alto<br>Aporte</div><div class="logo-fondo-row"><span class="logo-fondo-spacer"></span><span class="logo-sub">F O N D O</span></div></div>
@@ -78,8 +82,8 @@ body{font-family:'Barlow',Arial,sans-serif;background:#fff;color:#0a0a0a;font-si
         <tr><td class="label">Benchmark</td><td class="value">Índice Cámara Promedio (ICP)</td></tr>
         <tr><td class="label">Fondo Rescatable</td><td class="value">Sí</td></tr>
         <tr><td class="label">Plazo Rescate</td><td class="value">A más tardar 15 días corridos</td></tr>
-        <tr><td class="label">Riesgos</td><td class="value">Mercado – Crédito – Liquidez – Tasa de interés – Derivados</td></tr>
-        <tr><td class="label">Remuneración</td><td class="value">0,1785% IVA Incluido</td></tr>
+        <tr><td class="label">Riesgos</td><td class="value">Mercado – Crédito – Liquidez – Tasa interés – Derivados</td></tr>
+        <tr><td class="label">Remuneración</td><td class="value">—</td></tr>
         <tr><td class="label">Custodio</td><td class="value">Vantrust Capital C. de Bolsa</td></tr>
       </table></div>
     <div class="left-section"><div class="left-section-title">Objetivo</div><p class="left-text">Invertir los recursos del fondo en instrumentos de deuda de corto y mediano plazo, en una cartera diversificada, obteniendo una rentabilidad igual o superior al ICP.</p></div>
@@ -93,25 +97,25 @@ body{font-family:'Barlow',Arial,sans-serif;background:#fff;color:#0a0a0a;font-si
       <div class="section-title">Evolución Rentabilidad</div>
       <div class="chart-container">
         <div class="chart-label-row"><span class="chart-label">FIP Alto Aporte</span><span class="chart-label-right">Índice base 100</span></div>
-        <svg viewBox="0 0 500 140" width="100%" height="140" xmlns="http://www.w3.org/2000/svg">
-  <line x1="32" x2="492" y1="120.0" y2="120.0" stroke="#e0e0e0" stroke-width="0.5"/>
-  <text x="30" y="122.0" text-anchor="end" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">100</text>
-  <line x1="32" x2="492" y1="91.5" y2="91.5" stroke="#e0e0e0" stroke-width="0.5"/>
-  <text x="30" y="93.5" text-anchor="end" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">113</text>
-  <line x1="32" x2="492" y1="63.0" y2="63.0" stroke="#e0e0e0" stroke-width="0.5"/>
-  <text x="30" y="65.0" text-anchor="end" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">125</text>
-  <line x1="32" x2="492" y1="34.5" y2="34.5" stroke="#e0e0e0" stroke-width="0.5"/>
-  <text x="30" y="36.5" text-anchor="end" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">138</text>
-  <line x1="32" x2="492" y1="6.0" y2="6.0" stroke="#e0e0e0" stroke-width="0.5"/>
-  <text x="30" y="8.0" text-anchor="end" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">151</text>
-  <polyline points="32.0,120.0 38.67,119.91 45.33,119.82 52.0,119.73 58.67,119.66 65.33,119.57 72.0,119.51 78.67,119.46 85.33,119.39 92.0,119.33 98.67,119.28 105.33,119.21 112.0,119.1 118.67,118.97 125.33,118.68 132.0,118.2 138.67,117.73 145.33,117.01 152.0,116.23 158.67,115.24 165.33,114.14 172.0,112.88 178.67,111.25 185.33,109.52 192.0,107.74 198.67,105.61 205.33,103.5 212.0,101.44 218.67,98.92 225.33,96.61 232.0,94.12 238.67,91.92 245.33,89.45 252.0,87.23 258.67,84.56 265.33,82.11 272.0,79.55 278.67,77.2 285.33,75.13 292.0,72.84 298.67,70.8 305.33,68.87 312.0,66.83 318.67,65.14 325.33,63.55 332.0,61.84 338.67,60.3 345.33,58.97 352.0,57.47 358.67,56.1 365.33,54.71 372.0,53.4 378.67,52.13 385.33,50.82 392.0,49.52 398.67,48.38 405.33,47.1 412.0,45.86 418.67,44.61 425.33,43.33 432.0,42.02 438.67,40.86 445.33,39.58 452.0,38.37 458.67,37.2 465.33,35.92 472.0,34.73 478.67,33.61 485.33,32.4 492.0,31.23" fill="none" stroke="#aaa" stroke-width="1.2" stroke-dasharray="3,2"/>
-  <polyline points="32.0,120.0 38.67,119.96 45.33,119.93 52.0,119.93 58.67,119.91 65.33,119.89 72.0,119.89 78.67,119.87 85.33,119.87 92.0,119.84 98.67,119.84 105.33,119.82 112.0,119.8 118.67,119.8 125.33,119.82 132.0,119.6 138.67,119.3 145.33,118.9 152.0,118.32 158.67,117.58 165.33,116.7 172.0,115.67 178.67,114.41 185.33,113.06 192.0,111.54 198.67,109.9 205.33,108.19 212.0,106.49 218.67,104.4 225.33,102.49 232.0,100.45 238.67,98.65 245.33,96.63 252.0,94.79 258.67,92.57 265.33,90.57 272.0,88.49 278.67,86.53 285.33,84.78 292.0,83.05 298.67,81.44 305.33,79.85 312.0,78.27 318.67,76.93 325.33,75.74 332.0,74.48 338.67,73.34 345.33,72.35 352.0,71.36 358.67,70.37 365.33,69.45 372.0,68.51 378.67,67.61 385.33,66.74 392.0,65.88 398.67,65.12 405.33,64.27 412.0,63.44 418.67,62.56 425.33,61.71 432.0,60.86 438.67,60.03 445.33,59.24 452.0,58.43 458.67,57.62 465.33,56.82 472.0,56.03 478.67,55.33 485.33,54.55 492.0,53.81" fill="none" stroke="#444" stroke-width="1.7"/>
-  <polyline points="32.0,120.0 38.67,119.57 45.33,119.15 52.0,118.7 58.67,118.27 65.33,118.14 72.0,117.73 78.67,117.28 85.33,116.97 92.0,116.61 98.67,116.14 105.33,115.76 112.0,115.47 118.67,115.17 125.33,114.77 132.0,114.34 138.67,113.83 145.33,113.18 152.0,112.32 158.67,111.29 165.33,110.03 172.0,108.33 178.67,106.29 185.33,104.4 192.0,102.36 198.67,100.14 205.33,97.89 212.0,95.58 218.67,92.8 225.33,89.88 232.0,86.8 238.67,84.27 245.33,81.19 252.0,78.61 258.67,75.58 265.33,72.77 272.0,69.79 278.67,66.98 285.33,64.34 292.0,61.64 298.67,59.15 305.33,56.64 312.0,54.08 318.67,52.13 325.33,50.08 332.0,48.15 338.67,46.22 345.33,44.49 352.0,42.88 358.67,41.24 365.33,39.69 372.0,38.16 378.67,36.71 385.33,35.2 392.0,33.76 398.67,32.31 405.33,30.53 412.0,28.78 418.67,26.94 425.33,25.1 432.0,23.4 438.67,21.58 445.33,19.76 452.0,17.83 458.67,15.92 465.33,13.99 472.0,11.95 478.67,10.04 485.33,8.02 492.0,6.0" fill="none" stroke="#0a0a0a" stroke-width="1.8"/>
-  <text x="32.0" y="136.0" text-anchor="middle" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">2020</text>
-  <text x="152.0" y="136.0" text-anchor="middle" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">2022</text>
-  <text x="312.0" y="136.0" text-anchor="middle" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">2024</text>
-  <text x="472.0" y="136.0" text-anchor="middle" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">2026</text>
-  <line x1="32" x2="492" y1="120" y2="120" stroke="#ccc" stroke-width="0.5"/>
+        <svg viewBox="0 0 500 110" width="100%" height="110" xmlns="http://www.w3.org/2000/svg">
+  <line x1="32" x2="492" y1="94.0" y2="94.0" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="30" y="96.0" text-anchor="end" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">100</text>
+  <line x1="32" x2="492" y1="71.5" y2="71.5" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="30" y="73.5" text-anchor="end" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">113</text>
+  <line x1="32" x2="492" y1="49.0" y2="49.0" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="30" y="51.0" text-anchor="end" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">125</text>
+  <line x1="32" x2="492" y1="26.5" y2="26.5" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="30" y="28.5" text-anchor="end" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">138</text>
+  <line x1="32" x2="492" y1="4.0" y2="4.0" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="30" y="6.0" text-anchor="end" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">151</text>
+  <polyline points="32.0,94.0 38.67,93.93 45.33,93.86 52.0,93.79 58.67,93.73 65.33,93.66 72.0,93.61 78.67,93.57 85.33,93.52 92.0,93.47 98.67,93.43 105.33,93.38 112.0,93.29 118.67,93.18 125.33,92.95 132.0,92.58 138.67,92.21 145.33,91.64 152.0,91.02 158.67,90.24 165.33,89.38 172.0,88.38 178.67,87.09 185.33,85.72 192.0,84.32 198.67,82.64 205.33,80.98 212.0,79.35 218.67,77.36 225.33,75.54 232.0,73.57 238.67,71.83 245.33,69.88 252.0,68.13 258.67,66.02 265.33,64.09 272.0,62.07 278.67,60.21 285.33,58.58 292.0,56.77 298.67,55.16 305.33,53.63 312.0,52.02 318.67,50.69 325.33,49.43 332.0,48.09 338.67,46.86 345.33,45.82 352.0,44.63 358.67,43.55 365.33,42.45 372.0,41.42 378.67,40.41 385.33,39.39 392.0,38.36 398.67,37.46 405.33,36.45 412.0,35.47 418.67,34.48 425.33,33.47 432.0,32.44 438.67,31.52 445.33,30.51 452.0,29.55 458.67,28.63 465.33,27.62 472.0,26.68 478.67,25.8 485.33,24.84 492.0,23.92" fill="none" stroke="#aaa" stroke-width="1.2" stroke-dasharray="3,2"/>
+  <polyline points="32.0,94.0 38.67,93.96 45.33,93.95 52.0,93.95 58.67,93.93 65.33,93.91 72.0,93.91 78.67,93.89 85.33,93.89 92.0,93.88 98.67,93.88 105.33,93.86 112.0,93.84 118.67,93.84 125.33,93.86 132.0,93.68 138.67,93.45 145.33,93.13 152.0,92.67 158.67,92.09 165.33,91.4 172.0,90.58 178.67,89.59 185.33,88.52 192.0,87.32 198.67,86.03 205.33,84.68 212.0,83.33 218.67,81.68 225.33,80.18 232.0,78.57 238.67,77.15 245.33,75.55 252.0,74.1 258.67,72.35 265.33,70.77 272.0,69.12 278.67,67.58 285.33,66.2 292.0,64.83 298.67,63.56 305.33,62.3 312.0,61.06 318.67,60.0 325.33,59.06 332.0,58.06 338.67,57.16 345.33,56.38 352.0,55.6 358.67,54.82 365.33,54.09 372.0,53.35 378.67,52.64 385.33,51.95 392.0,51.28 398.67,50.67 405.33,50.0 412.0,49.35 418.67,48.65 425.33,47.98 432.0,47.31 438.67,46.65 445.33,46.03 452.0,45.39 458.67,44.76 465.33,44.12 472.0,43.5 478.67,42.95 485.33,42.33 492.0,41.74" fill="none" stroke="#444" stroke-width="1.7"/>
+  <polyline points="32.0,94.0 38.67,93.66 45.33,93.33 52.0,92.97 58.67,92.64 65.33,92.53 72.0,92.21 78.67,91.86 85.33,91.61 92.0,91.32 98.67,90.95 105.33,90.65 112.0,90.42 118.67,90.19 125.33,89.87 132.0,89.53 138.67,89.13 145.33,88.61 152.0,87.94 158.67,87.12 165.33,86.13 172.0,84.79 178.67,83.17 185.33,81.68 192.0,80.07 198.67,78.32 205.33,76.55 212.0,74.72 218.67,72.52 225.33,70.22 232.0,67.79 238.67,65.79 245.33,63.36 252.0,61.32 258.67,58.93 265.33,56.72 272.0,54.36 278.67,52.15 285.33,50.05 292.0,47.93 298.67,45.96 305.33,43.98 312.0,41.96 318.67,40.41 325.33,38.8 332.0,37.28 338.67,35.75 345.33,34.39 352.0,33.11 358.67,31.82 365.33,30.6 372.0,29.39 378.67,28.24 385.33,27.05 392.0,25.92 398.67,24.77 405.33,23.37 412.0,21.99 418.67,20.53 425.33,19.08 432.0,17.73 438.67,16.3 445.33,14.86 452.0,13.34 458.67,11.83 465.33,10.31 472.0,8.7 478.67,7.19 485.33,5.59 492.0,4.0" fill="none" stroke="#0a0a0a" stroke-width="1.8"/>
+  <text x="32.0" y="106.0" text-anchor="middle" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">2020</text>
+  <text x="152.0" y="106.0" text-anchor="middle" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">2022</text>
+  <text x="312.0" y="106.0" text-anchor="middle" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">2024</text>
+  <text x="472.0" y="106.0" text-anchor="middle" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">2026</text>
+  <line x1="32" x2="492" y1="94" y2="94" stroke="#ccc" stroke-width="0.5"/>
 </svg>
         <div class="chart-legend-row"><span class="legend-item"><span class="legend-line-dashed"></span>ICP Norm.</span><span class="legend-item"><span class="legend-line-solid" style="background:#444;"></span>Competencia Relevante</span><span class="legend-item"><span class="legend-line-solid" style="background:#0a0a0a;"></span>FIP Alto Aporte</span></div>
       </div>
@@ -125,7 +129,7 @@ body{font-family:'Barlow',Arial,sans-serif;background:#fff;color:#0a0a0a;font-si
       </tbody>
     </table>
     <table class="tbl-hist">
-      <thead><tr><th>Año</th><th>Fondo</th><th>Ene</th><th>Feb</th><th>Mar</th><th>Abr</th><th>May</th><th>Jun</th><th>Jul</th><th>Ago</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dic</th><th>Total Año</th></tr></thead>
+      <thead><tr><th>Año</th><th>Fondo</th><th>Ene</th><th>Feb</th><th>Mar</th><th>Abr</th><th>May</th><th>Jun</th><th>Jul</th><th>Ago</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dic</th><th>Total</th></tr></thead>
       <tbody>
           <tr class="tr-icp"><td rowspan="1">2013</td><td>ICP</td><td>0,47%</td><td>0,39%</td><td>0,39%</td><td>0,46%</td><td>0,43%</td><td>0,39%</td><td>0,46%</td><td>0,42%</td><td>0,43%</td><td>0,41%</td><td>0,39%</td><td>0,39%</td><td>5,15%</td></tr>
           <tr class="tr-sp"><td colspan="15"></td></tr>
@@ -176,6 +180,7 @@ body{font-family:'Barlow',Arial,sans-serif;background:#fff;color:#0a0a0a;font-si
     </table>
   </div></div>
 </div>
+<!-- ═══════════ PÁGINA 2: composición + glosario ═══════════ -->
 <div class="page">
   <div class="col-left">
     <div class="logo-block"><div class="logo-nombre">Alto<br>Aporte</div><div class="logo-fondo-row"><span class="logo-fondo-spacer"></span><span class="logo-sub">F O N D O</span></div></div>
@@ -185,40 +190,20 @@ body{font-family:'Barlow',Arial,sans-serif;background:#fff;color:#0a0a0a;font-si
       </div>
 </div>
     <div class="left-section"><div class="left-section-title">Composición por Instrumento</div>      <div class="comp-item">
-        <div class="comp-row"><span class="comp-label">Bono</span><span class="comp-val">0,00%</span></div>
+        <div class="comp-row"><span class="comp-label">Financiamiento</span><span class="comp-val">74,77%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:74.77%"></div></div>
       </div>
       <div class="comp-item">
-        <div class="comp-row"><span class="comp-label">Depósitos</span><span class="comp-val">0,00%</span></div>
+        <div class="comp-row"><span class="comp-label">Finan. Inmobiliario</span><span class="comp-val">13,75%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:13.75%"></div></div>
       </div>
       <div class="comp-item">
-        <div class="comp-row"><span class="comp-label">Factoring</span><span class="comp-val">0,00%</span></div>
+        <div class="comp-row"><span class="comp-label">Nota Estructurada</span><span class="comp-val">3,78%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:3.78%"></div></div>
       </div>
       <div class="comp-item">
-        <div class="comp-row"><span class="comp-label">Facturas</span><span class="comp-val">0,00%</span></div>
-      </div>
-      <div class="comp-item">
-        <div class="comp-row"><span class="comp-label">Finan. Inmobiliario</span><span class="comp-val">0,00%</span></div>
-      </div>
-      <div class="comp-item">
-        <div class="comp-row"><span class="comp-label">Finan. Mesa Mon. Extr.</span><span class="comp-val">0,00%</span></div>
-      </div>
-      <div class="comp-item">
-        <div class="comp-row"><span class="comp-label">Garantías</span><span class="comp-val">0,00%</span></div>
-      </div>
-      <div class="comp-item">
-        <div class="comp-row"><span class="comp-label">Nota Estructurada</span><span class="comp-val">0,00%</span></div>
-      </div>
-      <div class="comp-item">
-        <div class="comp-row"><span class="comp-label">Finan. Mesa Renta Fija</span><span class="comp-val">0,00%</span></div>
-      </div>
-      <div class="comp-item">
-        <div class="comp-row"><span class="comp-label">Simultánea</span><span class="comp-val">0,00%</span></div>
-      </div>
-      <div class="comp-item">
-        <div class="comp-row"><span class="comp-label">Efectos de Comercio</span><span class="comp-val">0,00%</span></div>
-      </div>
-      <div class="comp-item">
-        <div class="comp-row"><span class="comp-label">Pagaré</span><span class="comp-val">0,00%</span></div>
+        <div class="comp-row"><span class="comp-label">Efectos de Comercio</span><span class="comp-val">7,70%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:7.70%"></div></div>
       </div>
 </div>
     <div class="left-section"><div class="left-section-title">Composición por Duración</div>      <div class="comp-item">
@@ -241,14 +226,14 @@ body{font-family:'Barlow',Arial,sans-serif;background:#fff;color:#0a0a0a;font-si
   <div class="col-right"><div class="right-inner">
     <div class="section-title">Glosario</div>
 
-      <div class="glos-item"><div class="glos-term">Riesgo de Mercado</div><div class="glos-def">Este es el riesgo de una variación adversa en el precio o tasa de mercado en los instrumentos en que invierte el Fondo.</div></div>
-      <div class="glos-item"><div class="glos-term">Riesgo de Crédito</div><div class="glos-def">Es la posible pérdida que se asume como consecuencia del incumplimiento de las obligaciones directas, indirectas o de derivados que conllevan al no pago parcial, total o falta de oportunidad del pago de los emisores de los instrumentos en que invierte el Fondo.</div></div>
-      <div class="glos-item"><div class="glos-term">Riesgo de Liquidez</div><div class="glos-def">Riesgo asociado a la capacidad de generación de recursos del Fondo para cumplir con sus obligaciones de rescate o vencimiento del mismo.</div></div>
-      <div class="glos-item"><div class="glos-term">Riesgo de Tasa de interés</div><div class="glos-def">Exposición a pérdidas ocasionadas por cambios adversos en las tasas de interés de mercado y que afecten el valor de los instrumentos, contratos y demás operaciones registradas en el balance.</div></div>
-      <div class="glos-item"><div class="glos-term">Riesgo de Moneda</div><div class="glos-def">Es la exposición a pérdidas ocasionadas por cambios adversos en el valor en moneda nacional de las monedas extranjeras que están expresados a los instrumentos, contratos y demás operaciones del balance del Fondo.</div></div>
-      <div class="glos-item"><div class="glos-term">Gastos del fondo</div><div class="glos-def">Corresponden a los gastos directos e indirectos necesarios para el correcto funcionamiento del fondo los que están detallados en el Reglamento Interno.</div></div>
+      <div class="glos-item"><div class="glos-term">Riesgo de Mercado</div><div class="glos-def">Variación adversa en el precio o tasa de mercado en los instrumentos en que invierte el Fondo.</div></div>
+      <div class="glos-item"><div class="glos-term">Riesgo de Crédito</div><div class="glos-def">Posible pérdida por incumplimiento de las obligaciones de los emisores de los instrumentos en que invierte el Fondo.</div></div>
+      <div class="glos-item"><div class="glos-term">Riesgo de Liquidez</div><div class="glos-def">Riesgo asociado a la capacidad del Fondo para cumplir con sus obligaciones de rescate o vencimiento.</div></div>
+      <div class="glos-item"><div class="glos-term">Riesgo de Tasa de interés</div><div class="glos-def">Exposición a pérdidas por cambios adversos en las tasas de interés de mercado.</div></div>
+      <div class="glos-item"><div class="glos-term">Riesgo de Moneda</div><div class="glos-def">Exposición a pérdidas por cambios adversos en el valor de las monedas extranjeras del balance del Fondo.</div></div>
+      <div class="glos-item"><div class="glos-term">Gastos del fondo</div><div class="glos-def">Gastos directos e indirectos necesarios para el correcto funcionamiento del fondo, detallados en el Reglamento Interno.</div></div>
     <div class="glos-item"><div class="glos-term">Forma de Ingreso y Pago del Fondo</div><div class="glos-def">La moneda en que el inversionista entra al fondo es aportando pesos chilenos, y al rescate de las cuotas, el fondo le entrega pesos chilenos.</div></div>
-    <div class="section-title" style="margin-top:12pt;">Disclaimer</div>
+    <div class="section-title" style="margin-top:10pt;">Disclaimer</div>
     <div class="disclaimer-box">Conforme a la Ley Única de Fondos, las administradoras de fondos de inversión privados están sujetas a las obligaciones de información establecidas por la Comisión para el Mercado Financiero. Tales fondos no están sometidos a fiscalización de la Comisión y no hacemos oferta pública de sus cuotas.</div>
   </div></div>
 </div>
