@@ -293,3 +293,32 @@ def leer_datos_template(nombre_fondo: str,
         "historico":  historico,
         "grafico":    {"labels": labels, "icp": c_icp, "comp": c_comp, "fip": c_fip},
     }
+
+
+def _get_vc_fondo_robust(nombre_fondo: str) -> dict:
+    """Wrapper con retry para fondos que fallan por timeout intermitente."""
+    import time
+    global _VC_CACHE
+    if nombre_fondo in _VC_CACHE and _VC_CACHE[nombre_fondo]:
+        return _VC_CACHE[nombre_fondo]
+    sql = (f"SELECT YEAR(FECHA_CIERRE) AS yr, MONTH(FECHA_CIERRE) AS mo, "
+           f"MAX(VALOR_CUOTA) AS vc "
+           f"FROM ODS.VALORES_CUOTA_GPI "
+           f"WHERE RTRIM(LTRIM(EMPRESA))=N'{nombre_fondo}' AND VALOR_CUOTA>0 "
+           f"GROUP BY YEAR(FECHA_CIERRE), MONTH(FECHA_CIERRE) "
+           f"ORDER BY yr, mo")
+    for attempt in range(3):
+        try:
+            r = requests.post(API_SQL, json={"Sql": sql},
+                              headers={"Content-Type": "application/json"}, timeout=60)
+            rows = r.json().get("rows", [])
+            if rows:
+                result = {(int(row["yr"]), int(row["mo"])): float(row["vc"])
+                           for row in rows if row.get("vc")}
+                _VC_CACHE[nombre_fondo] = result
+                return result
+        except Exception:
+            if attempt < 2:
+                time.sleep(2)
+    _VC_CACHE[nombre_fondo] = {}
+    return {}
