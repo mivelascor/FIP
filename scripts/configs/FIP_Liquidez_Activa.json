@@ -1,0 +1,17 @@
+{
+  "nombre_fondo": "FIP Liquidez Activa",
+  "template": "TEMPLATE_FONDO_LIQUIDEZ_ACTIVA.xlsx",
+  "rut": "76.637.334-8",
+  "moneda": "CLP",
+  "tipo": "Fondo de Inversion Privado",
+  "inicio": "Febrero 2025",
+  "benchmark": "Indice Camara Promedio (ICP)",
+  "rescatable": "Si",
+  "plazo": "A mas tardar 15 dias corridos",
+  "riesgos": "Mercado- Credito - Liquidez - Tasa de interes - Derivados",
+  "remuneracion": "cobrara una comision anual ascendente al menor valor entre 1.-Un monto equivalente al  0,50% de la TPM vigente a la fecha de cálculo más IVA 2.- y una tasa 0,9520% (IVA incluido), esta comision se ira devengando en forma diaria.",
+  "custodio": "Vantrust Capital C.de Bolsa",
+  "objetivo": "Invertir los recursos del fondo en instrumentos de deuda de corto y mediano plazo, en una cartera diversificada, obteniendo una rentabilidad igual o superior al ICP",
+  "rentabilidad_desc": "La rentabilidad esperada del Fondo Vantrust Liquidez Activa, es la tasa de política monetaria promedio del Banco Central de Chile.",
+  "inversionistas": "Dirigida a empresas y personas que buscan invertir sus excedentes de caja con una rentabilidad de corto plazo y baja tolerancia al riesgo."
+}
