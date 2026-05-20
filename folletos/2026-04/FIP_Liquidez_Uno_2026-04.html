@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><title>FIP Liquidez Uno – Abril 2026</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Barlow:wght@300;400;500;600;700&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Barlow',Arial,sans-serif; background:#fff; color:#0a0a0a; font-size:10.5pt; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.page { display:table; width:210mm; height:297mm; table-layout:fixed; page-break-after:always; background:linear-gradient(to right,#0a0a0a 72mm,#ffffff 72mm); }
+.col-left { display:table-cell; width:72mm; vertical-align:top; padding:0; }
+.col-right { display:table-cell; vertical-align:top; background:#fff; padding:0; }
+.logo-block { padding:48pt 16pt 0pt 16pt; }
+.logo-nombre { font-family:'Barlow',Arial,sans-serif; font-size:24pt; font-weight:700; line-height:1.1; color:#ffffff; letter-spacing:-0.3pt; }
+.logo-fondo-row { display:table; width:100%; margin-top:10pt; padding-bottom:12pt; border-bottom:0.75pt solid #ffffff; }
+.logo-fondo-spacer { display:table-cell; }
+.logo-sub { display:table-cell; font-size:6pt; letter-spacing:3.5pt; color:#ffffff; font-weight:400; text-transform:uppercase; text-align:right; white-space:nowrap; vertical-align:bottom; }
+.left-section { padding:10pt 16pt 9pt; border-bottom:1pt solid rgba(255,255,255,0.08); }
+.left-section-title { font-size:7.5pt; font-weight:700; color:#ffffff; margin-bottom:10pt; }
+.info-table { width:100%; border-collapse:collapse; }
+.info-table tr td { padding:2.5pt 0; border-bottom:1pt solid rgba(255,255,255,0.05); vertical-align:top; font-size:7.5pt; line-height:1.4; }
+.info-table tr:last-child td { border-bottom:none; }
+.info-table td.label { color:rgba(255,255,255,0.60); white-space:nowrap; padding-right:4pt; width:44%; }
+.info-table td.value { color:#ffffff; font-weight:400; }
+.left-text { font-size:8pt; color:rgba(255,255,255,0.52); line-height:1.55; }
+.comp-item { padding:3pt 0; border-bottom:1pt solid rgba(255,255,255,0.05); }
+.comp-item:last-child { border-bottom:none; }
+.comp-row { display:table; width:100%; }
+.comp-label { display:table-cell; color:rgba(255,255,255,0.45); font-size:7.5pt; }
+.comp-val { display:table-cell; color:#fff; font-size:7.5pt; font-weight:700; text-align:right; white-space:nowrap; }
+.bar-track { background:rgba(255,255,255,0.1); border-radius:1pt; height:2.5pt; margin-top:2pt; }
+.bar-fill { height:2.5pt; border-radius:1pt; background:rgba(255,255,255,0.55); }
+.right-inner { padding:26pt 22pt 28pt 20pt; }
+.section-title { font-family:'EB Garamond',serif; font-size:16pt; font-weight:500; border-bottom:1.5pt solid #0a0a0a; padding-bottom:5pt; margin-bottom:8pt; letter-spacing:-0.2pt; color:#0a0a0a; }
+.comentario-box { border-left:2.5pt solid #0a0a0a; padding:7pt 10pt; font-size:8.5pt; color:#1c1c1c; line-height:1.65; font-style:italic; background:#f7f7f5; margin-bottom:14pt; }
+.chart-section { margin-bottom:14pt; }
+.chart-container { border:0.75pt solid #d8d8d8; background:#f7f7f5; padding:7pt 8pt 5pt; }
+.chart-label-row { display:table; width:100%; margin-bottom:3pt; }
+.chart-label { display:table-cell; font-size:6.5pt; letter-spacing:0.8pt; text-transform:uppercase; color:#aaa; }
+.chart-label-right { display:table-cell; text-align:right; font-size:6pt; color:#ccc; }
+.chart-legend-row { margin-top:5pt; }
+.legend-item { display:inline-block; margin-right:12pt; font-size:7pt; color:#666; vertical-align:middle; }
+.legend-line-solid { display:inline-block; width:14pt; height:1.5pt; vertical-align:middle; margin-right:3pt; border-radius:1pt; }
+.legend-line-dashed { display:inline-block; width:14pt; height:0; border-top:1.5pt dashed #aaa; vertical-align:middle; margin-right:3pt; }
+.tbl-resumen { width:100%; border-collapse:collapse; margin-bottom:12pt; font-size:8pt; }
+.tbl-resumen thead th { background:#0a0a0a; color:#fff; padding:5pt 4pt; text-align:center; font-weight:500; font-size:7pt; letter-spacing:0.2pt; white-space:nowrap; }
+.tbl-resumen thead th:first-child { text-align:left; padding-left:6pt; }
+.tbl-resumen tbody td { padding:5pt 4pt; text-align:center; border-bottom:0.75pt solid #d8d8d8; font-size:8.5pt; color:#1c1c1c; }
+.tbl-resumen tbody td:first-child { text-align:left; padding-left:6pt; font-weight:600; }
+.tbl-resumen tbody tr:nth-child(odd) td { background:#f7f7f5; }
+.tbl-resumen tbody tr.fip td { background:#0a0a0a; color:#fff; font-weight:700; border-bottom:none; }
+.tbl-hist { width:100%; border-collapse:collapse; font-size:6.2pt; }
+.tbl-hist thead th { background:#0a0a0a; color:#fff; padding:3.5pt 2pt; text-align:center; font-weight:500; font-size:6pt; white-space:nowrap; }
+.tbl-hist thead th:first-child { text-align:left; padding-left:5pt; width:22pt; }
+.tbl-hist thead th:nth-child(2) { text-align:left; width:52pt; }
+.tbl-hist tbody tr.tr-icp td { background:#fff; }
+.tbl-hist tbody tr.tr-comp td { background:#f7f7f5; }
+.tbl-hist tbody tr.tr-fip td { background:#ebebeb; font-weight:700; }
+.tbl-hist tbody tr.tr-sp td { height:3pt; padding:0; border:none; background:transparent !important; }
+.tbl-hist td { padding:2.5pt 2pt; text-align:center; color:#333; border-bottom:0.5pt solid rgba(0,0,0,0.045); }
+.tbl-hist td:first-child { text-align:left; padding-left:5pt; font-weight:700; color:#0a0a0a; }
+.tbl-hist td:nth-child(2) { text-align:left; font-size:5.8pt; color:#666; }
+.tbl-hist td:last-child { font-weight:700; }
+.glos-item { margin-bottom:9pt; }
+.glos-term { font-weight:700; font-size:8.5pt; margin-bottom:2pt; color:#0a0a0a; }
+.glos-def { font-size:8pt; color:#666; line-height:1.55; }
+.disclaimer-box { border:0.75pt solid #d8d8d8; padding:9pt 11pt; font-size:8pt; color:#666; line-height:1.6; background:#f7f7f5; }
+@media print { body { background:#fff; } .page { page-break-after:always; } }
+@page { size:A4; margin:0; }</style></head>
+<body>
+<div class="page">
+  <div class="col-left">
+    <div class="logo-block"><div class="logo-nombre">Liquidez<br>Uno</div><div class="logo-fondo-row"><span class="logo-fondo-spacer"></span><span class="logo-sub">F O N D O</span></div></div>
+    <div class="left-section"><div class="left-section-title">Información General</div>
+      <table class="info-table">
+        <tr><td class="label">Administradora</td><td class="value">Vantrust Gestión Patrimonial S.A.</td></tr>
+        <tr><td class="label">RUT Fondo</td><td class="value">77.155.267-6</td></tr>
+        <tr><td class="label">Moneda</td><td class="value">CLP</td></tr>
+        <tr><td class="label">Tipo de Fondo</td><td class="value">Fondo de Inversion Privado</td></tr>
+        <tr><td class="label">Fecha Inicio</td><td class="value">Abril 2020</td></tr>
+        <tr><td class="label">Benchmark</td><td class="value">Índice Cámara Promedio (ICP)</td></tr>
+        <tr><td class="label">Fondo Rescatable</td><td class="value">Sí</td></tr>
+        <tr><td class="label">Plazo Rescate</td><td class="value">A más tardar 15 días corridos</td></tr>
+        <tr><td class="label">Riesgos</td><td class="value">Mercado – Crédito – Liquidez – Tasa de interés – Derivados</td></tr>
+        <tr><td class="label">Remuneración</td><td class="value">0,295% IVA Incluido</td></tr>
+        <tr><td class="label">Custodio</td><td class="value">Vantrust Capital C. de Bolsa</td></tr>
+      </table></div>
+    <div class="left-section"><div class="left-section-title">Objetivo</div><p class="left-text">Invertir los recursos del fondo en instrumentos de deuda de corto y mediano plazo, en una cartera diversificada, obteniendo una rentabilidad igual o superior al ICP.</p></div>
+    <div class="left-section"><div class="left-section-title">Rentabilidad</div><p class="left-text">La rentabilidad esperada del Fondo Vantrust Liquidez Uno es la tasa de política monetaria promedio del Banco Central de Chile.</p></div>
+    <div class="left-section"><div class="left-section-title">Inversionistas</div><p class="left-text">Dirigida a empresas y personas que buscan invertir sus excedentes de caja con una rentabilidad de corto plazo y baja tolerancia al riesgo.</p></div>
+  </div>
+  <div class="col-right"><div class="right-inner">
+    <div class="section-title">Comentario Portafolio Manager</div>
+    <div class="comentario-box">El IPC de abril registró una variación mensual de 1,2%, llevando la inflación anual a 4,0%, por encima de las expectativas del mercado. El alza estuvo impulsada principalmente por los combustibles y su traspaso al componente de transporte. El componente volátil de energía acumuló un avance mensual de 12,9%, reflejando los incrementos en los precios de la gasolina y el diésel. La inflación subyacente continuó moderada, con un avance de 0,3% mensual. En este contexto, el Banco Central mantuvo la tasa de política monetaria sin cambios, en línea con una postura cautelosa frente al escenario externo de mayor incertidumbre.</div>
+    <div class="chart-section">
+      <div class="section-title">Evolución Rentabilidad</div>
+      <div class="chart-container">
+        <div class="chart-label-row"><span class="chart-label">FIP LIQUIDEZ I</span><span class="chart-label-right">Índice base 100</span></div>
+        <svg viewBox="0 0 500 140" width="100%" height="140" xmlns="http://www.w3.org/2000/svg">
+  <line x1="32" x2="492" y1="120.0" y2="120.0" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="30" y="122.0" text-anchor="end" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">100</text>
+  <line x1="32" x2="492" y1="91.5" y2="91.5" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="30" y="93.5" text-anchor="end" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">113</text>
+  <line x1="32" x2="492" y1="63.0" y2="63.0" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="30" y="65.0" text-anchor="end" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">125</text>
+  <line x1="32" x2="492" y1="34.5" y2="34.5" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="30" y="36.5" text-anchor="end" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">138</text>
+  <line x1="32" x2="492" y1="6.0" y2="6.0" stroke="#e0e0e0" stroke-width="0.5"/>
+  <text x="30" y="8.0" text-anchor="end" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">150</text>
+  <polyline points="32.0,120.0 38.39,119.91 44.78,119.82 51.17,119.73 57.56,119.64 63.94,119.55 70.33,119.46 76.72,119.39 83.11,119.3 89.5,119.23 95.89,119.18 102.28,119.12 108.67,119.05 115.06,119.0 121.44,118.94 127.83,118.82 134.22,118.69 140.61,118.39 147.0,117.92 153.39,117.44 159.78,116.69 166.17,115.92 172.56,114.93 178.94,113.79 185.33,112.53 191.72,110.87 198.11,109.13 204.5,107.34 210.89,105.19 217.28,103.06 223.67,100.97 230.06,98.44 236.44,96.08 242.83,93.57 249.22,91.35 255.61,88.88 262.0,86.61 268.39,83.92 274.78,81.45 281.17,78.87 287.56,76.49 293.94,74.38 300.33,72.09 306.72,70.01 313.11,68.06 319.5,66.0 325.89,64.3 332.28,62.69 338.67,60.97 345.06,59.41 351.44,58.07 357.83,56.56 364.22,55.15 370.61,53.77 377.0,52.43 383.39,51.17 389.78,49.85 396.17,48.52 402.56,47.36 408.94,46.07 415.33,44.82 421.72,43.55 428.11,42.24 434.5,40.93 440.89,39.77 447.28,38.46 453.67,37.26 460.06,36.06 466.44,34.77 472.83,33.57 479.22,32.43 485.61,31.21 492.0,30.03" fill="none" stroke="#aaa" stroke-width="1.2" stroke-dasharray="3,2"/>
+  <polyline points="32.0,120.0 38.39,119.95 44.78,119.93 51.17,119.91 57.56,119.86 63.94,119.84 70.33,119.82 76.72,119.82 83.11,119.8 89.5,119.8 95.89,119.77 102.28,119.77 108.67,119.75 115.06,119.73 121.44,119.73 127.83,119.71 134.22,119.71 140.61,119.73 147.0,119.5 153.39,119.21 159.78,118.8 166.17,118.21 172.56,117.44 178.94,116.58 185.33,115.54 191.72,114.27 198.11,112.89 204.5,111.37 210.89,109.72 217.28,107.97 223.67,106.25 230.06,104.14 236.44,102.24 242.83,100.18 249.22,98.35 255.61,96.31 262.0,94.45 268.39,92.23 274.78,90.19 281.17,88.09 287.56,86.11 293.94,84.35 300.33,82.6 306.72,80.97 313.11,79.36 319.5,77.78 325.89,76.42 332.28,75.22 338.67,73.93 345.06,72.8 351.44,71.8 357.83,70.8 364.22,69.81 370.61,68.88 377.0,67.93 383.39,67.02 389.78,66.11 396.17,65.28 402.56,64.51 408.94,63.65 415.33,62.78 421.72,61.92 428.11,61.06 434.5,60.23 440.89,59.36 447.28,58.57 453.67,57.76 460.06,56.94 466.44,56.13 472.83,55.33 479.22,54.61 485.61,53.84 492.0,53.07" fill="none" stroke="#444" stroke-width="1.7"/>
+  <polyline points="32.0,120.0 38.39,119.57 44.78,118.94 51.17,118.39 57.56,117.92 63.94,117.37 70.33,116.76 76.72,116.19 83.11,115.72 89.5,115.27 95.89,114.88 102.28,114.52 108.67,114.18 115.06,113.75 121.44,113.43 127.83,113.02 134.22,112.75 140.61,112.39 147.0,112.05 153.39,111.66 159.78,111.1 166.17,110.28 172.56,109.31 178.94,108.22 185.33,106.7 191.72,104.76 198.11,102.85 204.5,100.86 210.89,98.71 217.28,96.56 223.67,94.25 230.06,91.46 236.44,88.9 242.83,86.0 249.22,83.33 255.61,80.52 262.0,77.89 268.39,74.86 274.78,72.07 281.17,69.13 287.56,66.43 293.94,63.85 300.33,61.24 306.72,58.78 313.11,56.4 319.5,53.97 325.89,52.0 332.28,50.21 338.67,48.15 345.06,46.34 351.44,44.71 357.83,43.19 364.22,41.52 370.61,39.91 377.0,38.39 383.39,36.83 389.78,35.36 396.17,33.91 402.56,32.43 408.94,30.55 415.33,28.56 421.72,26.54 428.11,24.69 434.5,22.9 440.89,21.02 447.28,19.25 453.67,17.44 460.06,15.6 466.44,13.72 472.83,11.8 479.22,9.99 485.61,7.99 492.0,6.0" fill="none" stroke="#0a0a0a" stroke-width="1.8"/>
+  <text x="32.0" y="136.0" text-anchor="middle" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">2020</text>
+  <text x="166.17" y="136.0" text-anchor="middle" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">2022</text>
+  <text x="319.5" y="136.0" text-anchor="middle" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">2024</text>
+  <text x="472.83" y="136.0" text-anchor="middle" font-size="5.5" fill="#999" font-family="Barlow,sans-serif">2026</text>
+  <line x1="32" x2="492" y1="120" y2="120" stroke="#ccc" stroke-width="0.5"/>
+</svg>
+        <div class="chart-legend-row"><span class="legend-item"><span class="legend-line-dashed"></span>ICP Norm.</span><span class="legend-item"><span class="legend-line-solid" style="background:#444;"></span>Competencia Relevante</span><span class="legend-item"><span class="legend-line-solid" style="background:#0a0a0a;"></span>FIP LIQUIDEZ I</span></div>
+      </div>
+    </div>
+    <table class="tbl-resumen">
+      <thead><tr><th>Rentabilidad</th><th>Mensual</th><th>Trimestral</th><th>Semestral</th><th>Anual</th><th>Acum 2026 (*)</th></tr></thead>
+      <tbody>
+          <tr><td>ICP (Benchmark)</td><td>0,38%</td><td>1,13%</td><td>2,33%</td><td>4,90%</td><td>3,39%</td></tr>
+          <tr><td>Competencia</td><td>0,26%</td><td>0,77%</td><td>1,62%</td><td>3,43%</td><td>2,32%</td></tr>
+          <tr class="fip"><td>FIP LIQUIDEZ I</td><td>0,59%</td><td>1,73%</td><td>3,47%</td><td>7,10%</td><td>5,19%</td></tr>
+      </tbody>
+    </table>
+    <table class="tbl-hist">
+      <thead><tr><th>Año</th><th>Fondo</th><th>Ene</th><th>Feb</th><th>Mar</th><th>Abr</th><th>May</th><th>Jun</th><th>Jul</th><th>Ago</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dic</th><th>Total Año</th></tr></thead>
+      <tbody>
+          <tr class="tr-icp"><td rowspan="3">2020</td><td>ICP</td><td>—</td><td>—</td><td>—</td><td>—</td><td>0,05%</td><td>0,05%</td><td>0,05%</td><td>0,03%</td><td>0,04%</td><td>0,04%</td><td>0,03%</td><td>0,04%</td><td>0,50%</td></tr>
+          <tr class="tr-comp"><td>Competencia</td><td>—</td><td>—</td><td>—</td><td>—</td><td>0,03%</td><td>0,01%</td><td>0,01%</td><td>0,01%</td><td>0,01%</td><td>0,01%</td><td>0,01%</td><td>0,01%</td><td>0,16%</td></tr>
+          <tr class="tr-fip"><td>FIP LIQUIDEZ I</td><td>—</td><td>—</td><td>—</td><td>—</td><td>0,19%</td><td>0,29%</td><td>0,24%</td><td>0,20%</td><td>0,24%</td><td>0,25%</td><td>0,25%</td><td>0,20%</td><td>2,78%</td></tr>
+          <tr class="tr-sp"><td colspan="15"></td></tr>
+          <tr class="tr-icp"><td rowspan="3">2021</td><td>ICP</td><td>0,03%</td><td>0,02%</td><td>0,03%</td><td>0,03%</td><td>0,02%</td><td>0,03%</td><td>0,05%</td><td>0,06%</td><td>0,12%</td><td>0,21%</td><td>0,21%</td><td>0,32%</td><td>1,14%</td></tr>
+          <tr class="tr-comp"><td>Competencia</td><td>0,00%</td><td>0,01%</td><td>0,01%</td><td>0,01%</td><td>0,01%</td><td>0,01%</td><td>0,01%</td><td>0,01%</td><td>-0,01%</td><td>0,10%</td><td>0,13%</td><td>0,18%</td><td>0,45%</td></tr>
+          <tr class="tr-fip"><td>FIP LIQUIDEZ I</td><td>0,19%</td><td>0,16%</td><td>0,15%</td><td>0,15%</td><td>0,18%</td><td>0,14%</td><td>0,17%</td><td>0,12%</td><td>0,15%</td><td>0,15%</td><td>0,16%</td><td>0,24%</td><td>2,00%</td></tr>
+          <tr class="tr-sp"><td colspan="15"></td></tr>
+          <tr class="tr-icp"><td rowspan="3">2022</td><td>ICP</td><td>0,34%</td><td>0,43%</td><td>0,48%</td><td>0,55%</td><td>0,71%</td><td>0,74%</td><td>0,76%</td><td>0,90%</td><td>0,88%</td><td>0,86%</td><td>1,04%</td><td>0,94%</td><td>8,97%</td></tr>
+          <tr class="tr-comp"><td>Competencia</td><td>0,26%</td><td>0,33%</td><td>0,38%</td><td>0,46%</td><td>0,55%</td><td>0,59%</td><td>0,65%</td><td>0,70%</td><td>0,73%</td><td>0,72%</td><td>0,87%</td><td>0,79%</td><td>7,27%</td></tr>
+          <tr class="tr-fip"><td>FIP LIQUIDEZ I</td><td>0,34%</td><td>0,41%</td><td>0,47%</td><td>0,63%</td><td>0,82%</td><td>0,78%</td><td>0,82%</td><td>0,88%</td><td>0,87%</td><td>0,92%</td><td>1,11%</td><td>1,00%</td><td>9,43%</td></tr>
+          <tr class="tr-sp"><td colspan="15"></td></tr>
+          <tr class="tr-icp"><td rowspan="3">2023</td><td>ICP</td><td>1,00%</td><td>0,88%</td><td>0,97%</td><td>0,88%</td><td>1,04%</td><td>0,94%</td><td>0,97%</td><td>0,89%</td><td>0,78%</td><td>0,85%</td><td>0,75%</td><td>0,71%</td><td>11,19%</td></tr>
+          <tr class="tr-comp"><td>Competencia</td><td>0,84%</td><td>0,74%</td><td>0,82%</td><td>0,75%</td><td>0,88%</td><td>0,80%</td><td>0,82%</td><td>0,76%</td><td>0,68%</td><td>0,67%</td><td>0,62%</td><td>0,61%</td><td>9,36%</td></tr>
+          <tr class="tr-fip"><td>FIP LIQUIDEZ I</td><td>1,12%</td><td>1,02%</td><td>1,07%</td><td>0,98%</td><td>1,13%</td><td>1,03%</td><td>1,07%</td><td>0,97%</td><td>0,93%</td><td>0,92%</td><td>0,87%</td><td>0,83%</td><td>12,62%</td></tr>
+          <tr class="tr-sp"><td colspan="15"></td></tr>
+          <tr class="tr-icp"><td rowspan="3">2024</td><td>ICP</td><td>0,74%</td><td>0,61%</td><td>0,56%</td><td>0,61%</td><td>0,55%</td><td>0,46%</td><td>0,53%</td><td>0,48%</td><td>0,48%</td><td>0,45%</td><td>0,44%</td><td>0,44%</td><td>6,54%</td></tr>
+          <tr class="tr-comp"><td>Competencia</td><td>0,59%</td><td>0,51%</td><td>0,45%</td><td>0,47%</td><td>0,42%</td><td>0,37%</td><td>0,36%</td><td>0,36%</td><td>0,34%</td><td>0,34%</td><td>0,32%</td><td>0,32%</td><td>4,95%</td></tr>
+          <tr class="tr-fip"><td>FIP LIQUIDEZ I</td><td>0,84%</td><td>0,67%</td><td>0,61%</td><td>0,70%</td><td>0,60%</td><td>0,54%</td><td>0,51%</td><td>0,55%</td><td>0,53%</td><td>0,50%</td><td>0,50%</td><td>0,48%</td><td>7,26%</td></tr>
+          <tr class="tr-sp"><td colspan="15"></td></tr>
+          <tr class="tr-icp"><td rowspan="3">2025</td><td>ICP</td><td>0,45%</td><td>0,39%</td><td>0,43%</td><td>0,42%</td><td>0,42%</td><td>0,43%</td><td>0,43%</td><td>0,38%</td><td>0,42%</td><td>0,40%</td><td>0,38%</td><td>0,41%</td><td>4,61%</td></tr>
+          <tr class="tr-comp"><td>Competencia</td><td>0,30%</td><td>0,28%</td><td>0,31%</td><td>0,30%</td><td>0,31%</td><td>0,30%</td><td>0,30%</td><td>0,30%</td><td>0,28%</td><td>0,29%</td><td>0,28%</td><td>0,28%</td><td>2,96%</td></tr>
+          <tr class="tr-fip"><td>FIP LIQUIDEZ I</td><td>0,46%</td><td>0,47%</td><td>0,60%</td><td>0,63%</td><td>0,64%</td><td>0,58%</td><td>0,56%</td><td>0,58%</td><td>0,54%</td><td>0,56%</td><td>0,55%</td><td>0,57%</td><td>6,46%</td></tr>
+          <tr class="tr-sp"><td colspan="15"></td></tr>
+          <tr class="tr-icp"><td rowspan="3">2026</td><td>ICP</td><td>0,39%</td><td>0,36%</td><td>0,39%</td><td>0,38%</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>3,39%</td></tr>
+          <tr class="tr-comp"><td>Competencia</td><td>0,27%</td><td>0,24%</td><td>0,27%</td><td>0,26%</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>2,32%</td></tr>
+          <tr class="tr-fip"><td>FIP LIQUIDEZ I</td><td>0,58%</td><td>0,54%</td><td>0,59%</td><td>0,59%</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>5,19%</td></tr>
+          <tr class="tr-sp"><td colspan="15"></td></tr>
+      </tbody>
+    </table>
+  </div></div>
+</div>
+<div class="page">
+  <div class="col-left">
+    <div class="logo-block"><div class="logo-nombre">Liquidez<br>Uno</div><div class="logo-fondo-row"><span class="logo-fondo-spacer"></span><span class="logo-sub">F O N D O</span></div></div>
+    <div class="left-section"><div class="left-section-title">Composición por Moneda</div>      <div class="comp-item">
+        <div class="comp-row"><span class="comp-label">Pesos</span><span class="comp-val">100,00%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:100.00%"></div></div>
+      </div>
+</div>
+    <div class="left-section"><div class="left-section-title">Composición por Instrumento</div>      <div class="comp-item">
+        <div class="comp-row"><span class="comp-label">Bono</span><span class="comp-val">0,00%</span></div>
+      </div>
+      <div class="comp-item">
+        <div class="comp-row"><span class="comp-label">Depósitos</span><span class="comp-val">0,00%</span></div>
+      </div>
+      <div class="comp-item">
+        <div class="comp-row"><span class="comp-label">Factoring</span><span class="comp-val">0,00%</span></div>
+      </div>
+      <div class="comp-item">
+        <div class="comp-row"><span class="comp-label">Facturas</span><span class="comp-val">0,00%</span></div>
+      </div>
+      <div class="comp-item">
+        <div class="comp-row"><span class="comp-label">Finan. Inmobiliario</span><span class="comp-val">0,00%</span></div>
+      </div>
+      <div class="comp-item">
+        <div class="comp-row"><span class="comp-label">Finan. Mesa Mon. Extr.</span><span class="comp-val">0,00%</span></div>
+      </div>
+      <div class="comp-item">
+        <div class="comp-row"><span class="comp-label">Garantías</span><span class="comp-val">0,00%</span></div>
+      </div>
+      <div class="comp-item">
+        <div class="comp-row"><span class="comp-label">Nota Estructurada</span><span class="comp-val">0,00%</span></div>
+      </div>
+      <div class="comp-item">
+        <div class="comp-row"><span class="comp-label">Finan. Mesa Renta Fija</span><span class="comp-val">0,00%</span></div>
+      </div>
+      <div class="comp-item">
+        <div class="comp-row"><span class="comp-label">Simultánea</span><span class="comp-val">0,00%</span></div>
+      </div>
+      <div class="comp-item">
+        <div class="comp-row"><span class="comp-label">Efectos de Comercio</span><span class="comp-val">0,00%</span></div>
+      </div>
+      <div class="comp-item">
+        <div class="comp-row"><span class="comp-label">Pagaré</span><span class="comp-val">0,00%</span></div>
+      </div>
+</div>
+    <div class="left-section"><div class="left-section-title">Composición por Duración</div>      <div class="comp-item">
+        <div class="comp-row"><span class="comp-label">Menos de 1 mes</span><span class="comp-val">50,78%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:50.78%"></div></div>
+      </div>
+      <div class="comp-item">
+        <div class="comp-row"><span class="comp-label">1-3 meses</span><span class="comp-val">49,22%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:49.22%"></div></div>
+      </div>
+      <div class="comp-item">
+        <div class="comp-row"><span class="comp-label">3-4 meses</span><span class="comp-val">0,00%</span></div>
+      </div>
+      <div class="comp-item">
+        <div class="comp-row"><span class="comp-label">Más de 4 meses</span><span class="comp-val">0,00%</span></div>
+      </div>
+</div>
+  </div>
+  <div class="col-right"><div class="right-inner">
+    <div class="section-title">Glosario</div>
+
+      <div class="glos-item">
+        <div class="glos-term">Riesgo de Mercado</div>
+        <div class="glos-def">Este es el riesgo de una variación adversa en el precio o tasa de mercado en los instrumentos en que invierte el Fondo.</div>
+      </div>
+      <div class="glos-item">
+        <div class="glos-term">Riesgo de Crédito</div>
+        <div class="glos-def">Es la posible pérdida que se asume como consecuencia del incumplimiento de las obligaciones directas, indirectas o de derivados que conllevan al no pago parcial, total o falta de oportunidad del pago de los emisores de los instrumentos en que invierte el Fondo y que pudieran ocasionar una pérdida financiera.</div>
+      </div>
+      <div class="glos-item">
+        <div class="glos-term">Riesgo de Liquidez</div>
+        <div class="glos-def">Riesgo asociado a la capacidad de generación de recursos del Fondo para cumplir con sus obligaciones de rescate o vencimiento del mismo.</div>
+      </div>
+      <div class="glos-item">
+        <div class="glos-term">Riesgo Profundidad de Mercado</div>
+        <div class="glos-def">Corresponde a la posibilidad de comprar o vender un activo financiero al valor de mercado en un período de tiempo acorde a las características del instrumento.</div>
+      </div>
+      <div class="glos-item">
+        <div class="glos-term">Riesgo de Tasa de interés</div>
+        <div class="glos-def">Exposición a pérdidas ocasionadas por cambios adversos en las tasas de interés de mercado y que afecten el valor de los instrumentos, contratos y demás operaciones registradas en el balance.</div>
+      </div>
+      <div class="glos-item">
+        <div class="glos-term">Riesgo de Moneda</div>
+        <div class="glos-def">Es la exposición a pérdidas ocasionadas por cambios adversos en el valor en moneda nacional de las monedas extranjeras que están expresados a los instrumentos, contratos y demás operaciones del balance del Fondo.</div>
+      </div>
+      <div class="glos-item">
+        <div class="glos-term">Riesgo Sectorial</div>
+        <div class="glos-def">Este riesgo está asociado a condiciones de mercado adversas que pueden afectar a un sector industrial en particular y por ende la rentabilidad del Fondo.</div>
+      </div>
+      <div class="glos-item">
+        <div class="glos-term">Gastos del fondo</div>
+        <div class="glos-def">Corresponden a los gastos directos e indirectos necesarios para el correcto funcionamiento del fondo los que están detallados en el Reglamento Interno.</div>
+      </div>
+    <div class="glos-item"><div class="glos-term">Forma de Ingreso y Pago del Fondo</div><div class="glos-def">La moneda en que el inversionista entra al fondo es aportando pesos chilenos, y al rescate de las cuotas, el fondo le entrega pesos chilenos.</div></div>
+    <div class="section-title" style="margin-top:12pt;">Disclaimer</div>
+    <div class="disclaimer-box">Conforme a la Ley Única de Fondos, las administradoras de fondos de inversión privados están sujetas a las obligaciones de información establecidas por la Comisión para el Mercado Financiero. Tales fondos no están sometidos a fiscalización de la Comisión y no hacemos oferta pública de sus cuotas.</div>
+  </div></div>
+</div>
+</body></html>
