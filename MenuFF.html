@@ -6,66 +6,203 @@
 <title>Fichas de Fondos — Vantrust</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
-:root{--bg:#0a0a0a;--surface:#111;--surface2:#161616;--border:#1e1e1e;--border2:#2a2a2a;--text:#e8e8e8;--muted:#555;--muted2:#777;--green:#22c55e;}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;}
 
-.topbar{border-bottom:1px solid var(--border);padding:15px 32px;display:flex;align-items:center;gap:14px;position:sticky;top:0;background:var(--bg);z-index:50;}
-.tb-back{font-size:12px;color:var(--muted);text-decoration:none;transition:color .15s;letter-spacing:.3px;}
-.tb-back:hover{color:var(--text);}
-.tb-sep{color:var(--border2);font-size:16px;}
-.tb-title{font-family:'DM Serif Display',serif;font-size:17px;font-weight:400;}
-
-.search-row{padding:24px 32px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-.search-input{flex:1;max-width:300px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 13px;outline:none;transition:border-color .15s;border-radius:1px;}
-.search-input:focus{border-color:var(--border2);}
-.search-input::placeholder{color:var(--muted);}
-.search-ct{font-size:12px;color:var(--muted);}
-
-.section-eyebrow{padding:0 32px 12px;font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);}
-
-/* ── Fund grid ── */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin:0 32px 40px;}
-.fund-card{background:var(--bg);padding:18px 16px;text-decoration:none;color:var(--text);transition:background .15s;display:flex;flex-direction:column;gap:6px;min-height:76px;}
-.fund-card:hover{background:var(--surface);}
-.fund-name{font-size:12px;font-weight:500;line-height:1.4;}
-.fund-tag{font-size:10px;color:var(--muted);letter-spacing:.3px;}
-.fund-tag.usd{color:#60a5fa;}
-
-/* ── Downloads section ── */
-.dl-section{margin:0 32px;background:var(--surface);border:1px solid var(--border);padding:28px 28px 24px;}
-.dl-title{font-family:'DM Serif Display',serif;font-size:22px;font-weight:400;margin-bottom:6px;}
-.dl-sub{font-size:12px;color:var(--muted);margin-bottom:24px;line-height:1.5;}
-
-.dl-primary{margin-bottom:20px;}
-.btn-dl-big{
-  display:inline-flex;align-items:center;gap:10px;
-  background:var(--text);color:var(--bg);border:none;
-  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;
-  padding:14px 24px;cursor:pointer;transition:opacity .15s;border-radius:1px;
-  letter-spacing:.3px;
+:root {
+  --bg:      #0a0a0a;
+  --surface: #111111;
+  --s2:      #161616;
+  --border:  #1e1e1e;
+  --border2: #2a2a2a;
+  --text:    #e8e8e8;
+  --muted:   #555555;
+  --muted2:  #777777;
+  --blue:    #3b82f6;
+  --blue-d:  #1d4ed8;
+  --green:   #22c55e;
 }
-.btn-dl-big:hover{opacity:.87;}
-.btn-dl-big:disabled{opacity:.35;cursor:not-allowed;}
-.btn-dl-big .icon{font-size:18px;}
-.btn-dl-big .lbl{display:flex;flex-direction:column;text-align:left;}
-.btn-dl-big .lbl span{font-size:10px;font-weight:400;color:rgba(0,0,0,.5);margin-top:1px;}
 
-.dl-divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+* { margin:0; padding:0; box-sizing:border-box; }
 
-.dl-secondary{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-.btn-sm{background:transparent;border:1px solid var(--border2);color:var(--muted2);font-family:'DM Sans',sans-serif;font-size:12px;padding:8px 16px;cursor:pointer;transition:all .15s;border-radius:1px;}
-.btn-sm:hover{border-color:var(--text);color:var(--text);}
-.dl-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-.dl-label{font-size:12px;color:var(--muted);}
-select{background:var(--surface2);border:1px solid var(--border2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;padding:8px 12px;outline:none;transition:border-color .15s;border-radius:1px;cursor:pointer;}
-select:focus{border-color:var(--muted2);}
-.dl-hint{font-size:11px;color:var(--muted);margin-top:10px;}
+body {
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  padding-bottom:80px;
+}
 
-@media(max-width:600px){
-  .topbar,.search-row,.section-eyebrow,.dl-section{padding-left:20px;padding-right:20px;}
-  .grid{margin:0 0 32px;}
-  .dl-section{margin:0;}
+/* ── Topbar ── */
+.topbar {
+  border-bottom:1px solid var(--border);
+  padding:15px 40px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  position:sticky;
+  top:0;
+  background:var(--bg);
+  z-index:50;
+}
+.tb-back { font-size:12px;color:var(--muted);text-decoration:none;transition:color .15s;letter-spacing:.3px; }
+.tb-back:hover { color:var(--text); }
+.tb-sep  { color:var(--border2);font-size:16px; }
+.tb-title{ font-family:'DM Serif Display',serif;font-size:17px;font-weight:400; }
+
+/* ── Search bar ── */
+.search-wrap {
+  padding:28px 40px 0;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.search-box {
+  width:320px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  font-size:13px;
+  padding:10px 14px;
+  outline:none;
+  transition:border-color .15s;
+  border-radius:2px;
+}
+.search-box:focus  { border-color:var(--border2); }
+.search-box::placeholder { color:var(--muted); }
+.search-count { font-size:12px;color:var(--muted);margin-left:4px; }
+
+.eyebrow {
+  padding:20px 40px 14px;
+  font-size:10px;font-weight:700;letter-spacing:3px;
+  text-transform:uppercase;color:var(--muted);
+}
+
+/* ── 4-col grid ── */
+.grid {
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1px;
+  background:var(--border);
+  border:1px solid var(--border);
+  margin:0 40px 44px;
+}
+
+.card {
+  background:var(--bg);
+  padding:26px 22px;
+  text-decoration:none;
+  color:var(--text);
+  transition:background .15s,border-color .15s;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  min-height:100px;
+}
+.card:hover { background:var(--surface); }
+.card-name { font-size:13px;font-weight:500;line-height:1.4; }
+.card-tag  { font-size:10px;color:var(--muted);letter-spacing:.3px;font-weight:500; }
+.card-tag.usd { color:var(--blue); }
+
+/* ── Downloads ── */
+.dl-section {
+  margin:0 40px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  padding:32px 32px 28px;
+}
+
+.dl-title {
+  font-family:'DM Serif Display',serif;
+  font-size:24px;font-weight:400;margin-bottom:6px;
+}
+.dl-sub {
+  font-size:12px;color:var(--muted);margin-bottom:28px;line-height:1.55;
+}
+
+.dl-primary-row {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-bottom:24px;
+}
+
+.btn-big {
+  display:flex;
+  align-items:center;
+  gap:14px;
+  background:var(--s2);
+  border:1px solid var(--border2);
+  padding:18px 20px;
+  cursor:pointer;
+  transition:all .18s;
+  border-radius:2px;
+  width:100%;
+  text-align:left;
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+}
+.btn-big:hover { border-color:var(--text);background:var(--border); }
+.btn-big:disabled { opacity:.35;cursor:not-allowed; }
+
+.btn-big.primary {
+  background:var(--text);
+  border-color:var(--text);
+  color:var(--bg);
+}
+.btn-big.primary:hover { opacity:.88; }
+
+.btn-icon  { font-size:26px;flex-shrink:0; }
+.btn-lbl   { display:flex;flex-direction:column;gap:3px; }
+.btn-lbl strong { font-size:13px;font-weight:600; }
+.btn-lbl span   { font-size:11px;opacity:.65; }
+
+.dl-divider { border:none;border-top:1px solid var(--border);margin:8px 0 24px; }
+
+/* ── Historial ── */
+.hist-label {
+  font-size:10px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;color:var(--muted);margin-bottom:14px;
+}
+.hist-row { display:flex;gap:10px;align-items:center; }
+select {
+  background:var(--s2);
+  border:1px solid var(--border2);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  font-size:13px;
+  padding:9px 13px;
+  outline:none;
+  transition:border-color .15s;
+  border-radius:2px;
+  cursor:pointer;
+  flex:1;
+  max-width:200px;
+}
+select:focus { border-color:var(--muted2); }
+.btn-sm {
+  background:transparent;
+  border:1px solid var(--border2);
+  color:var(--muted2);
+  font-family:'DM Sans',sans-serif;
+  font-size:12px;
+  padding:9px 18px;
+  cursor:pointer;
+  transition:all .15s;
+  border-radius:2px;
+  white-space:nowrap;
+}
+.btn-sm:hover { border-color:var(--text);color:var(--text); }
+
+.dl-hint { font-size:11px;color:var(--muted);margin-top:10px;min-height:16px; }
+
+@media(max-width:900px) {
+  .grid { grid-template-columns:repeat(2,1fr); }
+  .dl-primary-row { grid-template-columns:1fr; }
+  .topbar,.search-wrap,.eyebrow,.dl-section { padding-left:20px;padding-right:20px; }
+  .grid,.dl-section { margin-left:0;margin-right:0; }
+}
+@media(max-width:500px) {
+  .grid { grid-template-columns:1fr 1fr; }
 }
 </style>
 </head>
@@ -77,153 +214,176 @@ select:focus{border-color:var(--muted2);}
   <span class="tb-title">Fichas de Fondos</span>
 </div>
 
-<div class="search-row">
-  <input class="search-input" id="q" placeholder="Buscar fondo..." oninput="filtrar()" type="search">
-  <span class="search-ct" id="ct"></span>
+<div class="search-wrap">
+  <input class="search-box" id="q" type="search" placeholder="Buscar fondo..." oninput="filtrar()">
+  <span class="search-count" id="ct"></span>
 </div>
 
-<div class="section-eyebrow">Fondos activos</div>
+<div class="eyebrow">Fondos activos</div>
 
 <div class="grid" id="grid">
-  <a class="fund-card" href="O1FipVantrustLiquidezActiva.html"><div class="fund-name">FIP Liquidez Activa</div><div class="fund-tag">CLP</div></a>
-  <a class="fund-card" href="O2FipVantrustLiquidezAltoAporte.html"><div class="fund-name">FIP Liquidez Alto Aporte</div><div class="fund-tag">CLP</div></a>
-  <a class="fund-card" href="O3FipVantrustLiquidezAltoCapital.html"><div class="fund-name">FIP Liquidez Alto Capital</div><div class="fund-tag">CLP</div></a>
-  <a class="fund-card" href="O4FipVantrustLiquidezAltoMonto.html"><div class="fund-name">FIP Liquidez Alto Monto</div><div class="fund-tag">CLP</div></a>
-  <a class="fund-card" href="O5FipVantrustLiquidezCaja.html"><div class="fund-name">FIP Liquidez Caja</div><div class="fund-tag">CLP</div></a>
-  <a class="fund-card" href="O6FipVantrustLiquidezContinua.html"><div class="fund-name">FIP Liquidez Continua</div><div class="fund-tag">CLP</div></a>
-  <a class="fund-card" href="O7FipVantrustLiquidezCorriente.html"><div class="fund-name">FIP Liquidez Corriente</div><div class="fund-tag">CLP</div></a>
-  <a class="fund-card" href="O8FipVantrustLiquidezCortoPlazo.html"><div class="fund-name">FIP Liquidez Corto Plazo</div><div class="fund-tag">CLP</div></a>
-  <a class="fund-card" href="O9FipVantrustLiquidezDisponibleI.html"><div class="fund-name">FIP Liquidez Disponible I</div><div class="fund-tag">CLP</div></a>
-  <a class="fund-card" href="O10FipVantrustLiquidezDolar.html"><div class="fund-name">FIP Liquidez Dólar</div><div class="fund-tag usd">USD</div></a>
-  <a class="fund-card" href="O11FipVantrustLiquidezDolarCaja.html"><div class="fund-name">FIP Liquidez Dólar Caja</div><div class="fund-tag usd">USD</div></a>
-  <a class="fund-card" href="O12FipVantrustLiquidezEfectivo.html"><div class="fund-name">FIP Liquidez Efectivo</div><div class="fund-tag">CLP</div></a>
-  <a class="fund-card" href="O13FipVantrustLiquidezFlexible.html"><div class="fund-name">FIP Liquidez Flexible</div><div class="fund-tag">CLP</div></a>
-  <a class="fund-card" href="O14FipVantrustLiquidezI.html"><div class="fund-name">FIP Liquidez I (Uno)</div><div class="fund-tag">CLP</div></a>
-  <a class="fund-card" href="O15FipVantrustLiquidezLocal.html"><div class="fund-name">FIP Liquidez Local</div><div class="fund-tag">CLP</div></a>
-  <a class="fund-card" href="O16FipVantrustLiquidezMonetarioI.html"><div class="fund-name">FIP Liquidez Monetario I</div><div class="fund-tag">CLP</div></a>
-  <a class="fund-card" href="O17FipVantrustLiquidezPermanente.html"><div class="fund-name">FIP Liquidez Permanente</div><div class="fund-tag">CLP</div></a>
-  <a class="fund-card" href="O18FipVantrustLiquidezPlus.html"><div class="fund-name">FIP Liquidez Plus</div><div class="fund-tag">CLP</div></a>
-  <a class="fund-card" href="O19FipVantrustLiquidezPresente.html"><div class="fund-name">FIP Liquidez Presente</div><div class="fund-tag">CLP</div></a>
-  <a class="fund-card" href="O21FipVantrustLiquidezRendimiento.html"><div class="fund-name">FIP Liquidez Rendimiento</div><div class="fund-tag">CLP</div></a>
-  <a class="fund-card" href="O22FipVantrustLiquidezReservaDolar.html"><div class="fund-name">FIP Liquidez Reserva Dólar</div><div class="fund-tag usd">USD</div></a>
-  <a class="fund-card" href="O23FipVantrustLiquidezSencillo.html"><div class="fund-name">FIP Liquidez Sencillo</div><div class="fund-tag">CLP</div></a>
-  <a class="fund-card" href="O24FipVantrustLiquidezTemporal.html"><div class="fund-name">FIP Liquidez Temporal</div><div class="fund-tag usd">USD</div></a>
-  <a class="fund-card" href="O20FipVantrustFondoFacturaDolar.html"><div class="fund-name">FIP Factura Dólar</div><div class="fund-tag usd">USD</div></a>
+  <!-- CLP -->
+  <a class="card" href="O1FipVantrustLiquidezActiva.html">
+    <div class="card-name">FIP Liquidez Activa</div><div class="card-tag">CLP</div></a>
+  <a class="card" href="O2FipVantrustLiquidezAltoAporte.html">
+    <div class="card-name">FIP Liquidez Alto Aporte</div><div class="card-tag">CLP</div></a>
+  <a class="card" href="O3FipVantrustLiquidezAltoCapital.html">
+    <div class="card-name">FIP Liquidez Alto Capital</div><div class="card-tag">CLP</div></a>
+  <a class="card" href="O4FipVantrustLiquidezAltoMonto.html">
+    <div class="card-name">FIP Liquidez Alto Monto</div><div class="card-tag">CLP</div></a>
+  <a class="card" href="O5FipVantrustLiquidezCaja.html">
+    <div class="card-name">FIP Liquidez Caja</div><div class="card-tag">CLP</div></a>
+  <a class="card" href="O6FipVantrustLiquidezContinua.html">
+    <div class="card-name">FIP Liquidez Continua</div><div class="card-tag">CLP</div></a>
+  <a class="card" href="O7FipVantrustLiquidezCorriente.html">
+    <div class="card-name">FIP Liquidez Corriente</div><div class="card-tag">CLP</div></a>
+  <a class="card" href="O8FipVantrustLiquidezCortoPlazo.html">
+    <div class="card-name">FIP Liquidez Corto Plazo</div><div class="card-tag">CLP</div></a>
+  <a class="card" href="O9FipVantrustLiquidezDisponibleI.html">
+    <div class="card-name">FIP Liquidez Disponible I</div><div class="card-tag">CLP</div></a>
+  <a class="card" href="O12FipVantrustLiquidezEfectivo.html">
+    <div class="card-name">FIP Liquidez Efectivo</div><div class="card-tag">CLP</div></a>
+  <a class="card" href="O13FipVantrustLiquidezFlexible.html">
+    <div class="card-name">FIP Liquidez Flexible</div><div class="card-tag">CLP</div></a>
+  <a class="card" href="O14FipVantrustLiquidezI.html">
+    <div class="card-name">FIP Liquidez I (Uno)</div><div class="card-tag">CLP</div></a>
+  <a class="card" href="O15FipVantrustLiquidezLocal.html">
+    <div class="card-name">FIP Liquidez Local</div><div class="card-tag">CLP</div></a>
+  <a class="card" href="O16FipVantrustLiquidezMonetarioI.html">
+    <div class="card-name">FIP Liquidez Monetario I</div><div class="card-tag">CLP</div></a>
+  <a class="card" href="O17FipVantrustLiquidezPermanente.html">
+    <div class="card-name">FIP Liquidez Permanente</div><div class="card-tag">CLP</div></a>
+  <a class="card" href="O18FipVantrustLiquidezPlus.html">
+    <div class="card-name">FIP Liquidez Plus</div><div class="card-tag">CLP</div></a>
+  <a class="card" href="O19FipVantrustLiquidezPresente.html">
+    <div class="card-name">FIP Liquidez Presente</div><div class="card-tag">CLP</div></a>
+  <a class="card" href="O21FipVantrustLiquidezRendimiento.html">
+    <div class="card-name">FIP Liquidez Rendimiento</div><div class="card-tag">CLP</div></a>
+  <a class="card" href="O23FipVantrustLiquidezSencillo.html">
+    <div class="card-name">FIP Liquidez Sencillo</div><div class="card-tag">CLP</div></a>
+  <!-- USD -->
+  <a class="card" href="O10FipVantrustLiquidezDolar.html">
+    <div class="card-name">FIP Liquidez Dólar</div><div class="card-tag usd">USD</div></a>
+  <a class="card" href="O11FipVantrustLiquidezDolarCaja.html">
+    <div class="card-name">FIP Liquidez Dólar Caja</div><div class="card-tag usd">USD</div></a>
+  <a class="card" href="O22FipVantrustLiquidezReservaDolar.html">
+    <div class="card-name">FIP Liquidez Reserva Dólar</div><div class="card-tag usd">USD</div></a>
+  <a class="card" href="O24FipVantrustLiquidezTemporal.html">
+    <div class="card-name">FIP Liquidez Temporal</div><div class="card-tag">CLP</div></a>
+  <a class="card" href="O20FipVantrustFondoFacturaDolar.html">
+    <div class="card-name">FIP Factura Dólar</div><div class="card-tag usd">USD</div></a>
 </div>
 
 <!-- ── Descargas ── -->
 <div class="dl-section">
   <div class="dl-title">Descargas</div>
-  <div class="dl-sub">Descarga los folletos comerciales en PDF del mes más reciente,<br>o selecciona un mes del historial.</div>
+  <div class="dl-sub">Descarga los folletos comerciales en PDF del mes más reciente,<br>o consulta el historial de meses anteriores.</div>
 
-  <!-- Botón principal: ZIP con todos los PDFs -->
-  <div class="dl-primary">
-    <button class="btn-dl-big" id="btnZipLatest" onclick="dlZipLatest()">
-      <span class="icon">📦</span>
-      <span class="lbl">
-        Descargar todos los folletos — PDF
-        <span id="latest-mes-lbl">Cargando mes...</span>
+  <div class="dl-primary-row">
+    <button class="btn-big primary" id="btnPDF" onclick="dlFolletosMes()">
+      <span class="btn-icon">📦</span>
+      <span class="btn-lbl">
+        <strong>Folletos del mes — PDF</strong>
+        <span id="lbl-latest">Cargando...</span>
+      </span>
+    </button>
+    <button class="btn-big" onclick="dlReglamentos()">
+      <span class="btn-icon">📄</span>
+      <span class="btn-lbl">
+        <strong>Todos los reglamentos</strong>
+        <span>Descarga masiva de PDFs</span>
       </span>
     </button>
   </div>
 
   <hr class="dl-divider">
 
-  <!-- Secundarios -->
-  <div class="dl-secondary">
-    <button class="btn-sm" onclick="dlReglamentos()">📄 Todos los reglamentos</button>
-  </div>
-
-  <div class="dl-row" style="margin-top:14px;">
-    <span class="dl-label">Mes histórico:</span>
+  <div class="hist-label">Historial de folletos</div>
+  <div class="hist-row">
     <select id="selMes"><option value="">Cargando meses...</option></select>
-    <button class="btn-sm" onclick="dlZipMes()">Descargar ZIP</button>
+    <button class="btn-sm" onclick="dlHistorial()">⬇ Descargar ZIP</button>
   </div>
-
-  <div class="dl-hint" id="dl-hint"></div>
+  <div class="dl-hint" id="hint"></div>
 </div>
 
 <script>
 const REPO="mivelascor/FIP", BRANCH="main";
 let latestMes = null;
 
-function filtrar(){
-  const q=document.getElementById("q").value.toLowerCase();
-  const cards=[...document.querySelectorAll(".fund-card")];
-  let vis=0;
-  cards.forEach(c=>{
-    const show=!q||c.innerText.toLowerCase().includes(q);
-    c.style.display=show?"flex":"none";
-    if(show)vis++;
+function filtrar() {
+  const q = document.getElementById("q").value.toLowerCase();
+  const cards = [...document.querySelectorAll(".card")];
+  let vis = 0;
+  cards.forEach(c => {
+    const show = !q || c.innerText.toLowerCase().includes(q);
+    c.style.display = show ? "flex" : "none";
+    if (show) vis++;
   });
-  document.getElementById("ct").textContent=q?`${vis} resultado${vis!==1?"s":""}`:(`${cards.length} fondos`);
+  const ct = document.getElementById("ct");
+  ct.textContent = q ? `${vis} resultado${vis!==1?"s":""}` : `${cards.length} fondos`;
 }
 
-async function cargarMeses(){
-  try{
-    const r=await fetch(`https://api.github.com/repos/${REPO}/contents/folletos`,
+async function cargarMeses() {
+  try {
+    const r = await fetch(`https://api.github.com/repos/${REPO}/contents/folletos`,
       {headers:{"Accept":"application/vnd.github+json"}});
-    if(!r.ok)return;
-    const items=await r.json();
-    const meses=items
-      .filter(i=>i.type==="dir"&&/^\d{4}-\d{2}$/.test(i.name))
-      .map(i=>i.name).sort().reverse();
+    if (!r.ok) return;
+    const items = await r.json();
+    const meses = items
+      .filter(i => i.type==="dir" && /^\d{4}-\d{2}$/.test(i.name))
+      .map(i => i.name).sort().reverse();
 
-    if(meses.length>0){
+    const sel = document.getElementById("selMes");
+    if (meses.length) {
       latestMes = meses[0];
-      document.getElementById("latest-mes-lbl").textContent = latestMes;
+      document.getElementById("lbl-latest").textContent = latestMes;
+      sel.innerHTML = meses.map(m => `<option value="${m}">${m}</option>`).join("");
     } else {
-      document.getElementById("latest-mes-lbl").textContent = "Sin folletos aún";
-      document.getElementById("btnZipLatest").disabled = true;
+      document.getElementById("lbl-latest").textContent = "Sin folletos aún";
+      document.getElementById("btnPDF").disabled = true;
+      sel.innerHTML = "<option value=''>Sin folletos</option>";
     }
-
-    const sel=document.getElementById("selMes");
-    sel.innerHTML=meses.length
-      ? meses.map(m=>`<option value="${m}">${m}</option>`).join("")
-      : "<option value=''>Sin folletos</option>";
-  }catch(e){
-    document.getElementById("latest-mes-lbl").textContent="Error al cargar";
+  } catch(e) {
+    document.getElementById("lbl-latest").textContent = "Error al cargar";
   }
 }
 
-function dlZipLatest(){
-  if(!latestMes){alert("No hay folletos disponibles aún.");return;}
+function dlFolletosMes() {
+  if (!latestMes) { alert("Sin folletos disponibles."); return; }
   hint(`Descargando folletos ${latestMes}...`);
-  const a=document.createElement("a");
-  a.href=`https://raw.githubusercontent.com/${REPO}/${BRANCH}/folletos/${latestMes}/folletos_${latestMes}.zip`;
-  a.download=`folletos_${latestMes}.zip`;
-  a.click();
-  setTimeout(()=>hint(""),3000);
+  dl(`https://raw.githubusercontent.com/${REPO}/${BRANCH}/folletos/${latestMes}/folletos_${latestMes}.zip`,
+     `folletos_${latestMes}.zip`);
+  setTimeout(() => hint(""), 3000);
 }
 
-function dlZipMes(){
-  const mes=document.getElementById("selMes").value;
-  if(!mes){alert("Selecciona un mes.");return;}
+function dlHistorial() {
+  const mes = document.getElementById("selMes").value;
+  if (!mes) { alert("Selecciona un mes."); return; }
   hint(`Descargando folletos ${mes}...`);
-  const a=document.createElement("a");
-  a.href=`https://raw.githubusercontent.com/${REPO}/${BRANCH}/folletos/${mes}/folletos_${mes}.zip`;
-  a.download=`folletos_${mes}.zip`;
-  a.click();
-  setTimeout(()=>hint(""),3000);
+  dl(`https://raw.githubusercontent.com/${REPO}/${BRANCH}/folletos/${mes}/folletos_${mes}.zip`,
+     `folletos_${mes}.zip`);
+  setTimeout(() => hint(""), 3000);
 }
 
-async function dlReglamentos(){
-  try{
+async function dlReglamentos() {
+  try {
     hint("Descargando reglamentos...");
-    const r=await fetch(`https://api.github.com/repos/${REPO}/contents/regl.int`);
-    const data=await r.json();
-    const pdfs=data.filter(f=>f.name.endsWith(".pdf"));
-    if(!pdfs.length){hint("Sin reglamentos disponibles.");return;}
-    pdfs.forEach((f,i)=>setTimeout(()=>{
-      const a=document.createElement("a");a.href=f.download_url;a.download=f.name;a.click();
-    },i*400));
-    setTimeout(()=>hint(""),3500);
-  }catch(e){hint("Error al descargar reglamentos.");}
+    const r = await fetch(`https://api.github.com/repos/${REPO}/contents/regl.int`);
+    const data = await r.json();
+    const pdfs = data.filter(f => f.name.endsWith(".pdf"));
+    if (!pdfs.length) { hint("Sin reglamentos disponibles."); return; }
+    pdfs.forEach((f, i) => setTimeout(() => dl(f.download_url, f.name), i * 400));
+    setTimeout(() => hint(""), pdfs.length * 400 + 1000);
+  } catch(e) { hint("Error al descargar."); }
 }
 
-function hint(msg){document.getElementById("dl-hint").textContent=msg;}
+function dl(url, name) {
+  const a = document.createElement("a"); a.href = url; a.download = name; a.click();
+}
 
-document.addEventListener("DOMContentLoaded",()=>{filtrar();cargarMeses();});
+function hint(msg) { document.getElementById("hint").textContent = msg; }
+
+document.addEventListener("DOMContentLoaded", () => { filtrar(); cargarMeses(); });
 </script>
 </body>
 </html>
