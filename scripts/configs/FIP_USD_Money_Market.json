@@ -1,0 +1,17 @@
+{
+  "nombre_fondo": "FIP USD Money Market",
+  "template": "TEMPLATE_FONDO_USD_MONEY_MARKET.xlsx",
+  "rut": "COMPLETAR",
+  "moneda": "USD",
+  "tipo": "Fondo de Inversión Privado",
+  "inicio": "COMPLETAR",
+  "benchmark": "Índice Cámara Promedio (ICP)",
+  "rescatable": "Si",
+  "plazo": "A más tardar 15 días corridos",
+  "riesgos": "Mercado- Crédito - Liquidez - Tasa de interés - Derivados",
+  "remuneracion": "Ver reglamento interno",
+  "custodio": "Vantrust Capital C.de Bolsa",
+  "objetivo": "Invertir los recursos del fondo en instrumentos de deuda de corto y mediano plazo, en una cartera diversificada, obteniendo una rentabilidad igual o superior al ICP.",
+  "rentabilidad_desc": "La rentabilidad esperada del Fondo es la tasa de política monetaria promedio del Banco Central de Chile.",
+  "inversionistas": "Dirigida a empresas y personas que buscan invertir sus excedentes de caja con una rentabilidad de corto plazo y baja tolerancia al riesgo."
+}
