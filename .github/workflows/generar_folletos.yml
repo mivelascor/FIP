@@ -26,7 +26,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Instalar LibreOffice (recalc de fórmulas Excel)
+      - name: Instalar LibreOffice
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y libreoffice --no-install-recommends
@@ -34,9 +34,8 @@ jobs:
       - name: Instalar dependencias Python
         run: pip install -r scripts/requirements.txt
 
-      - name: Instalar Playwright + Chromium (HTML→PDF)
-        run: |
-          playwright install chromium --with-deps
+      - name: Instalar Playwright + Chromium
+        run: playwright install chromium --with-deps
 
       - name: Instalar ODBC Driver (SQL Server)
         run: |
@@ -45,26 +44,29 @@ jobs:
             | sudo tee /etc/apt/sources.list.d/mssql-release.list
           sudo apt-get update -qq
           ACCEPT_EULA=Y sudo apt-get install -y msodbcsql17 unixodbc-dev
-        continue-on-error: true  # no bloquea si ya está instalado
+        continue-on-error: true
 
       - name: Generar folletos
         env:
           SQL_CONN_STR:  ${{ secrets.SQL_CONN_STR }}
           TARGET_MONTH:  ${{ github.event.inputs.target_month || github.event.client_payload.target_month || '' }}
-          GH_TOKEN:      ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO:       ${{ github.repository }}
         run: |
           cd scripts
-          # Lee comentarios.json subido por admin.html
-          CLP=$(python3 -c "import json; d=json.load(open('../inputs/comentarios.json')); print(d.get('clp',''))")
-          USD=$(python3 -c "import json; d=json.load(open('../inputs/comentarios.json')); print(d.get('usd',''))")
+          # Lee comentarios desde inputs/comentarios.json si existe
+          if [ -f "../inputs/comentarios.json" ]; then
+            CLP=$(python3 -c "import json; d=json.load(open('../inputs/comentarios.json')); print(d.get('clp',''))")
+            USD=$(python3 -c "import json; d=json.load(open('../inputs/comentarios.json')); print(d.get('usd',''))")
+          else
+            CLP=""
+            USD=""
+          fi
           python3 main.py "$CLP" "$USD"
 
-      - name: Commit folletos y templates actualizados
+      - name: Commit folletos generados
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add folletos/ inputs/templates/
           git diff --cached --quiet || \
-            git commit -m "🗂 Folletos $(date +'%Y-%m') — generados automáticamente"
+            git commit -m "🗂 Folletos $(date +'%Y-%m') generados automáticamente"
           git push
