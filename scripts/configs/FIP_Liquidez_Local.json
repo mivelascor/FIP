@@ -1,0 +1,17 @@
+{
+  "nombre_fondo": "FIP Liquidez Local",
+  "template": "TEMPLATE_FONDO_LIQUIDEZ_LOCAL.xlsx",
+  "rut": "77.414.856-6",
+  "moneda": "CLP",
+  "tipo": "Fondo de Inversion Privado",
+  "inicio": "Julio 2022",
+  "benchmark": "Indice Camara Promedio (ICP)",
+  "rescatable": "Si",
+  "plazo": "A mas tardar 15 dias corridos",
+  "riesgos": "Mercado- Credito - Liquidez - Tasa de interes - Derivados",
+  "remuneracion": "El menor valor entre 0,25% anual más IVA sobre el patrimonio neto del fondo y el 50% de rentabilidad que obtenga el Fondo calculada antes de remuneracion, más IVA",
+  "custodio": "Vantrust Capital C.de Bolsa",
+  "objetivo": "Invertir los recursos del fondo en instrumentos de deuda de corto y mediano plazo, en una cartera diversificada, obteniendo una rentabilidad igual o superior al ICP",
+  "rentabilidad_desc": "La rentabilidad esperada del Fondo Vantrust Liquidez Local, es la tasa de política monetaria promedio del Banco Central de Chile.",
+  "inversionistas": "Dirigida a empresas y personas que buscan invertir sus excedentes de caja con una rentabilidad de corto plazo y baja tolerancia al riesgo."
+}
