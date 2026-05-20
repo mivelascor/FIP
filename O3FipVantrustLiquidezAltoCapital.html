@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIP VANTRUST LIQUIDEZ ALTO CAPITAL</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+:root{--bg:#0a0a0a;--surface:#111;--surface2:#161616;--border:#1e1e1e;--border2:#2a2a2a;--text:#e8e8e8;--muted:#555;--muted2:#777;--green:#22c55e;--blue:#60a5fa;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:60px;}
+.topbar{border-bottom:1px solid var(--border);padding:15px 32px;display:flex;align-items:center;gap:14px;position:sticky;top:0;background:var(--bg);z-index:50;}
+.tb-back{font-size:12px;color:var(--muted);text-decoration:none;transition:color .15s;letter-spacing:.3px;}
+.tb-back:hover{color:var(--text);}
+.tb-sep{color:var(--border2);font-size:16px;}
+.tb-name{font-size:13px;font-weight:500;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+main{max-width:540px;margin:0 auto;padding:44px 24px 0;}
+.badge{font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;background:var(--surface);border:1px solid var(--border2);color:var(--muted2);padding:4px 10px;display:inline-block;margin-bottom:14px;}
+.badge.usd{color:var(--blue);border-color:#1e3a5f;background:#0d1f33;}
+.fund-title{font-family:'DM Serif Display',serif;font-size:34px;font-weight:400;letter-spacing:-0.8px;line-height:1.1;margin-bottom:6px;}
+.fund-rut{font-size:12px;color:var(--muted);margin-bottom:36px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.action-card{background:var(--surface);border:1px solid var(--border);padding:22px 18px;text-decoration:none;color:var(--text);transition:all .18s;display:flex;flex-direction:column;gap:10px;cursor:pointer;border-radius:1px;}
+.action-card:hover{background:var(--surface2);border-color:var(--border2);transform:translateY(-1px);}
+.ac-icon{font-size:22px;}
+.ac-title{font-size:14px;font-weight:600;line-height:1.3;}
+.ac-meta{font-size:11px;color:var(--muted);}
+.ac-meta.ok{color:var(--green);}
+.hist-btn{background:var(--surface);border:1px solid var(--border);padding:18px;text-align:center;cursor:pointer;transition:all .18s;width:100%;border-radius:1px;display:flex;align-items:center;justify-content:center;gap:10px;}
+.hist-btn:hover{background:var(--surface2);border-color:var(--border2);}
+.hist-btn-icon{font-size:20px;}
+.hist-btn-lbl{font-size:13px;font-weight:500;}
+.hist-panel{display:none;margin-top:10px;background:var(--surface);border:1px solid var(--border);padding:20px;border-radius:1px;}
+.hp-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.hp-row{display:flex;gap:8px;align-items:center;}
+select{background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;padding:8px 12px;outline:none;transition:border-color .15s;border-radius:1px;flex:1;cursor:pointer;}
+select:focus{border-color:var(--muted2);}
+.btn-dl{background:var(--text);color:var(--bg);border:none;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:9px 16px;cursor:pointer;transition:opacity .15s;border-radius:1px;white-space:nowrap;}
+.btn-dl:hover{opacity:.86;}
+.dl-msg{font-size:11px;color:var(--muted);margin-top:8px;min-height:16px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.hist-panel.open{display:block;animation:fadeUp .2s ease;}
+@media(max-width:480px){.grid2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="tb-back" href="MenuFF.html">← Fondos</a>
+  <span class="tb-sep">|</span>
+  <span class="tb-name">FIP VANTRUST LIQUIDEZ ALTO CAPITAL</span>
+</div>
+<main>
+  <div class="badge">FIP VANTRUST · CLP</div>
+  <h1 class="fund-title">Liquidez
+ALTO CAPITAL</h1>
+  <p class="fund-rut">76.933.995-7</p>
+
+  <div class="grid2">
+    <a class="action-card" href="regl.int/76.933.995-7 FIP VANTRUST LIQUIDEZ ALTO CAPITAL.pdf" download>
+      <div class="ac-icon">📄</div>
+      <div class="ac-title">Reglamento<br>Interno</div>
+      <div class="ac-meta">Documento vigente</div>
+    </a>
+    <div class="action-card" onclick="dlUltimo()">
+      <div class="ac-icon">📑</div>
+      <div class="ac-title">Folleto<br>Comercial — PDF</div>
+      <div class="ac-meta ok" id="folleto-meta">Cargando...</div>
+    </div>
+  </div>
+
+  <div class="hist-btn" onclick="toggleHist()">
+    <span class="hist-btn-icon">🗂️</span>
+    <span class="hist-btn-lbl">Historial de folletos</span>
+  </div>
+
+  <div class="hist-panel" id="histPanel">
+    <div class="hp-label">Selecciona un mes</div>
+    <div class="hp-row">
+      <select id="selMes"><option value="">Cargando...</option></select>
+      <button class="btn-dl" onclick="dlHistorial()">Descargar PDF</button>
+    </div>
+    <div class="dl-msg" id="dlMsg"></div>
+  </div>
+</main>
+<script>
+const REPO="mivelascor/FIP",BRANCH="main",PDF="FIP_VANTRUST_LIQUIDEZ_ALTO_CAPITAL";
+let open=false;
+
+async function cargarMeses(){
+  try{
+    const r=await fetch(`https://api.github.com/repos/${REPO}/contents/folletos`,
+      {headers:{"Accept":"application/vnd.github+json"}});
+    if(!r.ok)return;
+    const items=await r.json();
+    const meses=items.filter(i=>i.type==="dir"&&/^\d{4}-\d{2}$/.test(i.name)).map(i=>i.name).sort().reverse();
+    const sel=document.getElementById("selMes");
+    if(!meses.length){sel.innerHTML="<option>Sin folletos</option>";document.getElementById("folleto-meta").textContent="No disponible";return;}
+    sel.innerHTML=meses.map(m=>`<option value="${m}">${m}</option>`).join("");
+    document.getElementById("folleto-meta").textContent=meses[0];
+  }catch(e){document.getElementById("folleto-meta").textContent="No disponible";}
+}
+
+function dlPDF(mes){
+  const url=`https://raw.githubusercontent.com/${REPO}/${BRANCH}/folletos/${mes}/${PDF}.pdf`;
+  const a=document.createElement("a");a.href=url;a.download=`${PDF}_${mes}.pdf`;a.click();
+}
+
+function dlUltimo(){
+  const sel=document.getElementById("selMes");
+  const mes=sel&&sel.value;
+  if(!mes){alert("Sin folletos disponibles.");return;}
+  dlPDF(mes);
+}
+
+function dlHistorial(){
+  const mes=document.getElementById("selMes").value;
+  if(!mes){alert("Selecciona un mes.");return;}
+  dlPDF(mes);
+  const msg=document.getElementById("dlMsg");
+  msg.textContent=`Descargando PDF ${mes}...`;
+  setTimeout(()=>msg.textContent="",2500);
+}
+
+function toggleHist(){
+  open=!open;
+  document.getElementById("histPanel").classList.toggle("open",open);
+}
+
+cargarMeses();
+</script>
+</body>
+</html>

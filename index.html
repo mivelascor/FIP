@@ -30,21 +30,21 @@ input::placeholder{color:var(--muted);}
 </style>
 </head>
 <body>
- 
+
 <div class="brand">
   <div class="brand-top">Vantrust Capital</div>
   <div class="brand-title">Fondos<br><em>Financieros</em></div>
 </div>
- 
+
 <div class="card" id="card">
   <div class="card-eyebrow">Acceso</div>
   <input type="password" id="pwd" placeholder="Contraseña" onkeydown="if(event.key==='Enter')go()">
   <button class="btn" onclick="go()">Ingresar</button>
   <div class="fb" id="fb"></div>
 </div>
- 
+
 <div class="footer">Solo acceso autorizado</div>
- 
+
 <script>
 const CORRECT="1234";
 function playOk(){try{const c=new AudioContext,o=c.createOscillator(),g=c.createGain();o.type="sine";o.frequency.setValueAtTime(520,c.currentTime);o.frequency.exponentialRampToValueAtTime(880,c.currentTime+.18);g.gain.setValueAtTime(.22,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.28);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.3);}catch(e){}}
@@ -54,7 +54,7 @@ function go(){
   if(v===CORRECT){
     playOk();fb.textContent="✓ Correcto";fb.className="fb ok";
     confetti({particleCount:50,spread:45,origin:{y:.65},colors:['#e8e8e8','#888','#444']});
-    setTimeout(()=>location.href="MenuFF.html",700);
+    setTimeout(()=>location.href="menu_principal.html",700);
   }else{
     playErr();fb.textContent="Contraseña incorrecta";fb.className="fb err";
     card.classList.remove("shake");void card.offsetWidth;card.classList.add("shake");

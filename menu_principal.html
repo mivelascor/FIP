@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menú Principal — Fondos Financieros</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+:root{--bg:#0a0a0a;--surface:#111;--border:#1e1e1e;--border2:#2a2a2a;--text:#e8e8e8;--muted:#555;--accent-blue:#3b82f6;--accent-green:#22c55e;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px 24px;}
+
+.header{text-align:center;margin-bottom:56px;}
+.header-eyebrow{font-size:10px;font-weight:600;letter-spacing:4px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.header-title{font-family:'DM Serif Display',serif;font-size:40px;font-weight:400;letter-spacing:-1px;line-height:1.1;}
+.header-title em{color:var(--muted);font-style:italic;}
+
+.nav-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:560px;width:100%;}
+
+.nav-card{
+  background:var(--surface);border:1px solid var(--border);padding:32px 28px;
+  text-decoration:none;color:var(--text);transition:all .18s;display:flex;flex-direction:column;gap:12px;
+}
+.nav-card:hover{border-color:var(--border2);background:#161616;transform:translateY(-2px);}
+.nav-card:active{transform:translateY(0);}
+
+.nav-icon{font-size:24px;}
+.nav-title{font-family:'DM Serif Display',serif;font-size:20px;font-weight:400;line-height:1.2;}
+.nav-desc{font-size:12px;color:var(--muted);line-height:1.55;}
+
+.nav-card.primary{border-color:var(--border2);}
+.nav-card.primary .nav-title{color:var(--text);}
+
+.footer{margin-top:48px;display:flex;align-items:center;gap:20px;}
+.footer a{font-size:11px;color:var(--muted);text-decoration:none;letter-spacing:.5px;transition:color .15s;}
+.footer a:hover{color:var(--text);}
+.footer-sep{color:var(--border2);}
+
+@media(max-width:480px){.nav-grid{grid-template-columns:1fr;max-width:340px;}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-eyebrow">Vantrust Capital</div>
+  <div class="header-title">Fondos<br><em>Financieros</em></div>
+</div>
+
+<div class="nav-grid">
+
+  <a class="nav-card primary" href="MenuFF.html">
+    <div class="nav-icon">📂</div>
+    <div class="nav-title">Fichas de<br>Fondos</div>
+    <div class="nav-desc">Folletos comerciales, reglamentos y archivos históricos por fondo.</div>
+  </a>
+
+  <a class="nav-card" href="admin.html">
+    <div class="nav-icon">⚙️</div>
+    <div class="nav-title">Generar<br>Folletos</div>
+    <div class="nav-desc">Sube la cartera y comentarios PM para generar los folletos del mes.</div>
+  </a>
+
+</div>
+
+<div class="footer">
+  <a href="index.html">← Salir</a>
+  <span class="footer-sep">|</span>
+  <a href="https://github.com/mivelascor/FIP/actions" target="_blank">GitHub Actions →</a>
+</div>
+
+</body>
+</html>
