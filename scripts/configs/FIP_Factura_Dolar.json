@@ -1,0 +1,17 @@
+{
+  "nombre_fondo": "FIP Factura Dólar",
+  "template": "TEMPLATE_FONDO_FACTURA_DOLAR.xlsx",
+  "rut": "77.594.743-8",
+  "moneda": "USD",
+  "tipo": "Deuda USD en torno a 90 días",
+  "inicio": "Junio 2022",
+  "benchmark": "Indice Camara Promedio (ICP) anualizada",
+  "rescatable": "Si",
+  "plazo": "A mas tardar 15 dias corridos",
+  "riesgos": "Mercado- Credito - Liquidez - Tasa de interes - Derivados",
+  "remuneracion": "Remuneracion Fija anual equivalente hasta un 1,19% (IVA incluido)",
+  "custodio": "Vantrust Capital C.de Bolsa",
+  "objetivo": "Invertir los recursos del fondo en instrumentos de deuda de corto y mediano plazo, en una cartera diversificada, obteniendo una rentabilidad igual o superior al ICP",
+  "rentabilidad_desc": "La rentabilidad esperada del Fondo Vantrust Factura Dólar, es la tasa de política monetaria promedio del Banco Central de Chile.",
+  "inversionistas": "Dirigida a empresas y personas que buscan invertir sus excedentes de caja con una rentabilidad de corto plazo y baja tolerancia al riesgo."
+}
