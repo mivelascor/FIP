@@ -1,0 +1,17 @@
+{
+  "nombre_fondo": "FIP Liquidez Caja",
+  "template": "TEMPLATE_FONDO_LIQUIDEZ_CAJA.xlsx",
+  "rut": "76.933.989-2",
+  "moneda": "CLP",
+  "tipo": "Fondo de Inversion Privado",
+  "inicio": "Diciembre 2017",
+  "benchmark": "Indice Camara Promedio (ICP)",
+  "rescatable": "Si",
+  "plazo": "A mas tardar 15 dias corridos",
+  "riesgos": "Mercado- Credito - Liquidez - Tasa de interes - Derivados",
+  "remuneracion": "0,75%Iva Incluido",
+  "custodio": "Vantrust Capital C.de Bolsa",
+  "objetivo": "Invertir los recursos del fondo en instrumentos de deuda de corto y mediano plazo, en una cartera diversificada, obteniendo una rentabilidad igual o superior al ICP",
+  "rentabilidad_desc": "La rentabilidad esperada del Fondo Vantrust Liquidez Caja, es la tasa de política monetaria promedio del Banco Central de Chile.",
+  "inversionistas": "Dirigida a empresas y personas que buscan invertir sus excedentes de caja con una rentabilidad de corto plazo y baja tolerancia al riesgo."
+}
