@@ -23,7 +23,7 @@ from pathlib import Path
 from openpyxl import load_workbook
 
 # Ruta al script recalc.py (se copia del skill al setup)
-RECALC_SCRIPT = Path(__file__).parent.parent / "scripts_lib" / "recalc.py"
+RECALC_SCRIPT = Path(__file__).parent.parent / "recalc_skill" / "recalc.py"
 TEMPLATES_DIR  = Path(__file__).parent.parent.parent / "inputs" / "templates"
 
 MINDICADOR = "https://mindicador.cl/api/tpm"
