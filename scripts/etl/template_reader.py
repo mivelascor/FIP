@@ -3,6 +3,7 @@ etl/template_reader.py — Calcula rentabilidades directamente desde SQL + ICP.
 Sin dependencia de LibreOffice ni recalc.
 """
 import os, requests, pandas as pd
+from pathlib import Path
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
