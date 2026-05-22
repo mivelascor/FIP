@@ -303,6 +303,7 @@ def generar_html_folleto(display_name, periodo, comentario, datos_template,
       <tbody>
 {hist_html}      </tbody>
     </table>
+    <div class="page-footer"><p class="footer-txt">Conforme a la Ley Única de Fondos, las administradoras de fondos de inversión privados están sujetas a las obligaciones de información establecidas por la Comisión para el Mercado Financiero. Tales fondos no están sometidos a fiscalización de la Comisión y no hacemos oferta pública de sus cuotas.</p></div>
   </div></div>
 </div>
 <div class="page">
