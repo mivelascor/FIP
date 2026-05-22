@@ -195,9 +195,13 @@ def _ret(vc, y, m, n=1):
     return v1/v0 - 1 if v1 and v0 else None
 
 def _ytd(vc, y, m):
+    """Acum YY (*): annualized YTD = (current/dec_prev - 1) / n_months * 12"""
     v1 = vc.get((y, m))
     v0 = vc.get((y-1, 12))
-    return v1/v0 - 1 if v1 and v0 else None
+    if not v1 or not v0:
+        return None
+    simple_ytd = v1/v0 - 1
+    return simple_ytd / m * 12  # annualized
 
 def _year_total(vc, y, last_m):
     t, has = 1.0, False
