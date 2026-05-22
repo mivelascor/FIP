@@ -32,8 +32,9 @@ def _load_historico() -> dict:
 def _get_vc_combined(nombre_fondo: str) -> dict:
     """
     Return VC time-series merging ODS data with pre-ODS historical fallback.
-    The fallback monthly returns are used to chain VC values backwards from the
-    earliest ODS data point so that older periods appear in the historical table.
+    Chains VC values backwards from earliest ODS point using historical monthly returns.
+    Also adds a synthetic prior-month VC so the earliest historical month's
+    return can be calculated.
     """
     vc_ods = _get_vc_fondo_robust(nombre_fondo)
     hist   = _load_historico().get(nombre_fondo, {})
@@ -47,7 +48,7 @@ def _get_vc_combined(nombre_fondo: str) -> dict:
         earliest = min(vc_ods.keys())
         base_vc  = vc_ods[earliest]
 
-        # Sort historical (yr, mo, ret) in descending order to chain backwards
+        # All historical (yr, mo, ret) before ODS start, sorted descending
         hist_list = sorted(
             [(yr, mo, ret)
              for yr, months in hist.items()
@@ -62,6 +63,20 @@ def _get_vc_combined(nombre_fondo: str) -> dict:
                 prev_vc = cur_vc / (1.0 + ret)
                 combined[(yr, mo)] = prev_vc
                 cur_vc = prev_vc
+
+        # Add synthetic baseline for the earliest historical month
+        # so _ret() can compute that month's return
+        if hist_list:
+            last_yr, last_mo, last_ret = hist_list[-1]  # oldest month
+            if last_ret and combined.get((last_yr, last_mo)):
+                # prev = current / (1 + ret) already computed above
+                # We need one more step back: add (yr, mo-1) as synthetic base
+                from datetime import date
+                from dateutil.relativedelta import relativedelta as _rdelta
+                prev_date = date(last_yr, last_mo, 1) - _rdelta(months=1)
+                prev_key  = (prev_date.year, prev_date.month)
+                if prev_key not in combined:
+                    combined[prev_key] = combined[(last_yr, last_mo)] / (1.0 + last_ret)
 
     return combined
 
