@@ -267,8 +267,12 @@ def leer_datos_template(nombre_fondo: str,
             if any(v is not None for v in meses):
                 filas.append({"nombre": label, "meses": meses,
                               "total": _year_total(vc, yr, last_m)})
-        # Always include year if at least ICP has data (even if no FIP data yet)
-        if filas:
+        # Always include the 3 years in range; skip only if truly no data at all
+        # Force-include target year (y) even if ODS has no data yet (shows ICP at minimum)
+        if filas or yr == y:
+            if not filas:  # target year with no data yet — add empty structure
+                filas = [{"nombre": "ICP", "meses": [None]*12, "total": None},
+                         {"nombre": "Competencia", "meses": [None]*12, "total": None}]
             historico.append({"año": yr, "filas": filas})
 
     # ── Gráfico ───────────────────────────────────────────────────────────────
