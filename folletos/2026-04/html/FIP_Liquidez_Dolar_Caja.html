@@ -103,18 +103,9 @@ body{font-family:'Barlow',Arial,sans-serif;background:#fff;color:#0a0a0a;-webkit
   </div>
   <div class="col-right"><div class="right-inner">
     <div class="section-title">Comentario Portafolio Manager</div>
-    <div class="comentario-box">2. Layout más grande — fuentes más grandes (8-9pt en lugar de 7-7.5pt), más padding en todas las secciones, comentario más alto, gráfico con más altura. El espacio vacío debería ser ~40% de la página en lugar del 60% anterior.
-3. El 2026-05 eliminado del repo — borré los 23 PDFs incorrectos de folletos/2026-05/. Ahora MenuFF.html mostrará solo 2026-04 como el mes disponible.
-4. Auto-detección del último mes completo — main.py ahora consulta ODS antes de correr y detecta si el mes más reciente tiene datos hasta el último día del mes (≥ día 28). Si no, usa el mes anterior. Así nunca generará folletos con datos parciales de mitad de mes.Folletos 2026 04 v3ZIP Abrir en Explorador de WindowsDijiste: el boton de descarga, me tira eso.el boton de descarga, me tira eso. deberia descargar el ultimo folleto generado, por lo tanto, es el folleto generado con los datos del ultimo día del mes anterior.7:39 p. m.Claude respondió: Veo el problema: la carpeta 2026-05 todavía existe en el repo (aunque vacía), entonces el botón toma ese mes porque aparece primero.Veo el problema: la carpeta 2026-05 todavía existe en el repo (aunque vacía), entonces el botón toma ese mes porque aparece primero. Además el ZIP apunta a folletos/2026-05/folletos_2026-05.zip que no existe.
-Dos fixes: borrar la carpeta 2026-05 completamente, y arreglar el botón para que descargue desde folletos/latest.zip (siempre el último correcto) en vez de buscar por carpeta.Se ejecutaron 3 comandosSe ejecutaron 3 comandosListo. Tres cosas resueltas:
-1. Carpeta 2026-05 eliminada — borré los 23 archivos dentro de ella, incluyendo los HTMLs y el ZIP vacío. El repo ahora solo tiene 2026-04.
-2. Botón "Folletos del mes" arreglado — ahora descarga directamente folletos/latest.zip, que siempre es el último batch correctamente generado. No depende de carpetas ni de detectar meses — es el archivo que el workflow actualiza cada mes.
-3. Lógica del mes en el botón — el label "2026-04" lo detecta buscando archivos folletos_YYYY-MM.zip en la raíz de folletos/. Así muestra el mes correcto sin confundirse con carpetas vacías.
-Cómo funciona ahora:
-
-Botón principal → descarga latest.zip con los 24 PDFs del último mes completo
-Historial → muestra los ZIPs anteriores (cuando haya más de uno)
-El workflow cada mes genera, empaqueta y sobreescribe latest.zip + crea folletos_YYYY-MM.zip</div>
+    <div class="comentario-box">El IPC de abril en Estados Unidos sorprendió levemente al alza respecto de las expectativas, impulsado principalmente por el fuerte aumento de los precios de la energía. La gasolina explicó una parte importante del avance del índice general, mientras que la inflación subyacente también mostró resiliencia, explicada en parte por un ajuste en los precios de arriendos tras las distorsiones asociadas al cierre parcial del gobierno el año pasado.
+El IPC general registró un aumento de 0,6% mensual, llevando la inflación anual a 3,8%, su mayor nivel en tres años. Por su parte, la inflación subyacente avanzó 0,4% mensual, impulsada por mayores costos de vivienda, particularmente en el componente equivalente de arriendo y arriendos efectivos.
+Por su parte, las nóminas no agrícolas aumentaron en 115 mil puestos durante abril, mientras que la tasa de desempleo se mantuvo estable en 4,3%, evidenciando un mercado laboral aún sólido. Por su parte, la Reserva Federal mantuvo una postura cautelosa respecto de la política monetaria, monitoreando tanto la persistencia de la inflación subyacente como los riesgos derivados del conflicto geopolítico y su impacto sobre los precios de la energía.</div>
     <div class="chart-section">
       <div class="section-title">Evolución Rentabilidad</div>
       <div class="chart-container">
