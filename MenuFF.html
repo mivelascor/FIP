@@ -56,6 +56,10 @@ select:focus{border-color:var(--muted2);}
 
 @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr);}.dl-primary-row{grid-template-columns:1fr;}.topbar,.search-wrap,.eyebrow,.dl-section{padding-left:20px;padding-right:20px;}.grid,.dl-section{margin-left:0;margin-right:0;}}
 </style>
+
+<style>
+.site-footer{border-top:1px solid var(--border,#1e1e1e);margin-top:60px;padding:20px 40px;font-size:11px;color:var(--muted,#555);line-height:1.6;}
+</style>
 </head>
 <body>
 
@@ -225,5 +229,6 @@ function hint(msg) { document.getElementById("hint").textContent = msg; }
 
 document.addEventListener("DOMContentLoaded", () => { filtrar(); cargarMeses(); });
 </script>
+<footer class="site-footer">Conforme a la Ley Única de Fondos, las administradoras de fondos de inversión privados están sujetas a las obligaciones de información establecidas por la Comisión para el Mercado Financiero. Tales fondos no están sometidos a fiscalización de la Comisión y no hacemos oferta pública de sus cuotas.</footer>
 </body>
 </html>
