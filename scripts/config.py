@@ -55,7 +55,7 @@ _INFO = {
     "FIP VANTRUST LIQUIDEZ ACTIVA": {
         "rut":          "76,637,334-8",
         "moneda":       "CLP",
-        "fecha_inicio": "Julio 2025",
+        "fecha_inicio": "Febrero 2025",
         "remuneracion": "0,50% de la TPM vigente + IVA",
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
