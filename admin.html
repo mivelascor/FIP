@@ -6,7 +6,7 @@
 <title>Generar Folletos — Vantrust</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
-:root{--bg:#0a0a0a;--surface:#111;--surface2:#161616;--border:#1e1e1e;--border2:#2a2a2a;--text:#e8e8e8;--muted:#555;--muted2:#777;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--blue:#3b82f6;}
+:root{--bg:#0a0a0a;--surface:#111;--surface2:#161616;--border:#1e1e1e;--border2:#2a2a2a;--text:#e8e8e8;--muted:#555;--muted2:#777;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--amber:#f59e0b;--blue:#3b82f6;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:60px;}
 
@@ -122,12 +122,18 @@ textarea::placeholder{color:var(--muted);}
     <div class="card-head">
       <div><div class="card-title">Comentarios PM</div><div class="card-desc">Un texto CLP y uno USD para todos los folletos</div></div>
     </div>
-    <label class="field-label">Fondos CLP</label>
+    <label class="field-label">Fondos CLP <span style="font-size:10px;font-weight:400;color:var(--muted2);letter-spacing:0">— máx. 1600 caracteres</span></label>
     <textarea id="clp" placeholder="Comentario para los fondos en pesos chilenos..." oninput="cnt('clp','cc-clp')"></textarea>
-    <div class="char-ct" id="cc-clp">0 caracteres</div>
-    <label class="field-label">Fondos USD</label>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+      <div id="err-clp" style="display:none;font-size:12px;color:var(--red);">⚠ El comentario supera los 1600 caracteres. Acorta el texto para que el gráfico y las tablas quepan en la primera página.</div>
+      <div class="char-ct" id="cc-clp" style="margin:0;margin-left:auto;">0 / 1600 caracteres</div>
+    </div>
+    <label class="field-label" style="margin-top:18px;">Fondos USD <span style="font-size:10px;font-weight:400;color:var(--muted2);letter-spacing:0">— máx. 1600 caracteres</span></label>
     <textarea id="usd" placeholder="Comentario para los fondos en dólares..." oninput="cnt('usd','cc-usd')"></textarea>
-    <div class="char-ct" id="cc-usd">0 caracteres</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+      <div id="err-usd" style="display:none;font-size:12px;color:var(--red);">⚠ El comentario supera los 1600 caracteres. Acorta el texto para que el gráfico y las tablas quepan en la primera página.</div>
+      <div class="char-ct" id="cc-usd" style="margin:0;margin-left:auto;">0 / 1600 caracteres</div>
+    </div>
   </div>
 
   <!-- Token -->
@@ -180,7 +186,29 @@ window.onload=()=>{
   if(t)document.getElementById("token").value=t;
 };
 
-function cnt(id,cid){document.getElementById(cid).textContent=document.getElementById(id).value.length+" caracteres";}
+const LIMIT = 1600;
+
+function cnt(id, cid) {
+  const val = document.getElementById(id).value;
+  const len = val.length;
+  const ct  = document.getElementById(cid);
+  const err = document.getElementById('err-' + id);
+  ct.textContent = len + ' / ' + LIMIT + ' caracteres';
+  if (len > LIMIT) {
+    ct.style.color = 'var(--red)';
+    err.style.display = 'block';
+  } else {
+    ct.style.color = len > LIMIT * 0.9 ? 'var(--amber)' : 'var(--muted2)';
+    err.style.display = 'none';
+  }
+  validateBtn();
+}
+
+function validateBtn() {
+  const clpOk = document.getElementById('clp').value.length <= LIMIT;
+  const usdOk = document.getElementById('usd').value.length <= LIMIT;
+  document.getElementById('btn-gen').disabled = !(clpOk && usdOk);
+}
 
 function getToken(){
   const t=document.getElementById("token").value.trim();
