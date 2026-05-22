@@ -255,9 +255,9 @@ def leer_datos_template(nombre_fondo: str,
         row(nombre_display,    vc_fip,  False, False, True),
     ]
 
-    # ── Histórico — solo 2024, 2025, año actual ───────────────────────────────
+    # ── Histórico — año actual y los 2 anteriores ─────────────────────────────
     historico = []
-    for yr in [2024, 2025, y]:
+    for yr in [y-2, y-1, y]:
         if yr > y: break
         last_m = m if yr == y else 12
         filas  = []
