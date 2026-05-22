@@ -258,7 +258,6 @@ def leer_datos_template(nombre_fondo: str,
     # ── Histórico — año actual y los 2 anteriores ─────────────────────────────
     historico = []
     for yr in [y-2, y-1, y]:
-        if yr > y: break
         last_m = m if yr == y else 12
         filas  = []
 
@@ -268,6 +267,7 @@ def leer_datos_template(nombre_fondo: str,
             if any(v is not None for v in meses):
                 filas.append({"nombre": label, "meses": meses,
                               "total": _year_total(vc, yr, last_m)})
+        # Always include year if at least ICP has data (even if no FIP data yet)
         if filas:
             historico.append({"año": yr, "filas": filas})
 
