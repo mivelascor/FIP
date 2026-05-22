@@ -6,6 +6,65 @@ import os, requests, pandas as pd
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
+# ── Historical fallback (pre-ODS monthly returns from manual folletos) ─────────
+_HISTORICO_PATH = Path(__file__).parent.parent.parent / "inputs" / "historico_fondos.json"
+_HIST_CACHE: dict = {}
+
+def _load_historico() -> dict:
+    """Load pre-ODS historical monthly returns keyed by fund name."""
+    global _HIST_CACHE
+    if _HIST_CACHE:
+        return _HIST_CACHE
+    try:
+        import json as _json
+        with open(_HISTORICO_PATH) as f:
+            raw = _json.load(f)
+        for fund, years in raw.items():
+            _HIST_CACHE[fund] = {}
+            for yr_str, months in years.items():
+                _HIST_CACHE[fund][int(yr_str)] = {int(m): float(v) for m, v in months.items()}
+    except Exception:
+        pass
+    return _HIST_CACHE
+
+
+def _get_vc_combined(nombre_fondo: str) -> dict:
+    """
+    Return VC time-series merging ODS data with pre-ODS historical fallback.
+    The fallback monthly returns are used to chain VC values backwards from the
+    earliest ODS data point so that older periods appear in the historical table.
+    """
+    vc_ods = _get_vc_fondo_robust(nombre_fondo)
+    hist   = _load_historico().get(nombre_fondo, {})
+
+    if not hist:
+        return vc_ods
+
+    combined = dict(vc_ods)
+
+    if vc_ods:
+        earliest = min(vc_ods.keys())
+        base_vc  = vc_ods[earliest]
+
+        # Sort historical (yr, mo, ret) in descending order to chain backwards
+        hist_list = sorted(
+            [(yr, mo, ret)
+             for yr, months in hist.items()
+             for mo, ret in months.items()
+             if (yr, mo) < earliest],
+            reverse=True
+        )
+
+        cur_vc = base_vc
+        for yr, mo, ret in hist_list:
+            if ret:
+                prev_vc = cur_vc / (1.0 + ret)
+                combined[(yr, mo)] = prev_vc
+                cur_vc = prev_vc
+
+    return combined
+
+
 API_SQL    = "https://claudeods.vantrustcapital.cl/query"
 MINDICADOR = "https://mindicador.cl/api/tpm"
 
@@ -233,7 +292,7 @@ def leer_datos_template(nombre_fondo: str,
     vc_comp    = VC_COMP_USD if is_usd else VC_COMP_CLP
 
     icp    = _get_icp_series()
-    vc_fip = _get_vc_fondo(nombre_fondo)
+    vc_fip = _get_vc_combined(nombre_fondo)
 
     if not vc_fip:
         return {"acum_label": f"Acum. {y} (*)", "nombre_fip": nombre_display,
