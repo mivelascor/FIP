@@ -7,7 +7,7 @@ from pathlib import Path
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
-# ── Historical fallback (pre-ODS monthly returns from manual folletos) ─────────
+#  Historical fallback (pre-ODS monthly returns from manual folletos) 
 _HISTORICO_PATH = Path(__file__).parent.parent.parent / "inputs" / "historico_fondos.json"
 _HIST_CACHE: dict = {}
 
@@ -144,7 +144,7 @@ FONDOS_USD = {
     "FIP VANTRUST LIQUIDEZ DOLAR",
     "FIP VANTRUST LIQUIDEZ DOLAR CAJA",
     "FIP VANTRUST LIQUIDEZ RESERVA DÓLAR",
-    "FIP VANTRUST LIQUIDEZ TEMPORAL# Competencia & ICP — loaded from template data files (CLICP + Santander MM)
+    "FIP VANTRUST LIQUIDEZ TEMPORAL", — loaded from template data files (CLICP + Santander MM)
 _INPUTS_DIR = Path(__file__).parent.parent.parent / "inputs"
 
 
@@ -160,7 +160,7 @@ def _load_vc_series(filename: str) -> dict:
 
 
 VC_COMP_CLP = _load_vc_series("comp_clp.json")
-VC_COMP_USD = _load_vc_series("comp_usd.json")──────
+VC_COMP_USD = _load_vc_series("comp_usd.json")
 _ICP_CACHE: dict = {}
 _VC_CACHE:  dict = {}
 
@@ -240,7 +240,7 @@ def _get_vc_fondo(nombre_fondo: str) -> dict:
         return {}
 
 
-# ── Rentabilidad helpers ──────────────────────────────────────────────────────
+#  Rentabilidad helpers 
 def _prev(y, m, n=1):
     d = date(y, m, 1) - relativedelta(months=n)
     return (d.year, d.month)
@@ -311,7 +311,7 @@ def leer_datos_template(nombre_fondo: str,
                 "resumen": [], "historico": [],
                 "grafico": {"labels":[], "icp":[], "comp":[], "fip":[]}}
 
-    # ── Resumen ───────────────────────────────────────────────────────────────
+    #  Resumen 
     is_usd = any(x in nombre_fondo.upper() for x in ("DOLAR", "DÓLAR", "USD", "DOLLAR"))
 
     def row(nombre, vc, es_icp, es_comp, es_fip):
@@ -328,7 +328,7 @@ def leer_datos_template(nombre_fondo: str,
         row(nombre_display,    vc_fip,  False, False, True),
     ]
 
-    # ── Histórico — año actual y los 2 anteriores ─────────────────────────────
+    #  Histórico — año actual y los 2 anteriores 
     historico = []
     for yr in [y-2, y-1, y]:
         last_m = m if yr == y else 12
@@ -348,7 +348,7 @@ def leer_datos_template(nombre_fondo: str,
                          {"nombre": "Competencia", "meses": [None]*12, "total": None}]
             historico.append({"año": yr, "filas": filas})
 
-    # ── Gráfico — same date range as historical table (y-2 to y) ─────────────
+    #  Gráfico — same date range as historical table (y-2 to y) 
     chart_start = (y-2, 1)  # Jan of 2 years ago
     chart_end   = (y, m)
 
