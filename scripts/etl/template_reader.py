@@ -2,7 +2,7 @@
 etl/template_reader.py — Calcula rentabilidades directamente desde SQL + ICP.
 Sin dependencia de LibreOffice ni recalc.
 """
-import os, requests, pandas as pd
+import os, requests, pandas as pd, datetime, calendar
 from pathlib import Path
 from datetime import date
 from dateutil.relativedelta import relativedelta
@@ -266,7 +266,6 @@ def _prev(y, m, n=1):
 
 def _eom(y, m):
     """End-of-month date for (year, month)."""
-    import calendar
     last_day = calendar.monthrange(y, m)[1]
     return datetime.date(y, m, last_day)
 
