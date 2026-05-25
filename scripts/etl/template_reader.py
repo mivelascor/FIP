@@ -144,7 +144,7 @@ FONDOS_USD = {
     "FIP VANTRUST LIQUIDEZ DOLAR",
     "FIP VANTRUST LIQUIDEZ DOLAR CAJA",
     "FIP VANTRUST LIQUIDEZ RESERVA DÓLAR",
-    "FIP VANTRUST LIQUIDEZ TEMPORAL", — loaded from template data files (CLICP + Santander MM)
+    "FIP VANTRUST LIQUIDEZ TEMPORAL",
 _INPUTS_DIR = Path(__file__).parent.parent.parent / "inputs"
 
 
