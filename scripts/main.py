@@ -123,6 +123,11 @@ def log(msg): print(msg, flush=True)
 
 def run(comentario_clp: str, comentario_usd: str):
     year, month = _fecha_ref()
+    # Write detected month for workflow commit message
+    try:
+        with open('/tmp/target_month.txt', 'w') as _f:
+            _f.write(f"{year}-{month:02d}")
+    except: pass
     mes_str   = f"{year}-{month:02d}"
     periodo   = f"{MESES_ES[month]} {year}"
 
