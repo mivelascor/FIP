@@ -264,10 +264,23 @@ def _prev(y, m, n=1):
     d = date(y, m, 1) - relativedelta(months=n)
     return (d.year, d.month)
 
+def _eom(y, m):
+    """End-of-month date for (year, month)."""
+    import calendar
+    last_day = calendar.monthrange(y, m)[1]
+    return datetime.date(y, m, last_day)
+
 def _ret(vc, y, m, n=1):
+    """Annualized return: (end/start - 1) / actual_days * 360  (template formula)."""
     v1 = vc.get((y, m))
-    v0 = vc.get(_prev(y, m, n))
-    return v1/v0 - 1 if v1 and v0 else None
+    py, pm = _prev(y, m, n)
+    v0 = vc.get((py, pm))
+    if not v1 or not v0:
+        return None
+    days = (_eom(y, m) - _eom(py, pm)).days
+    if days <= 0:
+        return None
+    return (v1 / v0 - 1) / days * 360
 
 def _ytd(vc, y, m):
     """Acum YY (*): annualized YTD = (current/dec_prev - 1) / n_months * 12"""
@@ -279,12 +292,37 @@ def _ytd(vc, y, m):
     return simple_ytd / m * 12  # annualized
 
 def _year_total(vc, y, last_m):
-    t, has = 1.0, False
-    for mm in range(1, last_m+1):
-        r = _ret(vc, y, mm)
-        if r is not None:
-            t *= (1+r); has = True
-    return t-1 if has else None
+    """Total column in historical table.
+    Template formula: (vc_end / vc_dec_prev - 1) / n_months * 12
+    where n_months = number of months with actual data in that year.
+    For a full year: /12*12 = simple return.
+    For a partial year: annualized.
+    If no Dec-prev VC available, use the earliest available VC in that year.
+    """
+    vc_end = vc.get((y, last_m))
+    if not vc_end:
+        return None
+
+    # Prefer Dec of previous year as base
+    vc_base = vc.get((y-1, 12))
+    base_m  = 0  # Dec of prev year = month 0 of current year logically
+
+    if not vc_base:
+        # Fallback: find earliest VC in this year
+        for mm in range(1, last_m+1):
+            if vc.get((y, mm)):
+                vc_base = vc.get((y, mm))
+                base_m  = mm
+                break
+
+    if not vc_base or vc_base == vc_end:
+        return None
+
+    n_months = last_m - base_m  # months between base and end
+    if n_months <= 0:
+        return None
+
+    return (vc_end / vc_base - 1) / n_months * 12
 
 
 # ── Main function ─────────────────────────────────────────────────────────────
