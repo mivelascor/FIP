@@ -45,38 +45,59 @@ def _parse_year(lbl):
     return 0
 
 def _svg(chart_pts, has_icp):
-    if not chart_pts: return '<svg viewBox="0 0 500 130" width="100%" height="130"></svg>'
-    all_vals = [float(v) for p in chart_pts for k in ('icp','fund','comp') if p.get(k) is not None for v in [p[k]]]
-    if not all_vals: return '<svg viewBox="0 0 500 130" width="100%" height="130"></svg>'
+    """SVG chart with a year label at every Jan tick on the x-axis."""
+    if not chart_pts:
+        return '<svg viewBox="0 0 500 140" width="100%" height="140"></svg>'
+    all_vals = [float(v) for p in chart_pts for k in ('icp','fund','comp')
+                if p.get(k) is not None for v in [p[k]]]
+    if not all_vals:
+        return '<svg viewBox="0 0 500 140" width="100%" height="140"></svg>'
     ymi, yma = min(all_vals), max(all_vals)
     yr = max(yma - ymi, 1)
-    xl, xr, yt, yb = 36, 492, 6, 112
+    xl, xr, yt, yb = 36, 492, 6, 118
     ch, cw, n = yb-yt, xr-xl, len(chart_pts)
-    def xy(i,v): return round(xl+(i/max(n-1,1))*cw,2), round(yb-((float(v)-ymi)/yr)*ch,2)
-    lines=[]
+
+    def xy(i, v):
+        return round(xl + (i / max(n-1, 1)) * cw, 2), round(yb - ((float(v)-ymi)/yr)*ch, 2)
+
+    lines = []
+    # Horizontal grid
     for i in range(5):
-        f=i/4; yv=ymi+f*yr; yp=yb-f*ch
+        f = i/4; yv = ymi + f*yr; yp = yb - f*ch
         lines.append(f'  <line x1="{xl}" x2="{xr}" y1="{yp:.1f}" y2="{yp:.1f}" stroke="#e0e0e0" stroke-width="0.5"/>')
         lines.append(f'  <text x="{xl-3}" y="{yp+2:.1f}" text-anchor="end" font-size="6" fill="#999" font-family="Barlow,sans-serif">{round(yv)}</text>')
+
+    # ICP dashed
     if has_icp:
-        pts=[(i,p['icp']) for i,p in enumerate(chart_pts) if p.get('icp') is not None]
+        pts = [(i,p['icp']) for i,p in enumerate(chart_pts) if p.get('icp') is not None]
         if pts:
-            s=" ".join(f"{xy(i,v)[0]},{xy(i,v)[1]}" for i,v in pts)
+            s = " ".join(f"{xy(i,v)[0]},{xy(i,v)[1]}" for i,v in pts)
             lines.append(f'  <polyline points="{s}" fill="none" stroke="#aaa" stroke-width="1.2" stroke-dasharray="3,2"/>')
-    for col,key,sw in [('#444','comp','1.7'),('#0a0a0a','fund','2.0')]:
-        pts=[(i,p[key]) for i,p in enumerate(chart_pts) if p.get(key) is not None]
+
+    # Competencia + FIP
+    for col, key, sw in [('#444','comp','1.7'),('#0a0a0a','fund','2.0')]:
+        pts = [(i,p[key]) for i,p in enumerate(chart_pts) if p.get(key) is not None]
         if pts:
-            s=" ".join(f"{xy(i,v)[0]},{xy(i,v)[1]}" for i,v in pts)
+            s = " ".join(f"{xy(i,v)[0]},{xy(i,v)[1]}" for i,v in pts)
             lines.append(f'  <polyline points="{s}" fill="none" stroke="{col}" stroke-width="{sw}"/>')
-    seen=set()
-    for i,p in enumerate(chart_pts):
-        yr2=_parse_year(p['date'])
-        if yr2%2==0 and yr2 not in seen and yr2>2000:
-            x,_=xy(i,ymi)
-            lines.append(f'  <text x="{x}" y="127.0" text-anchor="middle" font-size="6" fill="#999" font-family="Barlow,sans-serif">{yr2}</text>')
-            seen.add(yr2)
+
+    # X-axis year labels at every January
+    seen = set()
+    for i, p in enumerate(chart_pts):
+        lbl = str(p['date'])
+        if len(lbl) >= 7:
+            try:
+                yr2, mo = int(lbl[:4]), int(lbl[5:7])
+                if mo == 1 and yr2 not in seen:
+                    x, _ = xy(i, ymi)
+                    lines.append(f'  <line x1="{x}" x2="{x}" y1="{yb}" y2="{yb+4}" stroke="#bbb" stroke-width="0.6"/>')
+                    lines.append(f'  <text x="{x}" y="137" text-anchor="middle" font-size="7" fill="#888" font-family="Barlow,sans-serif" font-weight="500">{yr2}</text>')
+                    seen.add(yr2)
+            except: pass
+
     lines.append(f'  <line x1="{xl}" x2="{xr}" y1="{yb}" y2="{yb}" stroke="#ccc" stroke-width="0.5"/>')
-    return f'<svg viewBox="0 0 500 130" width="100%" height="130" xmlns="http://www.w3.org/2000/svg">\n'+'\n'.join(lines)+'\n</svg>'
+    return f'<svg viewBox="0 0 500 140" width="100%" height="140" xmlns="http://www.w3.org/2000/svg">\n' + '\n'.join(lines) + '\n</svg>'
+
 
 def _cbar(data, order, labels=None):
     html=""
