@@ -2,7 +2,7 @@
 etl/template_reader.py — Calcula rentabilidades directamente desde SQL + ICP.
 Sin dependencia de LibreOffice ni recalc.
 """
-import os, requests, pandas as pd, datetime, calendar
+import os, requests, pandas as pd
 from pathlib import Path
 from datetime import date
 from dateutil.relativedelta import relativedelta
@@ -270,61 +270,43 @@ def _eom(y, m):
     return datetime.date(y, m, last_day)
 
 def _ret(vc, y, m, n=1):
-    """Annualized return: (end/start - 1) / actual_days * 360  (template formula)."""
+    """Simple return: (vc_end / vc_start) - 1."""
     v1 = vc.get((y, m))
-    py, pm = _prev(y, m, n)
-    v0 = vc.get((py, pm))
-    if not v1 or not v0:
-        return None
-    days = (_eom(y, m) - _eom(py, pm)).days
-    if days <= 0:
-        return None
-    return (v1 / v0 - 1) / days * 360
+    v0 = vc.get(_prev(y, m, n))
+    return v1/v0 - 1 if v1 and v0 else None
 
 def _ytd(vc, y, m):
-    """Acum YY (*): annualized YTD = (current/dec_prev - 1) / n_months * 12"""
-    v1 = vc.get((y, m))
-    v0 = vc.get((y-1, 12))
-    if not v1 or not v0:
+    """Acum YY (*): (vc_current/vc_jan - 1) / month * 12.
+    Uses Jan of current year as base."""
+    v1   = vc.get((y, m))
+    vjan = vc.get((y, 1))
+    if not v1 or not vjan:
         return None
-    simple_ytd = v1/v0 - 1
-    return simple_ytd / m * 12  # annualized
+    if m == 1:
+        return 0.0
+    return (v1 / vjan - 1) / m * 12
 
 def _year_total(vc, y, last_m):
-    """Total column in historical table.
-    Template formula: (vc_end / vc_dec_prev - 1) / n_months * 12
-    where n_months = number of months with actual data in that year.
-    For a full year: /12*12 = simple return.
-    For a partial year: annualized.
-    If no Dec-prev VC available, use the earliest available VC in that year.
-    """
+    """Historical Total: (vc_end/vc_jan - 1) / n * 12.
+    Uses Jan as base. Full year /12*12 = simple. Partial = annualized."""
     vc_end = vc.get((y, last_m))
     if not vc_end:
         return None
-
-    # Prefer Dec of previous year as base
-    vc_base = vc.get((y-1, 12))
-    base_m  = 0  # Dec of prev year = month 0 of current year logically
-
-    if not vc_base:
-        # Fallback: find earliest VC in this year
-        for mm in range(1, last_m+1):
+    vc_jan = vc.get((y, 1))
+    base_m = 1
+    if not vc_jan:
+        for mm in range(1, last_m + 1):
             if vc.get((y, mm)):
-                vc_base = vc.get((y, mm))
-                base_m  = mm
+                vc_jan = vc.get((y, mm))
+                base_m = mm
                 break
-
-    if not vc_base or vc_base == vc_end:
+    if not vc_jan or vc_jan == vc_end:
         return None
-
-    n_months = last_m - base_m  # months between base and end
-    if n_months <= 0:
+    n = last_m - base_m + 1
+    if n <= 0:
         return None
+    return (vc_end / vc_jan - 1) / n * 12
 
-    return (vc_end / vc_base - 1) / n_months * 12
-
-
-# ── Main function ─────────────────────────────────────────────────────────────
 def leer_datos_template(nombre_fondo: str,
                          target_year: int = None,
                          target_month: int = None) -> dict:
