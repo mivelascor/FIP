@@ -369,23 +369,33 @@ def leer_datos_template(nombre_fondo: str,
                          {"nombre": "Competencia", "meses": [None]*12, "total": None}]
             historico.append({"año": yr, "filas": filas})
 
-    # ── Gráfico ───────────────────────────────────────────────────────────────
-    fip_months = sorted(vc_fip.keys())
-    base = fip_months[0] if fip_months else (y, m)
-    base_fip  = vc_fip.get(base, 1)
-    base_icp  = icp.get(base, 1)
-    base_comp = vc_comp.get(base, 1)
+    # ── Gráfico — same date range as historical table (y-2 to y) ─────────────
+    chart_start = (y-2, 1)  # Jan of 2 years ago
+    chart_end   = (y, m)
+
+    # Build sorted list of all months in range from all three series
+    all_months = sorted(set(
+        k for k in list(vc_fip.keys()) + list(icp.keys()) + list(vc_comp.keys())
+        if chart_start <= k <= chart_end
+    ))
+
+    if not all_months:
+        all_months = sorted(k for k in vc_fip.keys() if k <= chart_end)
+
+    base = all_months[0] if all_months else chart_start
+    base_fip  = vc_fip.get(base)  or next((v for k,v in sorted(vc_fip.items())  if k >= base), 1)
+    base_icp  = icp.get(base)     or next((v for k,v in sorted(icp.items())     if k >= base), 1)
+    base_comp = vc_comp.get(base) or next((v for k,v in sorted(vc_comp.items()) if k >= base), 1)
 
     labels, c_icp, c_comp, c_fip = [], [], [], []
-    for k in fip_months:
-        if k > (y, m): break
-        vf = vc_fip.get(k)
+    for k in all_months:
         vi = icp.get(k)
-        if not vf or not vi: continue
+        if not vi: continue
+        vf  = vc_fip.get(k)
         vc_c = vc_comp.get(k)
         labels.append(f"{k[0]}-{k[1]:02d}")
         c_icp.append(round(vi / base_icp * 100, 4))
-        c_fip.append(round(vf / base_fip * 100, 4))
+        c_fip.append(round(vf / base_fip * 100, 4) if vf and base_fip else None)
         c_comp.append(round(vc_c / base_comp * 100, 4) if vc_c and base_comp else None)
 
     return {
