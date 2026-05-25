@@ -269,43 +269,39 @@ def _eom(y, m):
     last_day = calendar.monthrange(y, m)[1]
     return datetime.date(y, m, last_day)
 
-def _ret(vc, y, m, n=1):
-    """Simple return: (vc_end / vc_start) - 1."""
+def _ret(vc, y, m, n=1, is_usd=False):
     v1 = vc.get((y, m))
-    v0 = vc.get(_prev(y, m, n))
-    return v1/v0 - 1 if v1 and v0 else None
+    py, pm = _prev(y, m, n)
+    v0 = vc.get((py, pm))
+    if not v1 or not v0:
+        return None
+    simple = v1/v0 - 1
+    if not is_usd:
+        return simple
+    import calendar as _cal
+    from datetime import date as _d
+    d1 = _d(y, m, _cal.monthrange(y, m)[1])
+    d0 = _d(py, pm, _cal.monthrange(py, pm)[1])
+    days = (d1 - d0).days
+    return simple / days * 360 if days > 0 else None
 
 def _ytd(vc, y, m):
-    """Acum YY (*): (vc_current/vc_jan - 1) / month * 12.
-    Uses Jan of current year as base."""
-    v1   = vc.get((y, m))
-    vjan = vc.get((y, 1))
-    if not v1 or not vjan:
-        return None
-    if m == 1:
-        return 0.0
-    return (v1 / vjan - 1) / m * 12
+    return _year_total(vc, y, m)
 
 def _year_total(vc, y, last_m):
-    """Historical Total: (vc_end/vc_jan - 1) / n * 12.
-    Uses Jan as base. Full year /12*12 = simple. Partial = annualized."""
     vc_end = vc.get((y, last_m))
     if not vc_end:
         return None
-    vc_jan = vc.get((y, 1))
-    base_m = 1
-    if not vc_jan:
-        for mm in range(1, last_m + 1):
-            if vc.get((y, mm)):
-                vc_jan = vc.get((y, mm))
-                base_m = mm
-                break
-    if not vc_jan or vc_jan == vc_end:
+    vc_first, n = None, 0
+    for mm in range(1, last_m + 1):
+        v = vc.get((y, mm))
+        if v:
+            if vc_first is None:
+                vc_first = v
+            n += 1
+    if not vc_first or n == 0 or vc_first == vc_end:
         return None
-    n = last_m - base_m + 1
-    if n <= 0:
-        return None
-    return (vc_end / vc_jan - 1) / n * 12
+    return (vc_end / vc_first - 1) / n * 12
 
 def leer_datos_template(nombre_fondo: str,
                          target_year: int = None,
@@ -335,11 +331,13 @@ def leer_datos_template(nombre_fondo: str,
                 "grafico": {"labels":[], "icp":[], "comp":[], "fip":[]}}
 
     # ── Resumen ───────────────────────────────────────────────────────────────
+    is_usd = any(x in nombre_fondo.upper() for x in ("DOLAR", "DÓLAR", "USD", "DOLLAR"))
+
     def row(nombre, vc, es_icp, es_comp, es_fip):
         has_12 = bool(vc.get(_prev(y, m, 12)))
         return {"nombre": nombre,
-                "m": _ret(vc,y,m,1), "t": _ret(vc,y,m,3),
-                "s": _ret(vc,y,m,6), "a": _ret(vc,y,m,12) if has_12 else None,
+                "m": _ret(vc,y,m,1,is_usd), "t": _ret(vc,y,m,3,is_usd),
+                "s": _ret(vc,y,m,6,is_usd), "a": _ret(vc,y,m,12,is_usd) if has_12 else None,
                 "ac": _ytd(vc,y,m),
                 "es_icp": es_icp, "es_comp": es_comp, "es_fip": es_fip}
 
