@@ -145,6 +145,9 @@ FONDOS_USD = {
     "FIP VANTRUST LIQUIDEZ DOLAR CAJA",
     "FIP VANTRUST LIQUIDEZ RESERVA DÓLAR",
     "FIP VANTRUST LIQUIDEZ TEMPORAL",
+}
+
+# ── Competencia & ICP ─────
 _INPUTS_DIR = Path(__file__).parent.parent.parent / "inputs"
 
 
