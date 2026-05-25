@@ -2,7 +2,7 @@
 etl/template_reader.py — Calcula rentabilidades directamente desde SQL + ICP.
 Sin dependencia de LibreOffice ni recalc.
 """
-import os, requests, pandas as pd
+import os, requests, pandas as pd, json
 from pathlib import Path
 from datetime import date
 from dateutil.relativedelta import relativedelta
@@ -144,95 +144,76 @@ FONDOS_USD = {
     "FIP VANTRUST LIQUIDEZ DOLAR",
     "FIP VANTRUST LIQUIDEZ DOLAR CAJA",
     "FIP VANTRUST LIQUIDEZ RESERVA DÓLAR",
-    "FIP VANTRUST LIQUIDEZ TEMPORAL",
-}
+    "FIP VANTRUST LIQUIDEZ TEMPORAL# Competencia & ICP — loaded from template data files (CLICP + Santander MM)
+_INPUTS_DIR = Path(__file__).parent.parent.parent / "inputs"
 
-# Competencia CLP — Santander Money Market (valores históricos EOM)
-VC_COMP_CLP = {
-    (2018,1):5503,(2018,2):5509,(2018,3):5516,(2018,4):5523,(2018,5):5531,
-    (2018,6):5540,(2018,7):5549,(2018,8):5559,(2018,9):5569,(2018,10):5581,
-    (2018,11):5592,(2018,12):5606,
-    (2019,1):5620,(2019,2):5635,(2019,3):5651,(2019,4):5667,(2019,5):5685,
-    (2019,6):5701,(2019,7):5718,(2019,8):5733,(2019,9):5747,(2019,10):5760,
-    (2019,11):5772,(2019,12):5784,
-    (2020,1):5796,(2020,2):5807,(2020,3):5814,(2020,4):5820,(2020,5):5824,
-    (2020,6):5827,(2020,7):5830,(2020,8):5833,(2020,9):5836,(2020,10):5839,
-    (2020,11):5842,(2020,12):5845,
-    (2021,1):5849,(2021,2):5853,(2021,3):5858,(2021,4):5864,(2021,5):5872,
-    (2021,6):5881,(2021,7):5894,(2021,8):5910,(2021,9):5931,(2021,10):5960,
-    (2021,11):5994,(2021,12):6036,
-    (2022,1):6083,(2022,2):6137,(2022,3):6199,(2022,4):6266,(2022,5):6340,
-    (2022,6):6421,(2022,7):6505,(2022,8):6595,(2022,9):6682,(2022,10):6769,
-    (2022,11):6857,(2022,12):6954,
-    (2023,1):7052,(2023,2):7150,(2023,3):7253,(2023,4):7352,(2023,5):7454,
-    (2023,6):7556,(2023,7):7653,(2023,8):7748,(2023,9):7839,(2023,10):7928,
-    (2023,11):8012,(2023,12):8092,
-    (2024,1):8166,(2024,2):8231,(2024,3):8293,(2024,4):8350,(2024,5):8404,
-    (2024,6):8455,(2024,7):8502,(2024,8):8548,(2024,9):8590,(2024,10):8630,
-    (2024,11):8667,(2024,12):8703,
-    (2025,1):8737,(2025,2):8768,(2025,3):8800,(2025,4):8830,(2025,5):8860,
-    (2025,6):8890,(2025,7):8920,(2025,8):8949,(2025,9):8977,(2025,10):9005,
-    (2025,11):9033,(2025,12):9060,
-    (2026,1):9087,(2026,2):9111,(2026,3):9136,(2026,4):9160,(2026,5):9184,
-}
 
-# Competencia USD — BanChile Corporate Dollar
-VC_COMP_USD = {
-    (2019,1):1120,(2019,2):1123,(2019,3):1126,(2019,4):1130,(2019,5):1134,
-    (2019,6):1138,(2019,7):1143,(2019,8):1147,(2019,9):1152,(2019,10):1156,
-    (2019,11):1161,(2019,12):1165,
-    (2020,1):1170,(2020,2):1174,(2020,3):1177,(2020,4):1180,(2020,5):1183,
-    (2020,6):1185,(2020,7):1188,(2020,8):1190,(2020,9):1193,(2020,10):1195,
-    (2020,11):1197,(2020,12):1200,
-    (2021,1):1203,(2021,2):1207,(2021,3):1211,(2021,4):1215,(2021,5):1220,
-    (2021,6):1225,(2021,7):1230,(2021,8):1236,(2021,9):1242,(2021,10):1249,
-    (2021,11):1257,(2021,12):1265,
-    (2022,1):1274,(2022,2):1284,(2022,3):1296,(2022,4):1308,(2022,5):1321,
-    (2022,6):1336,(2022,7):1351,(2022,8):1366,(2022,9):1380,(2022,10):1394,
-    (2022,11):1407,(2022,12):1420,
-    (2023,1):1433,(2023,2):1445,(2023,3):1458,(2023,4):1471,(2023,5):1484,
-    (2023,6):1497,(2023,7):1509,(2023,8):1521,(2023,9):1532,(2023,10):1543,
-    (2023,11):1554,(2023,12):1565,
-    (2024,1):1575,(2024,2):1584,(2024,3):1593,(2024,4):1601,(2024,5):1609,
-    (2024,6):1617,(2024,7):1625,(2024,8):1632,(2024,9):1639,(2024,10):1646,
-    (2024,11):1653,(2024,12):1660,
-    (2025,1):1667,(2025,2):1673,(2025,3):1679,(2025,4):1685,(2025,5):1691,
-    (2025,6):1697,(2025,7):1703,(2025,8):1709,(2025,9):1715,(2025,10):1721,
-    (2025,11):1727,(2025,12):1733,
-    (2026,1):1739,(2026,2):1744,(2026,3):1750,(2026,4):1755,(2026,5):1761,
-}
+def _load_vc_series(filename: str) -> dict:
+    """Load {(year, month): float} from JSON file."""
+    try:
+        with open(_INPUTS_DIR / filename) as f:
+            raw = json.load(f)
+        return {(int(k[:4]), int(k[5:7])): float(v) for k, v in raw.items()}
+    except Exception as e:
+        print(f"  [WARN] Could not load {filename}: {e}")
+        return {}
 
-# ── Shared caches (loaded once per process) ──────────────────────────────────
+
+VC_COMP_CLP = _load_vc_series("comp_clp.json")
+VC_COMP_USD = _load_vc_series("comp_usd.json")──────
 _ICP_CACHE: dict = {}
 _VC_CACHE:  dict = {}
 
 
 def _get_icp_series() -> dict:
+    """Load ICP from CLICP template file, extended forward with TPM for new months."""
     global _ICP_CACHE
     if _ICP_CACHE:
         return _ICP_CACHE
-    all_data = []
-    for y in range(2018, date.today().year + 1):
-        try:
-            r = requests.get(f"{MINDICADOR}/{y}", timeout=15)
-            for item in r.json().get("serie", []):
-                all_data.append({"fecha": pd.to_datetime(item["fecha"]),
-                                  "tpm": float(item["valor"])})
-        except Exception:
-            continue
-    if not all_data:
-        return {}
-    df = pd.DataFrame(all_data).sort_values("fecha")
-    df["ym"] = df["fecha"].dt.to_period("M")
-    m = df.groupby("ym")["tpm"].mean().reset_index()
-    m["rent"] = m["tpm"] / 1200
-    nivel = [10000.0]
-    for i in range(1, len(m)):
-        nivel.append(nivel[-1] * (1 + m.loc[i, "rent"]))
-    m["nivel"] = nivel
-    _ICP_CACHE = {(int(row["ym"].year), int(row["ym"].month)): row["nivel"]
-                   for _, row in m.iterrows()}
+
+    # Load CLICP from templates (matches folleto template data exactly)
+    clicp = _load_vc_series("icp_clicp.json")
+    if not clicp:
+        # Full fallback: TPM-based approximation
+        clicp = _build_icp_from_tpm(base_ym=None, base_val=None)
+        _ICP_CACHE = clicp
+        return _ICP_CACHE
+
+    # Extend forward for months after the template file
+    last_ym  = max(clicp.keys())
+    last_val = clicp[last_ym]
+    extra = _build_icp_from_tpm(base_ym=last_ym, base_val=last_val)
+    clicp.update(extra)
+    _ICP_CACHE = clicp
     return _ICP_CACHE
+
+
+def _build_icp_from_tpm(base_ym, base_val):
+    """Build ICP index continuation from TPM rates for months after base_ym."""
+    result = {}
+    today = date.today()
+    start_year = base_ym[0] if base_ym else 2018
+    prev_val = base_val if base_val else 10000.0
+
+    for year in range(start_year, today.year + 1):
+        try:
+            r = requests.get(f"https://mindicador.cl/api/tpm/{year}", timeout=15)
+            items = r.json().get("serie", [])
+            df = pd.DataFrame([{"fecha": pd.to_datetime(i["fecha"]), "tpm": float(i["valor"])}
+                                for i in items])
+            if df.empty:
+                continue
+            df["ym"] = df["fecha"].dt.to_period("M")
+            m_tpm = df.groupby("ym")["tpm"].mean().reset_index()
+            for _, row in m_tpm.iterrows():
+                ym = (row["ym"].year, row["ym"].month)
+                if base_ym and ym <= base_ym:
+                    continue
+                prev_val = prev_val * (1 + row["tpm"] / 1200)
+                result[ym] = prev_val
+        except Exception as e:
+            print(f"  [WARN] TPM fetch {year}: {e}")
+    return result
 
 
 def _get_vc_fondo(nombre_fondo: str) -> dict:
