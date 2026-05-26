@@ -49,9 +49,24 @@ FONDOS_USD = {
     'FIP VANTRUST LIQUIDEZ RESERVA DÓLAR',
 }
 
-# CLP funds where template summary is more accurate than ODS calculation
-# (because the template uses SharePoint VC data which matches manual PDF better)
+# Funds where template summary is used (instead of ODS calculation).
+# This includes ALL funds that have FIP data in their template rentabilidad sheet.
+# USD funds: always use template (different formula + data source)
+# CLP funds with template: use template (SharePoint data matches PDFs better than ODS)
+# Determined empirically by checking ws.cell(4,20).value is not None.
 FONDOS_USE_TEMPLATE = FONDOS_USD | {
+    'FIP VANTRUST LIQUIDEZ ACTIVA',
+    'FIP VANTRUST LIQUIDEZ ALTO MONTO',
+    'FIP VANTRUST LIQUIDEZ CAJA',
+    'FIP VANTRUST LIQUIDEZ CONTINUA',
+    'FIP VANTRUST LIQUIDEZ DISPONIBLE I',
+    'FIP VANTRUST LIQUIDEZ EFECTIVO',
+    'FIP VANTRUST LIQUIDEZ FLEXIBLE',
+    'FIP VANTRUST LIQUIDEZ MONETARIO I',
+    'FIP VANTRUST LIQUIDEZ PERMANENTE',
+    'FIP VANTRUST LIQUIDEZ PLUS',
+    'FIP VANTRUST LIQUIDEZ PRESENTE',
+    'FIP VANTRUST LIQUIDEZ RENDIMIENTO',
     'FIP VANTRUST LIQUIDEZ I',
     'FIP VANTRUST LIQUIDEZ ALTO CAPITAL',
 }
