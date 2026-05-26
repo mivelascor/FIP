@@ -172,7 +172,9 @@ def _get_tmpl_hist(tmpl_file):
             v = ws.cell(r, 5+i).value
             months.append(float(v) if v and v!=0 and isinstance(v,(int,float)) else None)
         if any(v is not None for v in months):
-            out.setdefault(cur_yr, {})[lbl.strip()] = months
+            total_raw = ws.cell(r, 17).value
+            total = float(total_raw) if total_raw and isinstance(total_raw,(int,float)) else None
+            out.setdefault(cur_yr, {})[lbl.strip()] = {'months': months, 'total': total}
     wb.close()
     _HIST_CACHE[tmpl_file] = out
     return out
@@ -209,7 +211,7 @@ def _get_tmpl_summary(tmpl_file, is_usd):
     return acum_label, icp_row, comp_row, fip_row
 
 def _fip_row_from_hist(hist_yr, hint):
-    """Find the FIP monthly row in a template year dict."""
+    """Find the FIP entry in a template year dict. Returns {'months':[], 'total':v}."""
     skip = {'icp','competencia','icp (benchmark)'}
     candidates = [(k,v) for k,v in hist_yr.items() if k.lower() not in skip and 'icp' not in k.lower()]
     if not candidates: return None
@@ -219,6 +221,28 @@ def _fip_row_from_hist(hist_yr, hint):
         if hint_up in k.upper().replace('FIP','').replace('LIQUIDEZ','').strip():
             return v
     return candidates[0][1]
+
+def _icp_row_from_hist(hist_yr):
+    """Find the ICP entry in a template year dict."""
+    for k,v in hist_yr.items():
+        if 'icp' in k.lower(): return v
+    return None
+
+def _comp_row_from_hist(hist_yr):
+    """Find the Competencia entry in a template year dict."""
+    for k,v in hist_yr.items():
+        if k.lower() == 'competencia': return v
+    return None
+
+def _entry_months(entry):
+    """Get months list from a hist entry (dict with 'months' key)."""
+    if isinstance(entry, dict): return entry.get('months', [])
+    return entry or []
+
+def _entry_total(entry):
+    """Get stored total from a hist entry."""
+    if isinstance(entry, dict): return entry.get('total')
+    return None
 
 # ── Build CLP VC series (ODS + template chain for pre-ODS) ───────────────────
 def _build_clp_vc(nombre, tmpl_file):
@@ -346,11 +370,18 @@ def leer_datos_template(nombre_fondo, target_year=None, target_month=None):
 
 
 def _build_clp_historico(y, m, icp, vc_comp, vc_fip, display, tmpl_hist, nombre_fondo):
-    """Build historical table rows for CLP fund."""
+    """Build historical table rows for CLP fund.
+    Total rule: use template stored total when data is pre-ODS; otherwise _ytd.
+    For years entirely from ODS (2026): always use _ytd.
+    For years with template data (2024, 2025): use template total directly.
+    """
+    ODS_START_YR = 2025   # ODS data starts Jul 2025
     out = []
     for yr in [y-2, y-1, y]:
-        last_m = m if yr==y else 12
-        filas  = []
+        last_m  = m if yr==y else 12
+        yr_tmpl = tmpl_hist.get(yr, {}) if tmpl_hist else {}
+        filas   = []
+
         for lbl, vc, is_icp_like in [('ICP (Benchmark)', icp, True),
                                       ('Competencia', vc_comp, False),
                                       (display, vc_fip, False)]:
@@ -358,23 +389,56 @@ def _build_clp_historico(y, m, icp, vc_comp, vc_fip, display, tmpl_hist, nombre_
             for mm in range(1, 13):
                 if mm > last_m:
                     months_out.append(None); continue
-                # Check if ODS VC exists for this month (or it's ICP/Comp with extended series)
-                if vc.get((yr, mm)) and vc.get((yr, mm-1) if mm>1 else _prev(yr,mm)):
+
+                # Try ODS/extended series first
+                has_ods = (vc.get((yr,mm)) and
+                           vc.get((yr,mm-1) if mm>1 else _prev(yr,mm)))
+                if has_ods:
                     months_out.append(_simple(vc, yr, mm))
-                elif not is_icp_like and tmpl_hist:
-                    # Pre-ODS: use template monthly returns directly
-                    yr_data = tmpl_hist.get(yr, {})
-                    fip_tmpl = _fip_row_from_hist(yr_data, nombre_fondo)
-                    if fip_tmpl and mm <= len(fip_tmpl):
-                        months_out.append(fip_tmpl[mm-1])
+                elif not is_icp_like and yr_tmpl:
+                    entry = _fip_row_from_hist(yr_tmpl, nombre_fondo)
+                    mons  = _entry_months(entry)
+                    months_out.append(mons[mm-1] if mons and mm <= len(mons) else None)
+                elif is_icp_like and yr_tmpl:
+                    # ICP/Comp from template for pre-ODS years
+                    if lbl == 'ICP (Benchmark)':
+                        entry = _icp_row_from_hist(yr_tmpl)
                     else:
-                        months_out.append(_simple(vc, yr, mm))
+                        entry = _comp_row_from_hist(yr_tmpl)
+                    mons = _entry_months(entry) if entry else []
+                    val  = mons[mm-1] if mons and mm <= len(mons) else _simple(vc, yr, mm)
+                    months_out.append(val)
                 else:
                     months_out.append(_simple(vc, yr, mm))
 
-            if any(v is not None for v in months_out):
-                total = _ytd(vc, yr, last_m)
-                filas.append({'nombre': lbl, 'meses': months_out, 'total': total})
+            if not any(v is not None for v in months_out):
+                continue
+
+            # Determine total:
+            # - For years with template data, use stored template total (already correct formula)
+            # - For current year (yr==y) or pure ODS years, recalculate with _ytd
+            total = None
+            if yr_tmpl and yr < y:
+                # Use template stored total for this row
+                if not is_icp_like:
+                    entry = _fip_row_from_hist(yr_tmpl, nombre_fondo)
+                elif lbl == 'ICP (Benchmark)':
+                    entry = _icp_row_from_hist(yr_tmpl)
+                else:
+                    entry = _comp_row_from_hist(yr_tmpl)
+                total = _entry_total(entry) if entry else None
+
+            if total is None:
+                # Fallback: compute from VC chain
+                # Use only months that have data (respects partial year starts)
+                non_none = [v for v in months_out[:last_m] if v is not None]
+                if non_none:
+                    n = len(non_none)
+                    compound = 1.0
+                    for r in non_none: compound *= (1+r)
+                    total = (compound - 1) / n * 12
+
+            filas.append({'nombre': lbl, 'meses': months_out, 'total': total})
         if filas:
             out.append({'año': yr, 'filas': filas})
     return out
@@ -419,31 +483,34 @@ def _build_usd_output(nombre_fondo, display, tmpl_file, icp, vc_comp, y, m, is_u
             # Find the right row in template hist
             row_months = None
             if is_icp_like:
-                row_months = yr_data.get('ICP') or next(
-                    (v for k,v in yr_data.items() if 'ICP' in k.upper()), None)
+                icp_entry = _icp_row_from_hist(yr_data)
+                row_months = _entry_months(icp_entry) if icp_entry else None
+                entry = icp_entry
                 if row_months is None:
                     # Use ICP series for historical ICP
                     row_months = [_simple(icp, yr, mm) for mm in range(1,13)]
+                    entry = None
             else:
-                all_rows = [(k,v) for k,v in yr_data.items() if 'ICP' not in k.upper() and k.lower() not in {'competencia'}]
                 comp_rows = [(k,v) for k,v in yr_data.items() if k.lower() == 'competencia']
                 if lbl == 'Competencia':
-                    row_months = comp_rows[0][1] if comp_rows else None
+                    entry = comp_rows[0][1] if comp_rows else None
                 else:
-                    row_months = _fip_row_from_hist(yr_data, nombre_fondo)
+                    entry = _fip_row_from_hist(yr_data, nombre_fondo)
+                row_months = _entry_months(entry)
 
             if row_months:
                 months_out = [row_months[mm-1] if mm<=last_m and mm<=len(row_months) else None
                               for mm in range(1,13)]
                 if any(v is not None for v in months_out):
-                    # Compute total from the months
-                    non_none = [v for v in months_out[:last_m] if v is not None]
-                    total = None
-                    if len(non_none) > 0:
-                        # (1+r1)(1+r2)...(1+rn) - 1 = compound return
-                        compound = 1.0
-                        for r in non_none: compound *= (1+r)
-                        total = compound - 1
+                    # Use stored template total, else compute compound
+                    total = _entry_total(entry) if 'entry' in dir() and entry else None
+                    if total is None:
+                        non_none = [v for v in months_out[:last_m] if v is not None]
+                        if non_none:
+                            compound = 1.0
+                            for r in non_none: compound *= (1+r)
+                            n = len(non_none)
+                            total = (compound - 1) / n * 12
                     filas.append({'nombre': lbl, 'meses': months_out, 'total': total})
         if filas:
             historico.append({'año': yr, 'filas': filas})
