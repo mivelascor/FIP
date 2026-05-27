@@ -79,12 +79,26 @@ textarea::placeholder{color:var(--muted);}
 .sp-log{background:#0d0d0d;padding:14px 18px;font-family:monospace;font-size:11.5px;color:#6ee7b7;line-height:1.75;max-height:200px;overflow-y:auto;white-space:pre-wrap;}
 .sp-foot{background:var(--surface);border-top:1px solid var(--border);padding:10px 18px;display:flex;gap:10px;}
 
+/* ── Progress bar ── */
+.progress-wrap{background:var(--surface);border-top:1px solid var(--border);padding:14px 18px;}
+.progress-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.progress-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
+.progress-pct{font-size:12px;font-weight:600;color:var(--muted2);font-variant-numeric:tabular-nums;}
+.progress-track{height:3px;background:var(--border2);position:relative;overflow:hidden;}
+.progress-bar{height:100%;background:var(--green);width:0%;transition:width .6s ease;position:relative;}
+.progress-bar.indeterminate{width:30%!important;animation:indeterminate 1.4s ease-in-out infinite;}
+@keyframes indeterminate{0%{transform:translateX(-100%)}100%{transform:translateX(430%)}}
+.progress-time{display:flex;justify-content:space-between;margin-top:6px;}
+.progress-time span{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;}
+
 /* ── Downloads ── */
 #dl-section{margin-top:12px;display:none;background:var(--surface);border:1px solid var(--border);padding:22px 26px;}
 .dl-title{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:14px;}
 .dl-list{list-style:none;display:flex;flex-direction:column;gap:7px;}
 .dl-list li a{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted2);text-decoration:none;padding:8px 11px;border:1px solid var(--border);transition:all .15s;}
 .dl-list li a:hover{border-color:var(--border2);color:var(--text);}
+.btn-ir-fondos{display:inline-flex;align-items:center;gap:8px;margin-top:16px;background:var(--green);color:#0a0a0a;border:none;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:11px 22px;cursor:pointer;text-decoration:none;transition:opacity .15s;border-radius:1px;}
+.btn-ir-fondos:hover{opacity:.86;}
 </style>
 
 <style>
@@ -164,6 +178,22 @@ textarea::placeholder{color:var(--muted);}
       <span id="sp-title">Iniciando...</span>
     </div>
     <div class="sp-log" id="sp-log"></div>
+
+    <!-- Progress bar (nuevo) -->
+    <div class="progress-wrap" id="progress-wrap" style="display:none;">
+      <div class="progress-meta">
+        <span class="progress-label">Progreso estimado</span>
+        <span class="progress-pct" id="prog-pct">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-bar" id="prog-bar"></div>
+      </div>
+      <div class="progress-time">
+        <span id="prog-elapsed">Transcurrido: 0:00</span>
+        <span id="prog-remaining">Estimado restante: —</span>
+      </div>
+    </div>
+
     <div class="sp-foot" id="sp-foot"></div>
   </div>
 
@@ -171,6 +201,8 @@ textarea::placeholder{color:var(--muted);}
   <div id="dl-section">
     <div class="dl-title">✓ Folletos generados</div>
     <ul class="dl-list" id="dl-list"></ul>
+    <!-- Botón ir al menú de fondos (nuevo) -->
+    <a class="btn-ir-fondos" href="menu_fondos.html" id="btn-ir-fondos">→ Ver fondos y descargar</a>
   </div>
 
 </main>
@@ -179,6 +211,10 @@ textarea::placeholder{color:var(--muted);}
 const REPO="mivelascor/FIP", BRANCH="main";
 const MESES=["","Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 let cartB64=null, runId=null, polling=null, targetMes=null;
+
+// Progress state
+const TOTAL_SECS = 210; // ~3.5 min estimated workflow duration
+let progTimer=null, startTime=null;
 
 window.onload=()=>{
   const hoy=new Date();
@@ -249,6 +285,51 @@ function log(msg){const el=document.getElementById("sp-log");el.textContent+=msg
 function setStatus(t,spin=true){document.getElementById("sp-title").textContent=t;document.getElementById("sp-spinner").style.display=spin?"block":"none";}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 
+function fmt(secs){
+  const m=Math.floor(secs/60), s=Math.floor(secs%60);
+  return `${m}:${String(s).padStart(2,"0")}`;
+}
+
+function startProgress(){
+  startTime=Date.now();
+  document.getElementById("progress-wrap").style.display="block";
+  const bar=document.getElementById("prog-bar");
+  bar.classList.add("indeterminate");
+  document.getElementById("prog-pct").textContent="—";
+  document.getElementById("prog-elapsed").textContent="Transcurrido: 0:00";
+  document.getElementById("prog-remaining").textContent=`Estimado restante: ${fmt(TOTAL_SECS)}`;
+
+  progTimer=setInterval(()=>{
+    const elapsed=(Date.now()-startTime)/1000;
+    const pct=Math.min(elapsed/TOTAL_SECS,0.95); // cap at 95% until done
+    const remaining=Math.max(TOTAL_SECS-elapsed,0);
+
+    document.getElementById("prog-elapsed").textContent=`Transcurrido: ${fmt(elapsed)}`;
+    document.getElementById("prog-remaining").textContent=
+      elapsed<TOTAL_SECS ? `Estimado restante: ${fmt(remaining)}` : "Finalizando...";
+
+    // Switch from indeterminate to real progress once we have elapsed data
+    if(elapsed>3){
+      bar.classList.remove("indeterminate");
+      bar.style.width=(pct*100).toFixed(1)+"%";
+      document.getElementById("prog-pct").textContent=Math.round(pct*100)+"%";
+    }
+  },1000);
+}
+
+function completeProgress(success){
+  if(progTimer){clearInterval(progTimer);progTimer=null;}
+  const bar=document.getElementById("prog-bar");
+  bar.classList.remove("indeterminate");
+  bar.style.width=success?"100%":"0%";
+  bar.style.background=success?"var(--green)":"var(--red)";
+  bar.style.transition="width .4s ease";
+  document.getElementById("prog-pct").textContent=success?"100%":"—";
+  const elapsed=startTime?(Date.now()-startTime)/1000:0;
+  document.getElementById("prog-elapsed").textContent=`Transcurrido: ${fmt(elapsed)}`;
+  document.getElementById("prog-remaining").textContent=success?"Completado":"—";
+}
+
 async function ghPut(path,content,msg,sha=null){
   const tk=getToken();
   const body={message:msg,content,branch:BRANCH};
@@ -297,6 +378,7 @@ async function generar(){
   document.getElementById("status-panel").style.display="block";
   document.getElementById("dl-section").style.display="none";
   document.getElementById("sp-log").textContent="";
+  document.getElementById("progress-wrap").style.display="none";
   setStatus("Subiendo archivos...");
 
   try{
@@ -320,10 +402,12 @@ async function generar(){
     log("   ✓ Workflow disparado");
 
     setStatus("Esperando inicio del workflow...");
+    startProgress();
+
     await sleep(4000);
     for(let i=0;i<10;i++){runId=await getLatestRunId();if(runId)break;await sleep(3000);}
 
-    if(!runId){log("⚠  No se detectó el run. Revisa GitHub Actions.");setStatus("Run no detectado",false);return;}
+    if(!runId){log("⚠  No se detectó el run. Revisa GitHub Actions.");setStatus("Run no detectado",false);completeProgress(false);return;}
     log(`   Run ID: ${runId}`);
     setStatus(`Ejecutando #${runId}...`);
     startPolling();
@@ -331,6 +415,7 @@ async function generar(){
   }catch(e){
     log(`\n❌ Error: ${e.message}`);
     setStatus("Error",false);
+    completeProgress(false);
     document.getElementById("btn-gen").disabled=false;
   }
 }
@@ -348,10 +433,12 @@ function startPolling(){
         if(conclusion==="success"){
           log("\n✅ ¡Folletos generados con éxito!");
           setStatus("✓ Completado",false);
+          completeProgress(true);
           showDownloads();
         }else{
           log(`\n❌ El workflow terminó con: ${conclusion}`);
           setStatus(`✗ ${conclusion}`,false);
+          completeProgress(false);
           document.getElementById("sp-foot").innerHTML=
             `<a class="btn-sec" href="https://github.com/${REPO}/actions/runs/${runId}" target="_blank" style="font-size:11px">Ver log de error →</a>`;
         }
