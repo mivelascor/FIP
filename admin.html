@@ -138,14 +138,23 @@ textarea::placeholder{color:var(--muted);}
   <!-- Planilla VC -->
   <div class="card">
     <div class="card-head">
-      <div><div class="card-title">Planilla Valores Cuota</div><div class="card-desc">Excel con los VCs de fin de mes de todos los fondos (planilla_vc.xlsx). Si ODS ya tiene los datos del mes, no es necesario subir este archivo.</div></div>
-      <div class="card-status" id="st-vc">Opcional</div>
+      <div>
+        <div class="card-title">Planilla Valores Cuota <span style="font-size:9px;background:var(--red);color:#fff;padding:2px 6px;letter-spacing:1px;vertical-align:middle">REQUERIDO</span></div>
+        <div class="card-desc">Excel con el VC del último día del mes para cada fondo. <strong>Sin este archivo no se generan los folletos correctamente.</strong><br>Formato: Col A = nombre fondo, Col B = valor cuota.</div>
+      </div>
+      <div class="card-status" id="st-vc">Pendiente</div>
     </div>
     <div class="zone" id="zone-vc">
-      <input type="file" id="file-vc" accept=".xlsx,.xls" onchange="onVC(this)">
+      <input type="file" id="file-vc" accept=".xlsx,.xls,.csv" onchange="onVC(this)">
       <div class="zone-icon">📋</div>
-      <div class="zone-text"><strong>Clic o arrastra</strong> el archivo aquí<br><span style="font-size:11px;color:var(--muted)">planilla_vc.xlsx — valores cuota fin de mes</span></div>
+      <div class="zone-text"><strong>Clic o arrastra</strong> planilla_vc.xlsx aquí<br><span style="font-size:11px;color:var(--muted)">Descarga la plantilla → llena los VCs → sube aquí</span></div>
       <div class="zone-fname" id="fn-vc"></div>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted)">
+      ¿No tienes la plantilla? 
+      <a href="https://raw.githubusercontent.com/mivelascor/FIP/main/inputs/planilla_vc_template.xlsx" 
+         download="planilla_vc_template.xlsx"
+         style="color:var(--muted2);text-decoration:underline">Descargar plantilla →</a>
     </div>
   </div>
 
