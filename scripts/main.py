@@ -187,7 +187,8 @@ def run(comentario_clp: str, comentario_usd: str):
     log(f"  {len(final_pdfs)} PDFs generados")
 
     log(f"\n[4/4] Empaquetando ZIP...")
-    zip_mes    = pdf_dir / f"folletos_{mes_str}.zip"
+    # zip_mes goes to folletos/ ROOT so MenuFF can find it via API listing
+    zip_mes    = BASE_DIR / "folletos" / f"folletos_{mes_str}.zip"
     zip_latest = BASE_DIR / "folletos" / "latest.zip"
     for zp in (zip_mes, zip_latest):
         with zipfile.ZipFile(zp, "w", zipfile.ZIP_DEFLATED) as zf:
