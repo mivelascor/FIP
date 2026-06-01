@@ -134,6 +134,17 @@ def run(comentario_clp: str, comentario_usd: str):
     log(f"\n{'='*60}\n FOLLETOS {periodo} — {mes_str}\n{'='*60}\n")
 
     BASE_DIR = Path(__file__).parent.parent
+
+    # ── Step 0: Update templates with current month data ──────────────────────
+    log("[0/4] Actualizando templates con datos del mes...")
+    try:
+        from etl.template_updater import run_update
+        update_results = run_update(year, month)
+        updated_count = sum(1 for v in update_results.values() if v == 'updated')
+        log(f"  ✓ Templates actualizados: {updated_count}/{len(update_results)}\n")
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        log(f"  [WARN] Template update failed: {e} — usando templates existentes\n")
     html_dir = BASE_DIR / "folletos" / mes_str / "html"
     pdf_dir  = BASE_DIR / "folletos" / mes_str
     html_dir.mkdir(parents=True, exist_ok=True)
