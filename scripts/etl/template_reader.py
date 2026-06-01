@@ -249,13 +249,20 @@ def _get_tmpl_hist(tmpl_file):
             n = len(non_none_rets)
             total = None
             if n > 0:
-                # Find first and last VC in year
+                # Template formula: (end_vc / first_vc_of_year - 1) / COUNTA * 12
+                # COUNTA = 12 for ALL years because return row cells always have formulas
+                # (even Jan-Mar = 0 formula for funds that started mid-year)
+                # Exception: current partial year uses actual n (months with returns)
                 yr_vcs = [(mo, vc_dict.get((yr, mo))) for mo in range(1, 13)
                           if vc_dict.get((yr, mo)) is not None]
                 if len(yr_vcs) >= 2:
-                    vc_first_prev = vc_dict.get((yr-1, 12)) or yr_vcs[0][1]
-                    vc_last = yr_vcs[-1][1]
-                    total = (vc_last / vc_first_prev - 1) / n * 12
+                    vc_first = yr_vcs[0][1]   # First VC of this year (may be base month)
+                    vc_last  = yr_vcs[-1][1]  # Last VC of this year
+                    # n_count: 12 for past years (COUNTA counts formula cells as non-empty)
+                    #          n for current year (only actual months matter)
+                    is_current_yr = (yr == max(all_yrs))
+                    n_count = n if is_current_yr else 12
+                    total = (vc_last / vc_first - 1) / n_count * 12
 
             yr_data[label] = {'months': months, 'total': total}
         if yr_data:
@@ -576,23 +583,20 @@ def _build_clp_historico(y, m, icp, vc_comp, vc_fip, display, tmpl_hist, nombre_
             if not any(v is not None for v in months_out):
                 continue
 
-            # Determine total:
-            # - For years with template data, use stored template total (already correct formula)
-            # - For current year (yr==y) or pure ODS years, recalculate with _ytd
+            # Determine total using template stored values (correct formula from Excel)
+            # _get_tmpl_hist now computes totals correctly from G/K column data
             total = None
-            if yr_tmpl and yr < y:
-                # Use template stored total for this row
-                if not is_icp_like:
-                    entry = _fip_row_from_hist(yr_tmpl, nombre_fondo)
-                elif lbl == 'ICP (Benchmark)':
+            if yr_tmpl:
+                if lbl == 'ICP (Benchmark)':
                     entry = _icp_row_from_hist(yr_tmpl)
-                else:
+                elif lbl == 'Competencia':
                     entry = _comp_row_from_hist(yr_tmpl)
+                else:
+                    entry = _fip_row_from_hist(yr_tmpl, nombre_fondo)
                 total = _entry_total(entry) if entry else None
 
             if total is None:
-                # Fallback: compute from VC chain
-                # Use only months that have data (respects partial year starts)
+                # Fallback for years not in template: compound/n*12
                 non_none = [v for v in months_out[:last_m] if v is not None]
                 if non_none:
                     n = len(non_none)
