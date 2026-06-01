@@ -56,7 +56,10 @@ FONDOS_USD = {
 # This includes ALL funds that have FIP data in their template rentabilidad sheet.
 # USD funds: always use template (different formula + data source)
 # CLP funds with template: use template (SharePoint data matches PDFs better than ODS)
-FONDOS_USE_TEMPLATE = FONDOS_USD | set(FUND_TEMPLATE_MAP.keys())
+# Only USD funds use template for summary.
+# CLP funds always use ODS for summary (templates may be stale by 1-2 months).
+# Templates are used for historico (pre-ODS months) for ALL funds in FUND_TEMPLATE_MAP.
+FONDOS_USE_TEMPLATE = FONDOS_USD
 
 NOMBRE_DISPLAY = {
     'FIP VANTRUST LIQUIDEZ ACTIVA':        'FIP Liquidez Activa',
@@ -261,9 +264,9 @@ def _build_clp_vc(nombre, tmpl_file):
     pre = sorted(
         ((yr, mo_idx+1, ret)
          for yr, yr_data in hist.items()
-         for yr_data_row in [_fip_row_from_hist(yr_data, nombre)]
-         if yr_data_row
-         for mo_idx, ret in enumerate(yr_data_row)
+         for entry in [_fip_row_from_hist(yr_data, nombre)]
+         if entry
+         for mo_idx, ret in enumerate(_entry_months(entry))
          if ret is not None and (yr, mo_idx+1) < earliest),
         reverse=True
     )
@@ -306,6 +309,38 @@ def _ytd(vc, y, m):
     return (v_end/v_first-1)/n*12
 
 # ── Main entry point ──────────────────────────────────────────────────────────
+def _get_tmpl_last_month(tmpl_file: str) -> tuple:
+    """Return (year, month) of the last month with FIP data in the template."""
+    import openpyxl
+    path = _TMPL_DIR / tmpl_file
+    if not path.exists(): return (0, 0)
+    try:
+        wb = openpyxl.load_workbook(path, data_only=True)
+        if 'rentabilidad' not in wb.sheetnames:
+            wb.close(); return (0, 0)
+        ws = wb['rentabilidad']
+        # Check rows 2-4 for summary data — the year is in the Acum header
+        acum_hdr = str(ws.cell(1, 24).value or '')
+        # Find last year with FIP data in historico
+        last_yr, last_mo = 0, 0
+        cur_yr = None
+        for r in range(6, ws.max_row + 1):
+            yr = ws.cell(r, 3).value
+            if isinstance(yr, (int, float)): cur_yr = int(yr)
+            name = ws.cell(r, 4).value
+            if not (cur_yr and name and isinstance(name, str)): continue
+            if 'ICP' in name.upper() or name.lower() == 'competencia': continue
+            months = [ws.cell(r, 5+i).value for i in range(12)]
+            for i, v in enumerate(months):
+                if v and isinstance(v, (int, float)) and v != 0:
+                    if (cur_yr, i+1) > (last_yr, last_mo):
+                        last_yr, last_mo = cur_yr, i+1
+        wb.close()
+        return (last_yr, last_mo)
+    except:
+        return (0, 0)
+
+
 def leer_datos_template(nombre_fondo, target_year=None, target_month=None):
     if target_year is None:
         tm = os.environ.get("TARGET_MONTH","").strip()
@@ -323,9 +358,11 @@ def leer_datos_template(nombre_fondo, target_year=None, target_month=None):
     vc_comp   = _load_json("comp_clp.json")  # CLP Santander MM for all funds
 
     # ── For USD: read summary and historico directly from template ───────────
-    use_tmpl = (is_usd or nombre_fondo in FONDOS_USE_TEMPLATE) and tmpl_file
-    if use_tmpl:
-        return _build_usd_output(nombre_fondo, display, tmpl_file, icp, vc_comp, y, m, is_usd=is_usd)
+    # USD funds: use template for both summary and historico (ODS has different format/units)
+    # CLP funds: use ODS for summary, template only for pre-ODS historico
+    if is_usd and tmpl_file:
+        return _build_usd_output(nombre_fondo, display, tmpl_file, icp, vc_comp, y, m,
+                                  is_usd=True)
 
     # ── For CLP: ODS + template chain ────────────────────────────────────────
     vc_fip  = _build_clp_vc(nombre_fondo, tmpl_file)
@@ -444,7 +481,7 @@ def _build_clp_historico(y, m, icp, vc_comp, vc_fip, display, tmpl_hist, nombre_
     return out
 
 
-def _build_usd_output(nombre_fondo, display, tmpl_file, icp, vc_comp, y, m, is_usd=True):
+def _build_usd_output(nombre_fondo, display, tmpl_file, icp, vc_comp, y, m, is_usd=True, use_tmpl_hist=True):
     """For USD funds: read everything from template (more accurate than ODS for these)."""
     import openpyxl
     path = _TMPL_DIR / tmpl_file
