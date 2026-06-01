@@ -135,6 +135,20 @@ textarea::placeholder{color:var(--muted);}
     </div>
   </div>
 
+  <!-- Planilla VC -->
+  <div class="card">
+    <div class="card-head">
+      <div><div class="card-title">Planilla Valores Cuota</div><div class="card-desc">Excel con los VCs de fin de mes de todos los fondos (planilla_vc.xlsx). Si ODS ya tiene los datos del mes, no es necesario subir este archivo.</div></div>
+      <div class="card-status" id="st-vc">Opcional</div>
+    </div>
+    <div class="zone" id="zone-vc">
+      <input type="file" id="file-vc" accept=".xlsx,.xls" onchange="onVC(this)">
+      <div class="zone-icon">📋</div>
+      <div class="zone-text"><strong>Clic o arrastra</strong> el archivo aquí<br><span style="font-size:11px;color:var(--muted)">planilla_vc.xlsx — valores cuota fin de mes</span></div>
+      <div class="zone-fname" id="fn-vc"></div>
+    </div>
+  </div>
+
   <!-- Comentarios -->
   <div class="card">
     <div class="card-head">
@@ -210,7 +224,7 @@ textarea::placeholder{color:var(--muted);}
 <script>
 const REPO="mivelascor/FIP", BRANCH="main";
 const MESES=["","Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-let cartB64=null, runId=null, polling=null, targetMes=null;
+let cartB64=null, vcB64=null, runId=null, polling=null, targetMes=null;
 
 // Progress state
 const TOTAL_SECS = 210; // ~3.5 min estimated workflow duration
@@ -269,7 +283,7 @@ function onCart(input){
   r.readAsDataURL(f);
 }
 
-["zone-cart"].forEach(id=>{
+["zone-cart","zone-vc"].forEach(id=>{
   const z=document.getElementById(id);
   z.addEventListener("dragover",e=>{e.preventDefault();z.classList.add("drag");});
   z.addEventListener("dragleave",()=>z.classList.remove("drag"));
@@ -395,6 +409,15 @@ async function generar(){
       log("   ✓ cartera.xlsx");
     }else{
       log("⚠  cartera.xlsx no subido (se usa el del mes anterior)");
+    }
+
+    if(vcB64){
+      log("📋 Subiendo planilla_vc.xlsx...");
+      const ev=await ghGet("inputs/planilla_vc.xlsx");
+      await ghPut("inputs/planilla_vc.xlsx",vcB64,`📋 Planilla VC ${targetMes}`,ev?.sha||null);
+      log("   ✓ planilla_vc.xlsx (templates se actualizarán automáticamente)");
+    }else{
+      log("ℹ  planilla_vc.xlsx no subida (se usarán datos de ODS si están disponibles)");
     }
 
     log("\n🚀 Disparando workflow...");
