@@ -89,27 +89,57 @@ def _get_santander(y: int, m: int):
     except: return None
 
 def _read_planilla(y: int, m: int) -> dict:
+    """
+    Read end-of-month VCs from planilla_vc.xlsx.
+    Supports two formats:
+    Format A (simple, recommended): 
+      Col1=fund_name, Col2=vc_value (any row with fund name + positive number)
+    Format B (query output, pivoted): 
+      Row1=headers with fund names, Col1=dates, find row matching y/m
+    """
     path = _INPUTS / "planilla_vc.xlsx"
-    if not path.exists(): return {}
+    if not path.exists():
+        return {}
     try:
         wb = openpyxl.load_workbook(path, data_only=True)
         ws = wb.active
         vc_map = {}
+
+        # ── Try Format A first: rows with (fund_name, vc_value) ──────────────
         for r in range(1, ws.max_row + 1):
-            for c in range(1, ws.max_column + 1):
-                v = ws.cell(r, c).value
-                if isinstance(v, datetime) and v.year == y and v.month == m:
-                    for rr in range(r+1, min(r+50, ws.max_row+1)):
-                        fname = ws.cell(rr, 1).value or ws.cell(rr, 2).value
-                        fvc   = ws.cell(rr, c).value
-                        if fname and isinstance(fvc, (int, float)) and fvc > 0:
-                            vc_map[str(fname).strip()] = float(fvc)
-                    for cc in range(c+1, min(c+50, ws.max_column+1)):
-                        fname = ws.cell(1, cc).value or ws.cell(2, cc).value
-                        fvc   = ws.cell(r, cc).value
-                        if fname and isinstance(fvc, (int, float)) and fvc > 0:
-                            vc_map[str(fname).strip()] = float(fvc)
+            for c_name in range(1, min(ws.max_column, 3)):
+                fname = ws.cell(r, c_name).value
+                if not (fname and isinstance(fname, str) and len(fname) > 5): continue
+                # Look for a numeric value in the same row
+                for c_val in range(c_name+1, min(ws.max_column+1, c_name+4)):
+                    fvc = ws.cell(r, c_val).value
+                    if isinstance(fvc, (int, float)) and 100 < fvc < 1000000:
+                        vc_map[fname.strip()] = float(fvc)
+                        break
+
+        if vc_map:
+            print(f"  Planilla (Format A): {len(vc_map)} entries")
+            wb.close()
+            return vc_map
+
+        # ── Try Format B: date in col, funds in headers ───────────────────────
+        from datetime import datetime as _dt
+        import calendar as _cal
+        eom_day = _cal.monthrange(y, m)[1]
+        for r in range(1, ws.max_row + 1):
+            date_v = ws.cell(r, 1).value
+            if isinstance(date_v, _dt) and date_v.year == y and date_v.month == m:
+                # Found the target month row
+                for c in range(2, ws.max_column + 1):
+                    fname = ws.cell(1, c).value or ws.cell(2, c).value
+                    fvc   = ws.cell(r, c).value
+                    if fname and isinstance(fvc, (int, float)) and fvc > 0:
+                        vc_map[str(fname).strip()] = float(fvc)
+                break
+
         wb.close()
+        if vc_map:
+            print(f"  Planilla (Format B): {len(vc_map)} entries")
         return vc_map
     except Exception as e:
         print(f"  [WARN] planilla_vc.xlsx: {e}")
