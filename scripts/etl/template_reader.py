@@ -154,31 +154,113 @@ def _get_ods_vc(nombre):
 
 # ── Template historico reader ─────────────────────────────────────────────────
 def _get_tmpl_hist(tmpl_file):
-    """Load {year: {label: [m1..m12 returns]}} from template rentabilidad sheet."""
+    """
+    Load historico data from template by reading RAW DATA from Datos ICP sheet.
+    Reads cols A(date), B(ICP), G(FIP raw VC), K(Santander VC) directly —
+    bypasses formula cells (which have None cached values) entirely.
+    Returns {year: {label: {'months': [Jan..Dec returns], 'total': annualized}}}
+    """
     if tmpl_file in _HIST_CACHE: return _HIST_CACHE[tmpl_file]
     import openpyxl
     path = _TMPL_DIR / tmpl_file
     if not path.exists(): return {}
     wb = openpyxl.load_workbook(path, data_only=True)
-    if 'rentabilidad' not in wb.sheetnames:
+    if 'Datos ICP (2)' not in wb.sheetnames:
         wb.close(); return {}
-    ws  = wb['rentabilidad']
-    out = {}
-    cur_yr = None
-    for r in range(6, ws.max_row+1):
-        yr = ws.cell(r,3).value
-        if isinstance(yr,(int,float)): cur_yr = int(yr)
-        lbl = ws.cell(r,4).value
-        if not (cur_yr and lbl and isinstance(lbl,str)): continue
-        months = []
-        for i in range(12):
-            v = ws.cell(r, 5+i).value
-            months.append(float(v) if v and v!=0 and isinstance(v,(int,float)) else None)
-        if any(v is not None for v in months):
-            total_raw = ws.cell(r, 17).value
-            total = float(total_raw) if total_raw and isinstance(total_raw,(int,float)) else None
-            out.setdefault(cur_yr, {})[lbl.strip()] = {'months': months, 'total': total}
+
+    ws = wb['Datos ICP (2)']
+
+    # ── Step 1: Read all raw VC series from data rows ────────────────────────
+    icp_vc  = {}  # {(yr,mo): ICP level}
+    fip_vc  = {}  # {(yr,mo): FIP VC (G col = raw)}
+    comp_vc = {}  # {(yr,mo): Santander VC (K col)}
+
+    # Detect which column has the FIP fund VC
+    # Try G first; if mostly None, try I (some templates use col I for adjusted)
+    for r in range(3, ws.max_row + 1):
+        date_v = ws.cell(r, 1).value
+        if not (date_v and hasattr(date_v, 'year')): continue
+        ym = (date_v.year, date_v.month)
+        b = ws.cell(r, 2).value   # ICP
+        g = ws.cell(r, 7).value   # FIP raw VC (col G)
+        i_ = ws.cell(r, 9).value  # FIP adjusted VC (col I, some templates)
+        k = ws.cell(r, 11).value  # Santander MM
+
+        if b and isinstance(b, (int, float)):   icp_vc[ym]  = float(b)
+        if g and isinstance(g, (int, float)):   fip_vc[ym]  = float(g)
+        elif i_ and isinstance(i_, (int, float)): fip_vc[ym] = float(i_)
+        if k and isinstance(k, (int, float)):   comp_vc[ym] = float(k)
+
     wb.close()
+
+    if not fip_vc:
+        _HIST_CACHE[tmpl_file] = {}
+        return {}
+
+    # ── Step 2: Compute monthly simple returns from VC series ─────────────────
+    def monthly_rets(vc_dict):
+        out = {}
+        for (yr, mo), vc_end in sorted(vc_dict.items()):
+            prev_ym = (yr-1, 12) if mo == 1 else (yr, mo-1)
+            vc_prev = vc_dict.get(prev_ym)
+            out[(yr, mo)] = (vc_end / vc_prev - 1) if vc_prev else None
+        return out
+
+    icp_ret  = monthly_rets(icp_vc)
+    fip_ret  = monthly_rets(fip_vc)
+    comp_ret = monthly_rets(comp_vc)
+
+    # ── Step 3: Group into {year: {label: {months, total}}} ───────────────────
+    all_yrs = sorted({ym[0] for ym in list(icp_vc) + list(fip_vc) + list(comp_vc)})
+    # Get fund name from rentabilidad sheet - use the MOST RECENT year's label
+    fund_label = 'FIP'
+    try:
+        wb2 = openpyxl.load_workbook(path, data_only=True)
+        if 'rentabilidad' in wb2.sheetnames:
+            ws2 = wb2['rentabilidad']
+            best_yr = 0
+            cur_yr2 = None
+            for r in range(6, ws2.max_row+1):
+                yr2 = ws2.cell(r, 3).value
+                if isinstance(yr2, (int, float)): cur_yr2 = int(yr2)
+                lbl = ws2.cell(r, 4).value
+                if (lbl and isinstance(lbl, str) and 'FIP' in lbl.upper()
+                        and cur_yr2 and cur_yr2 > best_yr):
+                    fund_label = lbl.strip()
+                    best_yr = cur_yr2
+        wb2.close()
+    except: pass
+
+    out = {}
+    for yr in all_yrs:
+        yr_data = {}
+        for label, ret_dict in [('ICP', icp_ret), ('Competencia', comp_ret), (fund_label, fip_ret)]:
+            if label == 'Competencia' and not comp_vc: continue
+            months = []
+            for mo in range(1, 13):
+                r = ret_dict.get((yr, mo))
+                months.append(r)  # None if missing or fund not started
+
+            if not any(v is not None for v in months): continue
+
+            # Compute annualized total: (end/first_in_year - 1) / n * 12
+            vc_dict = icp_vc if label == 'ICP' else (comp_vc if label == 'Competencia' else fip_vc)
+            non_none_rets = [v for v in months if v is not None]
+            n = len(non_none_rets)
+            total = None
+            if n > 0:
+                # Find first and last VC in year
+                yr_vcs = [(mo, vc_dict.get((yr, mo))) for mo in range(1, 13)
+                          if vc_dict.get((yr, mo)) is not None]
+                if len(yr_vcs) >= 2:
+                    vc_first_prev = vc_dict.get((yr-1, 12)) or yr_vcs[0][1]
+                    vc_last = yr_vcs[-1][1]
+                    total = (vc_last / vc_first_prev - 1) / n * 12
+
+            yr_data[label] = {'months': months, 'total': total}
+        if yr_data:
+            out[yr] = yr_data
+
     _HIST_CACHE[tmpl_file] = out
     return out
 
@@ -310,35 +392,68 @@ def _ytd(vc, y, m):
 
 # ── Main entry point ──────────────────────────────────────────────────────────
 def _get_tmpl_last_month(tmpl_file: str) -> tuple:
-    """Return (year, month) of the last month with FIP data in the template."""
+    """Return (year, month) of the last month with FIP data in the template.
+    Reads from Datos ICP G column (raw VC) which has cached numeric values."""
     import openpyxl
     path = _TMPL_DIR / tmpl_file
     if not path.exists(): return (0, 0)
     try:
         wb = openpyxl.load_workbook(path, data_only=True)
-        if 'rentabilidad' not in wb.sheetnames:
+        if 'Datos ICP (2)' not in wb.sheetnames:
             wb.close(); return (0, 0)
-        ws = wb['rentabilidad']
-        # Check rows 2-4 for summary data — the year is in the Acum header
-        acum_hdr = str(ws.cell(1, 24).value or '')
-        # Find last year with FIP data in historico
+        ws = wb['Datos ICP (2)']
         last_yr, last_mo = 0, 0
-        cur_yr = None
-        for r in range(6, ws.max_row + 1):
-            yr = ws.cell(r, 3).value
-            if isinstance(yr, (int, float)): cur_yr = int(yr)
-            name = ws.cell(r, 4).value
-            if not (cur_yr and name and isinstance(name, str)): continue
-            if 'ICP' in name.upper() or name.lower() == 'competencia': continue
-            months = [ws.cell(r, 5+i).value for i in range(12)]
-            for i, v in enumerate(months):
-                if v and isinstance(v, (int, float)) and v != 0:
-                    if (cur_yr, i+1) > (last_yr, last_mo):
-                        last_yr, last_mo = cur_yr, i+1
+        for r in range(3, ws.max_row + 1):
+            date_v = ws.cell(r, 1).value
+            g_v    = ws.cell(r, 7).value  # col G = raw FIP VC
+            if not (date_v and hasattr(date_v, 'year')): continue
+            if g_v and isinstance(g_v, (int, float)) and g_v > 0:
+                yr, mo = date_v.year, date_v.month
+                if (yr, mo) > (last_yr, last_mo):
+                    last_yr, last_mo = yr, mo
         wb.close()
         return (last_yr, last_mo)
     except:
         return (0, 0)
+
+
+def _ods_has_eom(nombre: str, y: int, m: int) -> bool:
+    """Check if ODS has end-of-month data (day >= 28) for a fund/month."""
+    sql = (f"SELECT MAX(DAY(FECHA_CIERRE)) last_day "
+           f"FROM ODS.VALORES_CUOTA_GPI "
+           f"WHERE RTRIM(LTRIM(EMPRESA))=N'{nombre}' AND VALOR_CUOTA>0 "
+           f"AND YEAR(FECHA_CIERRE)={y} AND MONTH(FECHA_CIERRE)={m}")
+    try:
+        import requests as _req
+        r = _req.post(_ODS_API, json={"Sql": sql},
+                      headers={"Content-Type": "application/json"}, timeout=15)
+        rows = r.json().get("rows", [{}])
+        last_day = rows[0].get("last_day")
+        return bool(last_day and int(last_day) >= 28)
+    except:
+        return False
+
+
+def _build_clp_vc_from_template(tmpl_file: str) -> dict:
+    """Build {(yr,mo): vc} from template's Datos ICP G column (raw FIP VC values)."""
+    import openpyxl
+    path = _TMPL_DIR / tmpl_file
+    if not path.exists(): return {}
+    try:
+        wb = openpyxl.load_workbook(path, data_only=True)
+        if 'Datos ICP (2)' not in wb.sheetnames:
+            wb.close(); return {}
+        ws = wb['Datos ICP (2)']
+        vc = {}
+        for r in range(3, ws.max_row + 1):
+            date_v = ws.cell(r, 1).value
+            g_v    = ws.cell(r, 7).value
+            if date_v and hasattr(date_v, 'year') and g_v and isinstance(g_v, (int, float)) and g_v > 0:
+                vc[(date_v.year, date_v.month)] = float(g_v)
+        wb.close()
+        return vc
+    except:
+        return {}
 
 
 def leer_datos_template(nombre_fondo, target_year=None, target_month=None):
@@ -358,14 +473,24 @@ def leer_datos_template(nombre_fondo, target_year=None, target_month=None):
     vc_comp   = _load_json("comp_clp.json")  # CLP Santander MM for all funds
 
     # ── For USD: read summary and historico directly from template ───────────
-    # USD funds: use template for both summary and historico (ODS has different format/units)
-    # CLP funds: use ODS for summary, template only for pre-ODS historico
+    # USD funds: use template for both summary and historico
+    # CLP funds: use ODS for summary when available; use template G-column VC when template is current
     if is_usd and tmpl_file:
         return _build_usd_output(nombre_fondo, display, tmpl_file, icp, vc_comp, y, m,
                                   is_usd=True)
 
     # ── For CLP: ODS + template chain ────────────────────────────────────────
     vc_fip  = _build_clp_vc(nombre_fondo, tmpl_file)
+
+    # If ODS doesn't have END-OF-MONTH data for this month, use template G-column VC
+    # ODS may have partial-month data (e.g. day 5) which gives wrong returns
+    ods_eom_ok = _ods_has_eom(nombre_fondo, y, m)
+    if tmpl_file and not ods_eom_ok:
+        tmpl_last = _get_tmpl_last_month(tmpl_file)
+        if tmpl_last == (y, m):
+            tmpl_vc = _build_clp_vc_from_template(tmpl_file)
+            if tmpl_vc and tmpl_vc.get((y, m)):
+                vc_fip = tmpl_vc
     has_12  = bool(vc_fip.get(_prev(y, m, 12)))
 
     def calc(vc, es_icp, es_comp, es_fip, name):
