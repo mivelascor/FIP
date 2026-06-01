@@ -2,33 +2,32 @@
 etl/template_updater.py — Actualiza todos los templates con datos del mes nuevo.
 
 FLUJO:
-1. Determina el mes objetivo (TARGET_MONTH o detección automática)
-2. Obtiene el VC de fin de mes para cada fondo desde:
-   a) La planilla VC subida (inputs/planilla_vc.xlsx) si existe y tiene el mes
-   b) ODS VALORES_CUOTA_GPI si tiene el día 28-31 del mes
-3. Obtiene ICP (CLICP) para el mes
-4. Obtiene Santander MM VC para el mes  
-5. Actualiza cada template:
-   - Agrega fila nueva en 'Datos ICP (2)' con la nueva data
-   - Actualiza celda AW19 con la fecha del mes nuevo
-6. Guarda templates actualizados en inputs/templates/
-
-Al terminar, template_reader.py leerá los valores actualizados para generar folletos.
+1. Determina el mes objetivo
+2. Obtiene VC de fin de mes para cada fondo desde:
+   a) inputs/planilla_vc.xlsx (si el usuario la subió)
+   b) ODS VALORES_CUOTA_GPI (si tiene día >= 28 del mes)
+3. Obtiene ICP y Santander MM del mes
+4. Para cada template, usa DETECCIÓN DE FÓRMULAS para encontrar:
+   - Qué fila tiene los VC de ICP/FIP/Comp para el año actual
+   - Qué columna es la siguiente a llenar (mayo = col T si enero fue P)
+   - Qué fila tiene los retornos mensuales
+   - Qué fila tiene los totales anuales
+5. Escribe los nuevos datos y fórmulas en las celdas correctas
+6. Actualiza AW19 con la nueva fecha de cierre
 """
 
-import os, calendar, requests, json
+import os, calendar, requests, json, re
 from datetime import date, datetime
 from pathlib import Path
 from dateutil.relativedelta import relativedelta
 
 import openpyxl
-from openpyxl.styles import Font, PatternFill, Alignment
+import openpyxl.utils as xl_u
 
 _INPUTS   = Path(__file__).parent.parent.parent / "inputs"
 _TMPL_DIR = _INPUTS / "templates"
 _ODS_API  = "https://claudeods.vantrustcapital.cl/query"
 
-# ── ODS fund names ────────────────────────────────────────────────────────────
 FUND_ODS_NAMES = {
     'TEMPLATE FONDO LIQUIDEZ ACTIVA.xlsx':        'FIP VANTRUST LIQUIDEZ ACTIVA',
     'TEMPLATE FONDO ALTO APORTE.xlsx':            'FIP VANTRUST LIQUIDEZ ALTO APORTE',
@@ -57,300 +56,290 @@ FUND_ODS_NAMES = {
 def _eom(y, m):
     return date(y, m, calendar.monthrange(y, m)[1])
 
-def _ods_vc(nombre_fondo: str, y: int, m: int) -> float | None:
-    """Get end-of-month VC from ODS for a fund."""
-    sql = f"""SELECT MAX(VALOR_CUOTA) vc, MAX(DAY(FECHA_CIERRE)) last_day
-    FROM ODS.VALORES_CUOTA_GPI
-    WHERE RTRIM(LTRIM(EMPRESA))=N'{nombre_fondo}' AND VALOR_CUOTA>0
-    AND YEAR(FECHA_CIERRE)={y} AND MONTH(FECHA_CIERRE)={m}"""
+# ── Data fetching ─────────────────────────────────────────────────────────────
+def _ods_vc(nombre: str, y: int, m: int):
+    sql = (f"SELECT MAX(VALOR_CUOTA) vc, MAX(DAY(FECHA_CIERRE)) last_day "
+           f"FROM ODS.VALORES_CUOTA_GPI "
+           f"WHERE RTRIM(LTRIM(EMPRESA))=N'{nombre}' AND VALOR_CUOTA>0 "
+           f"AND YEAR(FECHA_CIERRE)={y} AND MONTH(FECHA_CIERRE)={m}")
     try:
         r = requests.post(_ODS_API, json={"Sql": sql},
-                          headers={"Content-Type":"application/json"}, timeout=30)
-        rows = r.json().get("rows", [])
-        if rows and rows[0].get("last_day"):
-            last_day = int(rows[0]["last_day"])
-            vc       = float(rows[0]["vc"])
-            if last_day >= 28:  # Only use if we have end-of-month
-                return vc
-            else:
-                print(f"  [WARN] ODS {nombre_fondo} {y}-{m:02d}: only day {last_day} (not end-of-month)")
+                          headers={"Content-Type": "application/json"}, timeout=30)
+        row = r.json().get("rows", [{}])[0]
+        if row.get("last_day") and int(row["last_day"]) >= 28:
+            return float(row["vc"])
+        if row.get("last_day"):
+            print(f"  [WARN] ODS {nombre} {y}-{m:02d}: only day {row['last_day']} (not end-of-month)")
     except Exception as e:
-        print(f"  [WARN] ODS query failed for {nombre_fondo}: {e}")
+        print(f"  [WARN] ODS failed for {nombre}: {e}")
     return None
 
-def _ods_vc_any_day(nombre_fondo: str, y: int, m: int) -> float | None:
-    """Get the max VC available for a fund/month regardless of day."""
-    sql = f"""SELECT MAX(VALOR_CUOTA) vc, MAX(DAY(FECHA_CIERRE)) last_day
-    FROM ODS.VALORES_CUOTA_GPI
-    WHERE RTRIM(LTRIM(EMPRESA))=N'{nombre_fondo}' AND VALOR_CUOTA>0
-    AND YEAR(FECHA_CIERRE)={y} AND MONTH(FECHA_CIERRE)={m}"""
-    try:
-        r = requests.post(_ODS_API, json={"Sql": sql},
-                          headers={"Content-Type":"application/json"}, timeout=30)
-        rows = r.json().get("rows", [])
-        if rows and rows[0].get("vc"):
-            return float(rows[0]["vc"]), int(rows[0].get("last_day") or 0)
-    except: pass
-    return None, 0
-
-def _get_icp(y: int, m: int) -> float | None:
-    """Get ICP (CLICP) value for end of month from icp_clicp.json."""
+def _get_icp(y: int, m: int):
     try:
         with open(_INPUTS / "icp_clicp.json") as f:
-            icp = json.load(f)
-        key = f"{y}-{m:02d}"
-        if key in icp:
-            return float(icp[key])
-    except: pass
-    # Fallback: compute from TPM
-    return None
+            d = json.load(f)
+        return float(d.get(f"{y}-{m:02d}") or d.get(f"{y}-{m}") or 0) or None
+    except: return None
 
-def _get_santander_vc(y: int, m: int) -> float | None:
-    """Get Santander MM VC for end of month from comp_clp.json."""
+def _get_santander(y: int, m: int):
     try:
         with open(_INPUTS / "comp_clp.json") as f:
-            comp = json.load(f)
-        key = f"{y}-{m:02d}"
-        if key in comp:
-            return float(comp[key])
-    except: pass
-    return None
+            d = json.load(f)
+        return float(d.get(f"{y}-{m:02d}") or d.get(f"{y}-{m}") or 0) or None
+    except: return None
 
-def _read_planilla_vc(y: int, m: int) -> dict:
-    """Read end-of-month VCs from uploaded planilla_vc.xlsx if available."""
-    planilla_path = _INPUTS / "planilla_vc.xlsx"
-    if not planilla_path.exists():
-        return {}
-
+def _read_planilla(y: int, m: int) -> dict:
+    path = _INPUTS / "planilla_vc.xlsx"
+    if not path.exists(): return {}
     try:
-        wb = openpyxl.load_workbook(planilla_path, data_only=True)
+        wb = openpyxl.load_workbook(path, data_only=True)
         ws = wb.active
-
-        # Find the header row — look for a row with fund names or dates
-        # Format: rows = months, cols = funds (or vice versa)
-        # Try to detect format by looking for familiar fund names
         vc_map = {}
-
-        # Strategy: look for a date matching year/month in the sheet
-        target_date_variants = [
-            date(y, m, _eom(y, m).day),
-            f"{y}-{m:02d}",
-            f"{_eom(y,m).day}/{m:02d}/{y}",
-            f"{m:02d}/{y}",
-        ]
-
-        # Scan all cells for dates matching target month
         for r in range(1, ws.max_row + 1):
             for c in range(1, ws.max_column + 1):
                 v = ws.cell(r, c).value
                 if isinstance(v, datetime) and v.year == y and v.month == m:
-                    # Found the target month — look for fund VCs in this row or column
-                    # Check if this is a row-based layout (funds in columns, dates in rows)
-                    # or column-based (dates in columns, funds in rows)
-                    # Heuristic: if there are string values in the same column above, it's row-based
-                    col_header = ws.cell(1, c).value
-                    row_header = ws.cell(r, 1).value
-                    print(f"  Found date at R{r}C{c}: col_header={col_header} row_header={row_header}")
-
-                    # Try reading down this column for VC values
-                    for rr in range(r + 1, min(r + 50, ws.max_row + 1)):
-                        fund_name = ws.cell(rr, 1).value or ws.cell(rr, 2).value
-                        vc_val    = ws.cell(rr, c).value
-                        if fund_name and isinstance(vc_val, (int, float)) and vc_val > 0:
-                            vc_map[str(fund_name).strip()] = float(vc_val)
-
-                    # Try reading across this row for VC values
-                    if not vc_map:
-                        for cc in range(c + 1, min(c + 50, ws.max_column + 1)):
-                            fund_name = ws.cell(1, cc).value or ws.cell(2, cc).value
-                            vc_val    = ws.cell(r, cc).value
-                            if fund_name and isinstance(vc_val, (int, float)) and vc_val > 0:
-                                vc_map[str(fund_name).strip()] = float(vc_val)
-
+                    for rr in range(r+1, min(r+50, ws.max_row+1)):
+                        fname = ws.cell(rr, 1).value or ws.cell(rr, 2).value
+                        fvc   = ws.cell(rr, c).value
+                        if fname and isinstance(fvc, (int, float)) and fvc > 0:
+                            vc_map[str(fname).strip()] = float(fvc)
+                    for cc in range(c+1, min(c+50, ws.max_column+1)):
+                        fname = ws.cell(1, cc).value or ws.cell(2, cc).value
+                        fvc   = ws.cell(r, cc).value
+                        if fname and isinstance(fvc, (int, float)) and fvc > 0:
+                            vc_map[str(fname).strip()] = float(fvc)
         wb.close()
-        if vc_map:
-            print(f"  Planilla VC: found {len(vc_map)} funds")
         return vc_map
     except Exception as e:
-        print(f"  [WARN] Could not read planilla_vc.xlsx: {e}")
+        print(f"  [WARN] planilla_vc.xlsx: {e}")
         return {}
 
-def _get_last_row(ws):
-    """Find last row with data in column A (date column)."""
+# ── Template structure detection ─────────────────────────────────────────────
+def _find_structure(ws) -> dict:
+    """
+    Scan a Datos ICP (2) sheet by formula patterns to find:
+    - Last data row (col A date)
+    - ICP / FIP / Comp VC rows and their next-empty column
+    - Monthly return rows and their next-empty column
+    Works regardless of which row numbers each template uses.
+    """
+    # Find last data row
+    last_r = 0
     for r in range(ws.max_row, 1, -1):
         v = ws.cell(r, 1).value
         if v and hasattr(v, 'year'):
-            return r
-    return 0
+            last_r = r; break
 
-def update_template(tmpl_file: str, ods_name: str, y: int, m: int,
-                     fip_vc: float, icp_val: float, sant_vc: float) -> bool:
-    """
-    Update a single template with new month data.
-    Returns True if updated successfully.
-    """
+    jan_row = last_r - 3  # Jan of current year (e.g. 246 if April=249)
+    s = {'last_row': last_r, 'next_row': last_r+1, 'jan_row': jan_row}
+
+    # Find VC rows by matching "=+X{jan_row}" in cols P-AB (16-28)
+    icp_vc = fip_vc = comp_vc = None
+    for r in range(1, 100):
+        for c in range(16, 29):
+            v = str(ws.cell(r, c).value or '')
+            m = re.fullmatch(r'=\+([A-Z]+)' + str(jan_row), v)
+            if m:
+                src = m.group(1)
+                if src == 'B' and icp_vc is None:
+                    icp_vc = r; s['icp_vc_row'] = r; s['icp_vc_jan_c'] = c
+                elif src in ('G','H','I') and fip_vc is None:
+                    fip_vc = r; s['fip_vc_row'] = r; s['fip_vc_jan_c'] = c
+                    s['fip_data_col'] = src
+                elif src in ('J','K','L') and comp_vc is None:
+                    comp_vc = r; s['comp_vc_row'] = r; s['comp_vc_jan_c'] = c
+                    s['comp_data_col'] = src
+
+    # Find next-empty column for each VC row
+    def next_empty_c(row):
+        if row is None: return None, None, None
+        for c in range(16, 30):
+            if ws.cell(row, c).value is None:
+                return c, xl_u.get_column_letter(c), xl_u.get_column_letter(c-1)
+        return None, None, None
+
+    s['icp_vc_next_c'], s['icp_vc_next_col'], s['icp_vc_prev_col'] = next_empty_c(icp_vc)
+    s['fip_vc_next_c'], s['fip_vc_next_col'], s['fip_vc_prev_col'] = next_empty_c(fip_vc)
+    s['comp_vc_next_c'], s['comp_vc_next_col'], s['comp_vc_prev_col'] = next_empty_c(comp_vc)
+
+    # Find monthly return rows by AE column formula matching "P{vc_row}"
+    def find_ret_row(vc_row):
+        if vc_row is None: return None, None, None, None
+        for r in range(1, 100):
+            ae = str(ws.cell(r, 31).value or '')  # AE = col 31
+            if f'P{vc_row}' in ae:
+                for c in range(31, 44):
+                    if ws.cell(r, c).value is None:
+                        return r, c, xl_u.get_column_letter(c), ws.cell(r, 43).value
+                return r, None, None, ws.cell(r, 43).value
+        return None, None, None, None
+
+    s['icp_ret_row'],  s['icp_ret_next_c'],  s['icp_ret_next_col'],  s['icp_total']  = find_ret_row(icp_vc)
+    s['fip_ret_row'],  s['fip_ret_next_c'],  s['fip_ret_next_col'],  s['fip_total']  = find_ret_row(fip_vc)
+    s['comp_ret_row'], s['comp_ret_next_c'], s['comp_ret_next_col'], s['comp_total'] = find_ret_row(comp_vc)
+
+    return s
+
+# ── Update one template ───────────────────────────────────────────────────────
+def update_template(tmpl_file: str, y: int, m: int,
+                     fip_vc: float, icp_val: float, sant_vc: float) -> str:
     path = _TMPL_DIR / tmpl_file
     if not path.exists():
-        print(f"  [SKIP] {tmpl_file}: not found")
-        return False
+        return 'skip_not_found'
 
     wb = openpyxl.load_workbook(path)
     if 'Datos ICP (2)' not in wb.sheetnames:
-        wb.close()
-        print(f"  [SKIP] {tmpl_file}: no 'Datos ICP (2)' sheet")
-        return False
+        wb.close(); return 'skip_no_datos_sheet'
 
     ws = wb['Datos ICP (2)']
-    last_r = _get_last_row(ws)
-    if not last_r:
-        wb.close()
-        return False
+    s  = _find_structure(ws)
 
-    # Check if this month already exists
-    last_date = ws.cell(last_r, 1).value
-    if last_date and hasattr(last_date,'year') and last_date.year == y and last_date.month == m:
-        print(f"  [SKIP] {tmpl_file}: already has {y}-{m:02d}")
-        wb.close()
-        return False
+    if not s.get('last_row'):
+        wb.close(); return 'skip_no_data_rows'
 
-    new_r     = last_r + 1
-    eom_date  = datetime(y, m, _eom(y, m).day)
-    prev_row  = last_r
+    last_r = s['last_row']
+    last_d = ws.cell(last_r, 1).value
+    if last_d and hasattr(last_d,'year') and last_d.year == y and last_d.month == m:
+        wb.close(); return 'already_updated'
 
-    is_usd = 'DOLAR' in tmpl_file.upper() or 'DOLLAR' in tmpl_file.upper() or 'RESERVA' in tmpl_file.upper()
+    eom_dt  = datetime(y, m, _eom(y, m).day)
+    next_r  = s['next_row']
+    next_bB  = next_r  # The new row B reference (ICP)
 
-    # Copy formulas from previous row (adjust row references)
-    def copy_formula(formula: str, old_r: int, new_r: int) -> str:
-        """Update absolute row numbers in formula (e.g. B249 → B250)."""
-        if not formula or not isinstance(formula, str) or not formula.startswith('='):
-            return formula
-        import re
-        # Replace cell references like B249 with B250 (same col, next row)
-        def replace_ref(m):
-            col, row_str = m.group(1), m.group(2)
-            row_num = int(row_str)
-            if row_num == old_r:
-                return f"{col}{new_r}"
-            return m.group(0)
-        return re.sub(r'([A-Z]+)(\d+)', replace_ref, formula)
+    # ── 1. Add the new data row (col A-M) ────────────────────────────────────
+    ws.cell(next_r, 1).value = eom_dt          # A: date
 
-    # Get previous row formulas for pattern
-    prev_c = ws.cell(prev_row, 3).value  # ICP return formula
-    prev_d = ws.cell(prev_row, 4).value  # ICP norm index formula
-    prev_i = ws.cell(prev_row, 9).value  # Fund return formula
-    prev_j = ws.cell(prev_row, 10).value # Fund norm index formula
-    prev_l = ws.cell(prev_row, 12).value # Comp return formula
-    prev_m_val = ws.cell(prev_row, 13).value # Comp norm index formula
+    # ICP
+    ws.cell(next_r, 2).value = icp_val          # B: ICP value
+    ws.cell(next_r, 3).value = f"=(B{next_r}/B{last_r}-1)/(A{next_r}-A{last_r})*30"
 
-    # Write new row
-    ws.cell(new_r, 1).value  = eom_date          # Col A: date
-    ws.cell(new_r, 2).value  = icp_val            # Col B: ICP value
-    ws.cell(new_r, 6).value  = eom_date           # Col F: date (fund)
-    ws.cell(new_r, 7).value  = fip_vc             # Col G: Fund VC
-    ws.cell(new_r, 11).value = sant_vc            # Col K: Santander VC
+    # Normalized ICP index
+    ws.cell(next_r, 4).value = f"=+D{last_r}*(1+C{next_r})"
 
-    # Copy and update formulas
-    if isinstance(prev_c, str):
-        ws.cell(new_r, 3).value  = copy_formula(prev_c, prev_row, new_r)
-    if isinstance(prev_d, str):
-        ws.cell(new_r, 4).value  = copy_formula(prev_d, prev_row, new_r)
+    # Fund VC date + raw VC
+    ws.cell(next_r, 6).value = eom_dt           # F: date
+    ws.cell(next_r, 7).value = fip_vc           # G: raw VC
 
-    # For col H (adjusted VC): copy formula from prev row
-    prev_h = ws.cell(prev_row, 8).value
-    if isinstance(prev_h, str):
-        ws.cell(new_r, 8).value = copy_formula(prev_h, prev_row, new_r)
-    else:
-        ws.cell(new_r, 8).value = f"=+G{new_r}+$S$148+$S$150+$S$152+$S$154+$S$156+$S$158"
+    # Adjusted fund VC (col H = G + adjustments from fixed rows)
+    fip_data_col = s.get('fip_data_col', 'H')
+    ws.cell(next_r, 8).value = (
+        f"=+G{next_r}+$S$148+$S$150+$S$152+$S$154+$S$156+$S$158"
+    )
 
-    if isinstance(prev_i, str):
-        ws.cell(new_r, 9).value  = copy_formula(prev_i, prev_row, new_r)
-    else:
-        ws.cell(new_r, 9).value  = f"=+(H{new_r}/H{prev_row}-1)/(F{new_r}-F{prev_row})*30"
+    # Fund return (col I: normalized to 30-day period)
+    ws.cell(next_r, 9).value = (
+        f"=+(H{next_r}/H{last_r}-1)/(F{next_r}-F{last_r})*30"
+    )
 
-    if isinstance(prev_j, str):
-        ws.cell(new_r, 10).value = copy_formula(prev_j, prev_row, new_r)
-    else:
-        ws.cell(new_r, 10).value = f"=+J{prev_row}*(1+I{new_r})"
+    # Fund normalized index (col J)
+    ws.cell(next_r, 10).value = f"=+J{last_r}*(1+I{next_r})"
 
-    if isinstance(prev_l, str):
-        ws.cell(new_r, 12).value = copy_formula(prev_l, prev_row, new_r)
-    else:
-        ws.cell(new_r, 12).value = f"=+(K{new_r}/K{prev_row}-1)/(F{new_r}-F{prev_row})*30"
+    # Santander MM VC (col K)
+    ws.cell(next_r, 11).value = sant_vc          # K
 
-    if isinstance(prev_m_val, str):
-        ws.cell(new_r, 13).value = copy_formula(prev_m_val, prev_row, new_r)
-    else:
-        ws.cell(new_r, 13).value = f"=+M{prev_row}*(1+L{new_r})"
+    # Comp return (col L)
+    ws.cell(next_r, 12).value = (
+        f"=+(K{next_r}/K{last_r}-1)/(F{next_r}-F{last_r})*30"
+    )
 
-    # Update AW19 = new target date (cell 19, col AW = 49)
-    ws.cell(19, 49).value = eom_date
+    # Comp normalized index (col M)
+    ws.cell(next_r, 13).value = f"=+M{last_r}*(1+L{next_r})"
 
-    # Also update rentabilidad sheet: add month to historico and update Acum header
+    # ── 2. Update VC lookup rows (add formula for new month) ─────────────────
+    icp_vc_row  = s.get('icp_vc_row')
+    fip_vc_row  = s.get('fip_vc_row')
+    comp_vc_row = s.get('comp_vc_row')
+    fip_dc      = s.get('fip_data_col', 'H')
+    comp_dc     = s.get('comp_data_col', 'K')
+
+    icp_next_c  = s.get('icp_vc_next_c')
+    fip_next_c  = s.get('fip_vc_next_c')
+    comp_next_c = s.get('comp_vc_next_c')
+
+    if icp_vc_row and icp_next_c:
+        ws.cell(icp_vc_row, icp_next_c).value = f"=+B{next_r}"
+
+    if fip_vc_row and fip_next_c:
+        ws.cell(fip_vc_row, fip_next_c).value = f"=+{fip_dc}{next_r}"
+
+    if comp_vc_row and comp_next_c:
+        ws.cell(comp_vc_row, comp_next_c).value = f"=+{comp_dc}{next_r}"
+
+    # ── 3. Add monthly return formulas ────────────────────────────────────────
+    icp_ret_row  = s.get('icp_ret_row')
+    fip_ret_row  = s.get('fip_ret_row')
+    comp_ret_row = s.get('comp_ret_row')
+
+    icp_ret_c    = s.get('icp_ret_next_c')
+    fip_ret_c    = s.get('fip_ret_next_c')
+    comp_ret_c   = s.get('comp_ret_next_c')
+
+    icp_next_col  = s.get('icp_vc_next_col', 'T')
+    icp_prev_col  = s.get('icp_vc_prev_col', 'S')
+    fip_next_col  = s.get('fip_vc_next_col', 'T')
+    fip_prev_col  = s.get('fip_vc_prev_col', 'S')
+    comp_next_col = s.get('comp_vc_next_col', 'T')
+    comp_prev_col = s.get('comp_vc_prev_col', 'S')
+
+    if icp_ret_row and icp_ret_c and icp_vc_row:
+        ws.cell(icp_ret_row, icp_ret_c).value = (
+            f"=+{icp_next_col}{icp_vc_row}/{icp_prev_col}{icp_vc_row}-1"
+        )
+
+    if fip_ret_row and fip_ret_c and fip_vc_row:
+        ws.cell(fip_ret_row, fip_ret_c).value = (
+            f"=+{fip_next_col}{fip_vc_row}/{fip_prev_col}{fip_vc_row}-1"
+        )
+
+    if comp_ret_row and comp_ret_c and comp_vc_row:
+        ws.cell(comp_ret_row, comp_ret_c).value = (
+            f"=+{comp_next_col}{comp_vc_row}/{comp_prev_col}{comp_vc_row}-1"
+        )
+
+    # ── 4. Update total (AQ col) formulas to include new month ───────────────
+    # Pattern: =+(S23/P23-1)/COUNTA(AE22:AP22)*12
+    # Update the last VC reference (S→T) and the COUNTA range (AE22:AP22 → AE22:AQ22)
+    def update_total(ret_row, vc_row, new_vc_col, new_ret_col):
+        if not (ret_row and vc_row and new_vc_col and new_ret_col): return
+        old_total = ws.cell(ret_row, 43).value
+        if not old_total or not isinstance(old_total, str): return
+        # Replace the leading VC reference (e.g. S23 → T23)
+        new_total = re.sub(
+            r'[A-Z]+' + str(vc_row) + r'/',
+            f"{new_vc_col}{vc_row}/",
+            old_total, count=1
+        )
+        # Replace COUNTA end reference (e.g. AP22 → AQ22)
+        new_total = re.sub(
+            r'COUNTA\(AE{r}:([A-Z]+){r}\)'.format(r=ret_row),
+            f"COUNTA(AE{ret_row}:{new_ret_col}{ret_row})",
+            new_total
+        )
+        ws.cell(ret_row, 43).value = new_total
+
+    icp_ret_col  = s.get('icp_ret_next_col', 'AI')
+    fip_ret_col  = s.get('fip_ret_next_col', 'AI')
+    comp_ret_col = s.get('comp_ret_next_col', 'AI')
+
+    update_total(icp_ret_row,  icp_vc_row,  icp_next_col,  icp_ret_col)
+    update_total(fip_ret_row,  fip_vc_row,  fip_next_col,  fip_ret_col)
+    update_total(comp_ret_row, comp_vc_row, comp_next_col, comp_ret_col)
+
+    # ── 5. Update AW19 (current month date cell) ─────────────────────────────
+    ws.cell(19, 49).value = eom_dt  # AW19
+
+    # ── 6. Update rentabilidad sheet Acum header ──────────────────────────────
     if 'rentabilidad' in wb.sheetnames:
-        _update_rentabilidad(wb['rentabilidad'], y, m, ods_name, fip_vc, icp_val, sant_vc, is_usd)
+        wb['rentabilidad'].cell(1, 24).value = f"Acum\n{y} (*)"
 
     wb.save(path)
     wb.close()
-    return True
+    return 'updated'
 
 
-def _update_rentabilidad(ws, y: int, m: int, ods_name: str,
-                          fip_vc: float, icp_val: float, sant_vc: float,
-                          is_usd: bool):
-    """Update the rentabilidad sheet historico section with the new month."""
-    # Update Acum header
-    ws.cell(1, 24).value = f"Acum\n{y} (*)"
-
-    # Find the current year historico rows
-    MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
-    cur_yr = None
-    icp_row = comp_row = fip_row = None
-
-    for r in range(6, ws.max_row + 1):
-        yr = ws.cell(r, 3).value
-        if isinstance(yr, (int, float)):
-            cur_yr = int(yr)
-        name = ws.cell(r, 4).value
-        if cur_yr == y and name and isinstance(name, str):
-            if 'ICP' in name.upper():
-                icp_row = r
-            elif name.lower() == 'competencia':
-                comp_row = r
-            else:
-                fip_row = r
-
-    if not icp_row:
-        return  # Can't find the right rows
-
-    # The monthly return for each fund:
-    # Simple return: (vc_new/vc_prev - 1)
-    # But we don't have prev_vc here directly, so we compute from the template data
-    # Actually: the rentabilidad historico stores MONTHLY RETURN (not VC)
-    # We need to compute the monthly return using the formula from Datos ICP:
-    # Return = (vc_end/vc_start - 1) / days * 30  (normalized to 30-day period)
-    # But we store simple (vc_end/vc_start - 1) without normalization for the historico table
-    # Actually looking at the templates, col 5+i = (vc_end/vc_prev - 1) = simple monthly return
-    
-    # We write None here — the Datos ICP formulas will compute via LOOKUP
-    # The rentabilidad historico rows reference Datos ICP via formulas like =+'Datos ICP (2)'!AE83
-    # These should recalculate when the template is opened in Excel
-    # For our data_only=False reading, the formulas are what matter, not the values
-    # 
-    # For our template_reader.py reading (data_only=True), the values matter.
-    # Since we can't recalculate Excel formulas in Python, we need to write the VALUES directly.
-    
-    # Get the prev VC from the last populated month
-    # The monthly return is stored as a simple fraction (not %)
-    # For now: if we have the VC values, we can compute returns directly
-    # We'll leave this to the template_reader to compute via the VC chain approach
-    pass  # The rentabilidad values get recomputed from Datos ICP when opened in Excel
-
-
+# ── Main entry point ──────────────────────────────────────────────────────────
 def run_update(target_year: int = None, target_month: int = None) -> dict:
-    """
-    Main entry point: update all templates with data for target month.
-    Returns dict with results per template.
-    """
     if not target_year:
         tm = os.environ.get("TARGET_MONTH", "").strip()
         if tm:
@@ -365,74 +354,50 @@ def run_update(target_year: int = None, target_month: int = None) -> dict:
     print(f" Actualizando templates para {y}-{m:02d}")
     print(f"{'='*60}\n")
 
-    # Get ICP and Santander MM for the month
     icp_val  = _get_icp(y, m)
-    sant_vc  = _get_santander_vc(y, m)
-    planilla = _read_planilla_vc(y, m)
+    sant_vc  = _get_santander(y, m)
+    planilla = _read_planilla(y, m)
 
-    print(f"ICP {y}-{m:02d}: {icp_val}")
-    print(f"Santander MM {y}-{m:02d}: {sant_vc}")
-    print(f"Planilla VC: {len(planilla)} funds")
-
-    if icp_val is None:
-        print("[WARN] No ICP value available — templates may have incomplete summary data")
-    if sant_vc is None:
-        print("[WARN] No Santander MM value available")
+    print(f"  ICP {y}-{m:02d}:       {icp_val}")
+    print(f"  Santander MM:  {sant_vc}")
+    print(f"  Planilla VC:   {len(planilla)} fondos\n")
 
     results = {}
-    updated = 0
-    skipped = 0
-    errors  = 0
-
     for tmpl_file, ods_name in FUND_ODS_NAMES.items():
-        # Get fund VC: try planilla first, then ODS
+        # Get fund VC
         fip_vc = None
 
-        # Try planilla (normalized name match)
-        if planilla:
-            for k, v in planilla.items():
-                if any(part in k.upper() for part in ods_name.upper().split()):
-                    fip_vc = v
-                    break
+        # 1. From planilla
+        for k, v in planilla.items():
+            if any(p in k.upper() for p in ods_name.upper().replace('FIP VANTRUST LIQUIDEZ ','').split()):
+                fip_vc = v; break
 
-        # Try ODS end-of-month
+        # 2. From ODS
         if fip_vc is None:
             fip_vc = _ods_vc(ods_name, y, m)
 
         if fip_vc is None:
-            # Try any day (ODS may have partial month)
-            vc_any, last_day = _ods_vc_any_day(ods_name, y, m)
-            if vc_any:
-                print(f"  [WARN] {ods_name}: using ODS day-{last_day} VC (not end-of-month)")
-                # Don't update template with incomplete data
-                results[tmpl_file] = 'skip_no_eom_data'
-                skipped += 1
-                continue
-            else:
-                print(f"  [ERROR] {ods_name}: no VC data for {y}-{m:02d}")
-                results[tmpl_file] = 'error_no_data'
-                errors += 1
-                continue
-
-        if icp_val is None or sant_vc is None:
-            print(f"  [SKIP] {tmpl_file}: missing ICP or Santander VC")
-            results[tmpl_file] = 'skip_missing_icp_or_comp'
-            skipped += 1
+            print(f"  [SKIP] {tmpl_file}: no VC disponible para {y}-{m:02d}")
+            results[tmpl_file] = 'skip_no_data'
             continue
 
-        # Update the template
-        print(f"  Updating {tmpl_file}: fip_vc={fip_vc:.4f} icp={icp_val:.2f} sant={sant_vc:.4f}")
-        ok = update_template(tmpl_file, ods_name, y, m, fip_vc, icp_val, sant_vc)
-        if ok:
-            results[tmpl_file] = 'updated'
-            updated += 1
-        else:
-            results[tmpl_file] = 'skipped'
-            skipped += 1
+        if icp_val is None or sant_vc is None:
+            print(f"  [SKIP] {tmpl_file}: falta ICP o Santander MM")
+            results[tmpl_file] = 'skip_missing_deps'
+            continue
 
-    print(f"\n  Updated: {updated}  Skipped: {skipped}  Errors: {errors}")
-    print(f"\n  NOTE: For months where ODS doesn't have end-of-month data yet,")
-    print(f"  upload inputs/planilla_vc.xlsx with the monthly VC values.")
+        result = update_template(tmpl_file, y, m, fip_vc, icp_val, sant_vc)
+        status_str = {
+            'updated':       f"✓ {tmpl_file} — fip_vc={fip_vc:.4f}",
+            'already_updated': f"— {tmpl_file}: ya actualizado",
+            'skip_not_found':  f"✗ {tmpl_file}: archivo no encontrado",
+        }.get(result, f"  {result}: {tmpl_file}")
+        print(f"  {status_str}")
+        results[tmpl_file] = result
+
+    updated = sum(1 for v in results.values() if v == 'updated')
+    skipped = sum(1 for v in results.values() if 'skip' in v or v == 'already_updated')
+    print(f"\n  Resumen: {updated} actualizados, {skipped} omitidos\n")
     return results
 
 
