@@ -283,6 +283,19 @@ function onCart(input){
   r.readAsDataURL(f);
 }
 
+function onVC(input){
+  const f=input.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    vcB64=e.target.result.split(",")[1];
+    document.getElementById("fn-vc").style.display="block";
+    document.getElementById("fn-vc").textContent="✓ "+f.name;
+    document.getElementById("st-vc").textContent="Listo";
+    document.getElementById("st-vc").className="card-status ok";
+  };
+  r.readAsDataURL(f);
+}
+
 ["zone-cart","zone-vc"].forEach(id=>{
   const z=document.getElementById(id);
   z.addEventListener("dragover",e=>{e.preventDefault();z.classList.add("drag");});
@@ -290,8 +303,13 @@ function onCart(input){
   z.addEventListener("drop",e=>{
     e.preventDefault();z.classList.remove("drag");
     const f=e.dataTransfer.files[0]; if(!f)return;
-    document.getElementById("file-cart").files=e.dataTransfer.files;
-    onCart(document.getElementById("file-cart"));
+    if(id==="zone-vc"){
+      document.getElementById("file-vc").files=e.dataTransfer.files;
+      onVC(document.getElementById("file-vc"));
+    }else{
+      document.getElementById("file-cart").files=e.dataTransfer.files;
+      onCart(document.getElementById("file-cart"));
+    }
   });
 });
 
