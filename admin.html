@@ -140,21 +140,36 @@ textarea::placeholder{color:var(--muted);}
     <div class="card-head">
       <div>
         <div class="card-title">Planilla Valores Cuota <span style="font-size:9px;background:var(--red);color:#fff;padding:2px 6px;letter-spacing:1px;vertical-align:middle">REQUERIDO</span></div>
-        <div class="card-desc">Excel con el VC del último día del mes para cada fondo. <strong>Sin este archivo no se generan los folletos correctamente.</strong><br>Formato: Col A = nombre fondo, Col B = valor cuota.</div>
+        <div class="card-desc">El Excel que generas desde la query de PUBLICADOR_PRECIO. Debe tener columnas <strong>FECHA</strong>, <strong>NEMOTECNICO</strong> y <strong>PRECIO</strong>.</div>
       </div>
       <div class="card-status" id="st-vc">Pendiente</div>
     </div>
     <div class="zone" id="zone-vc">
-      <input type="file" id="file-vc" accept=".xlsx,.xls,.csv" onchange="onVC(this)">
+      <input type="file" id="file-vc" accept=".xlsx,.xls" onchange="onVC(this)">
       <div class="zone-icon">📋</div>
-      <div class="zone-text"><strong>Clic o arrastra</strong> planilla_vc.xlsx aquí<br><span style="font-size:11px;color:var(--muted)">Descarga la plantilla → llena los VCs → sube aquí</span></div>
+      <div class="zone-text"><strong>Clic o arrastra</strong> la planilla aquí<br><span style="font-size:11px;color:var(--muted)">El mismo Excel que refrescas desde Power Query cada mes</span></div>
       <div class="zone-fname" id="fn-vc"></div>
     </div>
-    <div style="margin-top:10px;font-size:11px;color:var(--muted)">
-      ¿No tienes la plantilla? 
-      <a href="https://raw.githubusercontent.com/mivelascor/FIP/main/inputs/planilla_vc_template.xlsx" 
-         download="planilla_vc_template.xlsx"
-         style="color:var(--muted2);text-decoration:underline">Descargar plantilla →</a>
+  </div>
+
+  <!-- ICP y Competencia -->
+  <div class="card">
+    <div class="card-head">
+      <div><div class="card-title">Valores de referencia <span style="font-size:9px;background:var(--red);color:#fff;padding:2px 6px;letter-spacing:1px;vertical-align:middle">REQUERIDO</span></div>
+        <div class="card-desc">ICP (CLICP) y Santander MM del último día del mes. Estos no están en la planilla GPI.</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;">
+      <div>
+        <label class="field-label" style="margin-top:0">ICP (CLICP)</label>
+        <input type="number" step="0.01" id="icp-val" class="token-input" placeholder="Ej: 26535.18" style="font-family:'DM Sans',sans-serif">
+        <div class="token-hint">Índice Cámara Promedio fin de mes</div>
+      </div>
+      <div>
+        <label class="field-label" style="margin-top:0">Santander MM (Competencia)</label>
+        <input type="number" step="0.0001" id="comp-val" class="token-input" placeholder="Ej: 6368.94" style="font-family:'DM Sans',sans-serif">
+        <div class="token-hint">Valor cuota serie UNIVE fin de mes</div>
+      </div>
     </div>
   </div>
 
@@ -233,7 +248,7 @@ textarea::placeholder{color:var(--muted);}
 <script>
 const REPO="mivelascor/FIP", BRANCH="main";
 const MESES=["","Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-let cartB64=null, vcB64=null, runId=null, polling=null, targetMes=null;
+let cartB64=null, vcB64=null, runId=null, polling=null, targetMes=null, icpVal=null, compVal=null;
 
 // Progress state
 const TOTAL_SECS = 210; // ~3.5 min estimated workflow duration
@@ -383,7 +398,7 @@ async function ghPut(path,content,msg,sha=null){
 }
 
 async function ghGet(path){
-  const r=await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`,{headers:{Authorization:`token ${getToken()}`}});
+  const r=await fetch(`https://api.github.com/repos/${REPO}/contents/${encodeURIComponent(path)}`,{headers:{Authorization:`token ${getToken()}`}});
   if(r.status===404)return null;
   return r.json();
 }
@@ -442,9 +457,35 @@ async function generar(){
       log("📋 Subiendo planilla_vc.xlsx...");
       const ev=await ghGet("inputs/planilla_vc.xlsx");
       await ghPut("inputs/planilla_vc.xlsx",vcB64,`📋 Planilla VC ${targetMes}`,ev?.sha||null);
-      log("   ✓ planilla_vc.xlsx (templates se actualizarán automáticamente)");
+      log("   ✓ planilla_vc.xlsx");
     }else{
-      log("ℹ  planilla_vc.xlsx no subida (se usarán datos de ODS si están disponibles)");
+      log("⚠  planilla_vc.xlsx no subida");
+    }
+
+    // ICP y Santander MM
+    icpVal  = parseFloat(document.getElementById("icp-val").value)||null;
+    compVal = parseFloat(document.getElementById("comp-val").value)||null;
+    if(icpVal||compVal){
+      log("📈 Actualizando ICP y Competencia...");
+      const [iR,cR] = await Promise.all([
+        ghGet("inputs/icp_clicp.json"),
+        ghGet("inputs/comp_clp.json")
+      ]);
+      const monthKey = targetMes; // e.g. "2026-05"
+      if(icpVal){
+        const iData = iR ? JSON.parse(atob(iR.content.replace(/\n/g,''))) : {};
+        iData[monthKey] = icpVal;
+        const iB64 = btoa(unescape(encodeURIComponent(JSON.stringify(iData,null,2))));
+        await ghPut("inputs/icp_clicp.json",iB64,`📈 ICP ${targetMes}=${icpVal}`,iR?.sha||null);
+        log("   ✓ icp_clicp.json → "+monthKey+"="+icpVal);
+      }
+      if(compVal){
+        const cData = cR ? JSON.parse(atob(cR.content.replace(/\n/g,''))) : {};
+        cData[monthKey] = compVal;
+        const cB64 = btoa(unescape(encodeURIComponent(JSON.stringify(cData,null,2))));
+        await ghPut("inputs/comp_clp.json",cB64,`📈 Competencia ${targetMes}=${compVal}`,cR?.sha||null);
+        log("   ✓ comp_clp.json → "+monthKey+"="+compVal);
+      }
     }
 
     log("\n🚀 Disparando workflow...");
