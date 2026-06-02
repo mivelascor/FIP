@@ -90,12 +90,9 @@ def _get_santander(y: int, m: int):
 
 def _read_planilla(y: int, m: int) -> dict:
     """
-    Read end-of-month VCs from planilla_vc.xlsx.
-    Supports two formats:
-    Format A (simple, recommended): 
-      Col1=fund_name, Col2=vc_value (any row with fund name + positive number)
-    Format B (query output, pivoted): 
-      Row1=headers with fund names, Col1=dates, find row matching y/m
+    Lee planilla_vc.xlsx con el output del query PUBLICADOR_PRECIO.
+    Formato esperado: columnas FECHA, NEMOTECNICO, PRECIO (y otras opcionales).
+    Devuelve {nemotecnico: precio} con el último precio del mes y/m para cada fondo.
     """
     path = _INPUTS / "planilla_vc.xlsx"
     if not path.exists():
@@ -103,47 +100,58 @@ def _read_planilla(y: int, m: int) -> dict:
     try:
         wb = openpyxl.load_workbook(path, data_only=True)
         ws = wb.active
-        vc_map = {}
 
-        # ── Try Format A first: rows with (fund_name, vc_value) ──────────────
-        for r in range(1, ws.max_row + 1):
-            for c_name in range(1, min(ws.max_column, 3)):
-                fname = ws.cell(r, c_name).value
-                if not (fname and isinstance(fname, str) and len(fname) > 5): continue
-                # Look for a numeric value in the same row
-                for c_val in range(c_name+1, min(ws.max_column+1, c_name+4)):
-                    fvc = ws.cell(r, c_val).value
-                    if isinstance(fvc, (int, float)) and 100 < fvc < 1000000:
-                        vc_map[fname.strip()] = float(fvc)
-                        break
-
-        if vc_map:
-            print(f"  Planilla (Format A): {len(vc_map)} entries")
-            wb.close()
-            return vc_map
-
-        # ── Try Format B: date in col, funds in headers ───────────────────────
-        from datetime import datetime as _dt
-        import calendar as _cal
-        eom_day = _cal.monthrange(y, m)[1]
-        for r in range(1, ws.max_row + 1):
-            date_v = ws.cell(r, 1).value
-            if isinstance(date_v, _dt) and date_v.year == y and date_v.month == m:
-                # Found the target month row
-                for c in range(2, ws.max_column + 1):
-                    fname = ws.cell(1, c).value or ws.cell(2, c).value
-                    fvc   = ws.cell(r, c).value
-                    if fname and isinstance(fvc, (int, float)) and fvc > 0:
-                        vc_map[str(fname).strip()] = float(fvc)
+        # Find header row: look for FECHA, NEMOTECNICO, PRECIO columns
+        fecha_col = nemo_col = precio_col = None
+        header_row = None
+        for r in range(1, min(10, ws.max_row + 1)):
+            for c in range(1, ws.max_column + 1):
+                v = str(ws.cell(r, c).value or '').strip().upper()
+                if v == 'FECHA':    fecha_col  = c; header_row = r
+                if v in ('NEMOTECNICO', 'NEMO', 'FONDO', 'FUND'): nemo_col = c; header_row = r
+                if v in ('PRECIO', 'VC', 'VALOR_CUOTA', 'VALOR CUOTA'): precio_col = c; header_row = r
+            if fecha_col and nemo_col and precio_col:
                 break
 
+        if not (fecha_col and nemo_col and precio_col):
+            print(f"  [WARN] planilla_vc.xlsx: no se encontraron columnas FECHA/NEMOTECNICO/PRECIO")
+            print(f"  Columnas detectadas: {[ws.cell(1,c).value for c in range(1,ws.max_column+1)]}")
+            wb.close(); return {}
+
+        # Read rows: collect last price per nemo for the target month
+        vc_map = {}  # nemo -> (fecha, precio) keeping the latest date
+        for r in range(header_row + 1, ws.max_row + 1):
+            fecha  = ws.cell(r, fecha_col).value
+            nemo   = ws.cell(r, nemo_col).value
+            precio = ws.cell(r, precio_col).value
+
+            if not (fecha and nemo and precio): continue
+            if not isinstance(precio, (int, float)) or precio <= 0: continue
+            if not hasattr(fecha, 'year'): continue
+            if fecha.year != y or fecha.month != m: continue
+
+            nemo_clean = str(nemo).strip()
+            existing = vc_map.get(nemo_clean)
+            if existing is None or fecha > existing[0]:
+                vc_map[nemo_clean] = (fecha, float(precio))
+
         wb.close()
-        if vc_map:
-            print(f"  Planilla (Format B): {len(vc_map)} entries")
-        return vc_map
+        result = {k: v[1] for k, v in vc_map.items()}
+        if result:
+            print(f"  Planilla: {len(result)} fondos para {y}-{m:02d}")
+            # Show a few for verification
+            for k, v in list(result.items())[:3]:
+                print(f"    {k}: {v}")
+        else:
+            print(f"  [WARN] planilla_vc.xlsx: sin datos para {y}-{m:02d}")
+        return result
+
     except Exception as e:
         print(f"  [WARN] planilla_vc.xlsx: {e}")
+        import traceback; traceback.print_exc()
         return {}
+
+
 
 # ── Template structure detection ─────────────────────────────────────────────
 def _find_structure(ws) -> dict:
@@ -397,10 +405,14 @@ def run_update(target_year: int = None, target_month: int = None) -> dict:
         # Get fund VC
         fip_vc = None
 
-        # 1. From planilla
-        for k, v in planilla.items():
-            if any(p in k.upper() for p in ods_name.upper().replace('FIP VANTRUST LIQUIDEZ ','').split()):
-                fip_vc = v; break
+        # 1. From planilla - try exact match first, then normalized
+        if ods_name in planilla:
+            fip_vc = planilla[ods_name]
+        elif ods_name.replace('Ó','O').replace('ó','o') in {k.replace('Ó','O').replace('ó','o'): v for k,v in planilla.items()}:
+            norm = {k.replace('Ó','O').replace('ó','o'): v for k,v in planilla.items()}
+            fip_vc = norm.get(ods_name.replace('Ó','O').replace('ó','o'))
+        elif ods_name.upper() in {k.upper(): v for k,v in planilla.items()}:
+            fip_vc = {k.upper(): v for k,v in planilla.items()}.get(ods_name.upper())
 
         # 2. From ODS
         if fip_vc is None:
