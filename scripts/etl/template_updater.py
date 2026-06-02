@@ -90,9 +90,10 @@ def _get_santander(y: int, m: int):
 
 def _read_planilla(y: int, m: int) -> dict:
     """
-    Lee planilla_vc.xlsx con el output del query PUBLICADOR_PRECIO.
-    Formato esperado: columnas FECHA, NEMOTECNICO, PRECIO (y otras opcionales).
-    Devuelve {nemotecnico: precio} con el último precio del mes y/m para cada fondo.
+    Lee planilla_vc.xlsx generada desde el query PUBLICADOR_PRECIO en Power Query.
+    Formato: FECHA | NEMOTECNICO | COD_MONEDA | TASA | PRECIO
+    Los valores de texto vienen envueltos en comillas simples (ej: 'FIP VANTRUST LIQUIDEZ ACTIVA').
+    Devuelve {nemotecnico_normalizado: precio} con el último precio del mes y/m.
     """
     path = _INPUTS / "planilla_vc.xlsx"
     if not path.exists():
@@ -101,55 +102,74 @@ def _read_planilla(y: int, m: int) -> dict:
         wb = openpyxl.load_workbook(path, data_only=True)
         ws = wb.active
 
-        # Find header row: look for FECHA, NEMOTECNICO, PRECIO columns
+        def clean(v):
+            """Strip whitespace and single quotes from Power Query string values."""
+            if v is None: return None
+            return str(v).strip().strip("'").strip()
+
+        def normalize(s):
+            """Normalize accents for comparison."""
+            return (s.upper()
+                    .replace('Ó','O').replace('Á','A').replace('É','E')
+                    .replace('Í','I').replace('Ú','U'))
+
+        # Find columns by scanning header row (R1)
+        # Headers may also have single quotes: "'FECHA'" → "FECHA" after clean()
         fecha_col = nemo_col = precio_col = None
-        header_row = None
-        for r in range(1, min(10, ws.max_row + 1)):
-            for c in range(1, ws.max_column + 1):
-                v = str(ws.cell(r, c).value or '').strip().upper()
-                if v == 'FECHA':    fecha_col  = c; header_row = r
-                if v in ('NEMOTECNICO', 'NEMO', 'FONDO', 'FUND'): nemo_col = c; header_row = r
-                if v in ('PRECIO', 'VC', 'VALOR_CUOTA', 'VALOR CUOTA'): precio_col = c; header_row = r
-            if fecha_col and nemo_col and precio_col:
-                break
+        for c in range(1, min(ws.max_column + 1, 10)):
+            h = normalize(clean(ws.cell(1, c).value) or '')
+            if h == 'FECHA':      fecha_col  = c
+            if h == 'NEMOTECNICO': nemo_col   = c
+            if h == 'PRECIO':     precio_col = c
 
-        if not (fecha_col and nemo_col and precio_col):
-            print(f"  [WARN] planilla_vc.xlsx: no se encontraron columnas FECHA/NEMOTECNICO/PRECIO")
-            print(f"  Columnas detectadas: {[ws.cell(1,c).value for c in range(1,ws.max_column+1)]}")
-            wb.close(); return {}
+        # Fallback to fixed positions if headers not found (known format)
+        if not fecha_col:  fecha_col  = 1
+        if not nemo_col:   nemo_col   = 2
+        if not precio_col: precio_col = 5
 
-        # Read rows: collect last price per nemo for the target month
-        vc_map = {}  # nemo -> (fecha, precio) keeping the latest date
-        for r in range(header_row + 1, ws.max_row + 1):
+        # Collect last price per fund for target month
+        # Key = normalized name (no accents, uppercase) → easier matching later
+        vc_raw  = {}  # norm_name -> (fecha, precio, original_name)
+        for r in range(2, ws.max_row + 1):
             fecha  = ws.cell(r, fecha_col).value
-            nemo   = ws.cell(r, nemo_col).value
+            nemo   = clean(ws.cell(r, nemo_col).value)
             precio = ws.cell(r, precio_col).value
 
             if not (fecha and nemo and precio): continue
-            if not isinstance(precio, (int, float)) or precio <= 0: continue
             if not hasattr(fecha, 'year'): continue
             if fecha.year != y or fecha.month != m: continue
+            if not isinstance(precio, (int, float)) or precio <= 0: continue
 
-            nemo_clean = str(nemo).strip()
-            existing = vc_map.get(nemo_clean)
+            norm = normalize(nemo)
+            existing = vc_raw.get(norm)
             if existing is None or fecha > existing[0]:
-                vc_map[nemo_clean] = (fecha, float(precio))
+                vc_raw[norm] = (fecha, float(precio), nemo)
 
         wb.close()
-        result = {k: v[1] for k, v in vc_map.items()}
+
+        # Build result keyed by original name
+        result = {orig: vc for _, vc, orig in vc_raw.values()}
+
         if result:
-            print(f"  Planilla: {len(result)} fondos para {y}-{m:02d}")
-            # Show a few for verification
+            print(f"  Planilla: {len(result)} fondos para {y}-{m:02d} "
+                  f"(último día: {max(v[0] for v in vc_raw.values()).strftime('%Y-%m-%d')})")
             for k, v in list(result.items())[:3]:
-                print(f"    {k}: {v}")
+                print(f"    {k}: {v:.4f}")
         else:
             print(f"  [WARN] planilla_vc.xlsx: sin datos para {y}-{m:02d}")
+
+        # Also store normalized lookup for matching
+        # We attach it so run_update() can use it
+        _planilla_norm_cache.clear()
+        _planilla_norm_cache.update({normalize(k): v for k, v in result.items()})
         return result
 
     except Exception as e:
         print(f"  [WARN] planilla_vc.xlsx: {e}")
         import traceback; traceback.print_exc()
         return {}
+
+_planilla_norm_cache: dict = {}  # normalized name → vc, populated by _read_planilla
 
 
 
@@ -405,14 +425,13 @@ def run_update(target_year: int = None, target_month: int = None) -> dict:
         # Get fund VC
         fip_vc = None
 
-        # 1. From planilla - try exact match first, then normalized
+        # 1. From planilla - exact match, then accent-normalized
         if ods_name in planilla:
             fip_vc = planilla[ods_name]
-        elif ods_name.replace('Ó','O').replace('ó','o') in {k.replace('Ó','O').replace('ó','o'): v for k,v in planilla.items()}:
-            norm = {k.replace('Ó','O').replace('ó','o'): v for k,v in planilla.items()}
-            fip_vc = norm.get(ods_name.replace('Ó','O').replace('ó','o'))
-        elif ods_name.upper() in {k.upper(): v for k,v in planilla.items()}:
-            fip_vc = {k.upper(): v for k,v in planilla.items()}.get(ods_name.upper())
+        elif planilla:
+            def _norm(s):
+                return s.upper().replace('Ó','O').replace('Á','A').replace('É','E').replace('Í','I').replace('Ú','U').strip()
+            fip_vc = _planilla_norm_cache.get(_norm(ods_name))
 
         # 2. From ODS
         if fip_vc is None:
