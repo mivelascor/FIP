@@ -154,7 +154,7 @@ def _scrape_valor(rut: str, serie: str, anio: int, mes: int) -> float | None:
                 window = popup_text[mt.end(): mt.end()+90]
                 nums = re.findall(r"\d{1,3}(?:\.\d{3})*,\d{2,}", window)
                 plaus = [float(n.replace(".", "").replace(",", ".")) for n in nums]
-                plaus = [c for c in plaus if 1 < c < 1_000_000]
+                plaus = [c for c in plaus if 100 < c < 20_000]   # valor cuota MM (excluye columnas espurias)
                 if plaus:
                     val = plaus[0]   # se queda con el del ultimo dia (EOM) al iterar en orden
             if val:
