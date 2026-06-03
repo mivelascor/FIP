@@ -498,6 +498,17 @@ def leer_datos_template(nombre_fondo, target_year=None, target_month=None):
             tmpl_vc = _build_clp_vc_from_template(tmpl_file)
             if tmpl_vc and tmpl_vc.get((y, m)):
                 vc_fip = tmpl_vc
+
+    # Retorno total del FIP: nivel = VC + dividendos historicos (igual que datos_manager).
+    # ICP y Competencia NO llevan dividendo. Sin esto el fondo sale en crudo (~0.65 vs 0.62).
+    try:
+        from calculos.rentabilidades import DIVIDENDOS
+        _div = DIVIDENDOS.get(nombre_fondo, 0.0)
+    except Exception:
+        _div = 0.0
+    if _div:
+        vc_fip = {k: v + _div for k, v in vc_fip.items()}
+
     has_12  = bool(vc_fip.get(_prev(y, m, 12)))
 
     def calc(vc, es_icp, es_comp, es_fip, name):
