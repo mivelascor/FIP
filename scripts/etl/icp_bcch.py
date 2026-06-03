@@ -12,7 +12,7 @@ Retorna DataFrame con columnas:
 import os, requests, pandas as pd
 
 BCCH_API  = "https://si3.bcentral.cl/SieteRestWS/SieteRestWS.ashx"
-SERIE_TIB = "F022.TIB.INC.D001.NO.Z.D"
+SERIE_TIB = "F022.TIB.TIP.D001.NO.Z.D"  # TIB promedio (%). NO usar INC (=nº instituciones)
 BASE_ICP  = 10000.0
 ANIO_INI  = 2009
 
