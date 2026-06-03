@@ -121,6 +121,20 @@ def _fecha_ref() -> tuple[int, int]:
 def log(msg): print(msg, flush=True)
 
 
+def _icp_mes_tpm(year: int, month: int, anchor_val: float):
+    """Fallback ICP sin BCCh: estima el nivel del mes con la TPM promedio (mindicador.cl).
+    ICP_mes = anchor * (1 + TPM_prom/1200). Aproximado (~0.01-0.02 pp/mes)."""
+    try:
+        r = requests.get(f"https://mindicador.cl/api/tpm/{year}", timeout=15)
+        vals = [float(i["valor"]) for i in r.json().get("serie", [])
+                if i["fecha"][:7] == f"{year}-{month:02d}"]
+        if not vals: return None
+        tpm = sum(vals)/len(vals)
+        return anchor_val * (1 + tpm/1200)
+    except Exception:
+        return None
+
+
 def _actualizar_referencias(year: int, month: int):
     """Antes de actualizar templates: asegura que ICP (BCCh), Santander (CMF) y
     Banchile (CMF) del mes objetivo esten en los JSON. Asi template_updater puede
@@ -140,13 +154,18 @@ def _actualizar_referencias(year: int, month: int):
             ks = sorted(icp.keys())
             if ks:
                 from etl.icp_bcch import icp_mes_bcch
-                val = icp_mes_bcch(year, month, float(icp[ks[-1]]))
+                anchor = float(icp[ks[-1]])
+                val = icp_mes_bcch(year, month, anchor); fuente = "BCCh"
+                if not val:
+                    val = _icp_mes_tpm(year, month, anchor); fuente = "TPM aprox"
                 if val:
                     icp[key] = round(val, 2)
                     p.write_text(json.dumps(icp, indent=2, ensure_ascii=False), encoding="utf-8")
-                    log(f"  ✓ ICP {key} = {icp[key]} (BCCh)")
+                    log(f"  ✓ ICP {key} = {icp[key]} ({fuente})")
+                    if fuente != "BCCh":
+                        log("    [NOTA] ICP aproximado por TPM. Configura BCCH_USER/BCCH_PASS para valor exacto.")
                 else:
-                    log(f"  [WARN] ICP {key}: BCCh no disponible (revisa secrets BCCH_USER/BCCH_PASS)")
+                    log(f"  [WARN] ICP {key}: no se pudo obtener (ni BCCh ni TPM)")
         else:
             log(f"  · ICP {key} ya presente ({icp[key]})")
     except Exception as e:
