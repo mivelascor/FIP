@@ -88,6 +88,20 @@ def _get_santander(y: int, m: int):
         return float(d.get(f"{y}-{m:02d}") or d.get(f"{y}-{m}") or 0) or None
     except: return None
 
+# Templates en USD: la competencia (col K) es Banchile Corporate Dollar, NO Santander.
+USD_TEMPLATES = {
+    'TEMPLATE FONDO LIQUIDEZ DOLAR.xlsx',
+    'TEMPLATE FONDO LIQUIDEZ DOLAR CAJA.xlsx',
+    'TEMPLATE FONDO LIQUIDEZ RESERVA DOLAR.xlsx',
+}
+
+def _get_banchile(y: int, m: int):
+    try:
+        with open(_INPUTS / "comp_usd.json") as f:
+            d = json.load(f)
+        return float(d.get(f"{y}-{m:02d}") or d.get(f"{y}-{m}") or 0) or None
+    except: return None
+
 def _read_planilla(y: int, m: int) -> dict:
     """
     Lee planilla_vc.xlsx generada desde el query PUBLICADOR_PRECIO en Power Query.
@@ -414,10 +428,12 @@ def run_update(target_year: int = None, target_month: int = None) -> dict:
 
     icp_val  = _get_icp(y, m)
     sant_vc  = _get_santander(y, m)
+    banchile = _get_banchile(y, m)
     planilla = _read_planilla(y, m)
 
     print(f"  ICP {y}-{m:02d}:       {icp_val}")
     print(f"  Santander MM:  {sant_vc}")
+    print(f"  Banchile USD:  {banchile}")
     print(f"  Planilla VC:   {len(planilla)} fondos\n")
 
     results = {}
@@ -442,12 +458,15 @@ def run_update(target_year: int = None, target_month: int = None) -> dict:
             results[tmpl_file] = 'skip_no_data'
             continue
 
-        if icp_val is None or sant_vc is None:
-            print(f"  [SKIP] {tmpl_file}: falta ICP o Santander MM")
+        es_usd  = tmpl_file in USD_TEMPLATES
+        comp_vc = _get_banchile(y, m) if es_usd else sant_vc
+        if icp_val is None or comp_vc is None:
+            falta = "Banchile" if es_usd else "Santander MM"
+            print(f"  [SKIP] {tmpl_file}: falta ICP o {falta}")
             results[tmpl_file] = 'skip_missing_deps'
             continue
 
-        result = update_template(tmpl_file, y, m, fip_vc, icp_val, sant_vc)
+        result = update_template(tmpl_file, y, m, fip_vc, icp_val, comp_vc)
         status_str = {
             'updated':       f"✓ {tmpl_file} — fip_vc={fip_vc:.4f}",
             'already_updated': f"— {tmpl_file}: ya actualizado",
