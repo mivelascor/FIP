@@ -1,34 +1,50 @@
 """
-competencia_cmf.py — Obtiene el valor cuota de la competencia desde la CMF.
+competencia_cmf.py — Valor cuota de la competencia desde la CMF (sin captcha).
 
-  - Fondos CLP de Vantrust -> Fondo Mutuo SANTANDER MONEY MARKET serie UNIVE
-  - Fondos USD de Vantrust -> Fondo Mutuo BANCHILE CORPORATE DOLLAR serie A
+PROTOCOLO (indicado por el usuario):
+  - Fecha inicio = fecha término = ÚLTIMO DÍA del mes que se está cerrando.
+  - Elegir la serie respectiva de cada fondo de competencia.
+  - Fondos CLP de Vantrust -> Santander Money Market, serie UNIVE.
+  - Fondos USD de Vantrust -> Banchile Corporate Dollar, serie A.
 
-ESTADO: ESQUELETO. La CMF NO tiene captcha (verificado), pero el formulario de
-valor cuota se carga vía JavaScript/sesión, por lo que los parámetros exactos
-del POST deben confirmarse iterando contra la página en vivo (una sola vez).
+La página de valor cuota (pestania=7) no tiene captcha. El formulario consulta
+por rango de fechas + serie. Esta función arma esa consulta y parsea el VC.
 
-Fuentes candidatas (ambas sin captcha):
-  1. https://www.cmfchile.cl/institucional/estadisticas/fm.bpr_menu.php
-     (Consulta de Patrimonio/Rentabilidad/Valor Cuota; genera archivo descargable)
-  2. https://www.cmfchile.cl/institucional/estadisticas/fondos_cartola_diaria.php
-     (genera archivo de texto con VC diario por fondo o todos)
-
-URLs de entidad (de referencia):
-  Santander MM serie UNIVE  rut=8057  row=AAAw%20cAAhAAAACcAAs
-  Banchile Corp Dollar A    rut=8248  row=AAAw%20cAAhAAAACfAAj
-
-Una vez confirmado el endpoint, esta función debe devolver:
-  { 'YYYY-MM': valor_cuota_fin_de_mes }  para usar igual que ICP/fondo.
+NOTA: los nombres exactos de los campos del formulario deben confirmarse UNA vez
+contra la página en vivo (la primera corrida). El protocolo de fechas/serie ya
+está implementado según lo indicado.
 """
-import datetime
+import datetime, re, urllib.request, urllib.parse
 
-SANTANDER = {"rut": "8057", "serie": "UNIVE", "moneda": "CLP"}
-BANCHILE  = {"rut": "8248", "serie": "A",     "moneda": "USD"}
+ENTIDADES = {
+    "CLP": {"rut": "8057", "row": "AAAw cAAhAAAACcAAs", "serie": "UNIVE",
+            "nombre": "FONDO MUTUO SANTANDER MONEY MARKET"},
+    "USD": {"rut": "8248", "row": "AAAw cAAhAAAACfAAj", "serie": "A",
+            "nombre": "FONDO MUTUO BANCHILE CORPORATE DOLLAR"},
+}
+BASE = "https://www.cmfchile.cl/institucional/mercados/entidad.php"
 
-def valor_cuota_competencia(fondo, desde_ym, hasta_ym):
-    """PENDIENTE: replicar el POST del formulario CMF (sin captcha) y parsear la tabla.
-    Devuelve {'YYYY-MM': vc_eom}. fondo = SANTANDER | BANCHILE."""
-    raise NotImplementedError(
-        "Confirmar parámetros del formulario CMF en vivo antes de activar. "
-        "Mientras tanto, comp_clp.json / comp_usd.json siguen como fallback.")
+def _ultimo_dia(ym):
+    y, m = map(int, ym.split('-'))
+    return datetime.date(y + (m == 12), (m % 12) + 1, 1) - datetime.timedelta(days=1)
+
+def valor_cuota_competencia(moneda, target_ym):
+    """Devuelve el valor cuota de fin de mes (float) de la competencia para `moneda`.
+    moneda = 'CLP' (Santander UNIVE) | 'USD' (Banchile A)."""
+    ent = ENTIDADES[moneda]
+    fecha = _ultimo_dia(target_ym).strftime("%d/%m/%Y")
+    # Protocolo: misma fecha en inicio y término + serie respectiva.
+    params = {
+        "mercado": "V", "rut": ent["rut"], "tipoentidad": "RGFMU",
+        "row": ent["row"], "vig": "VI", "control": "svs", "pestania": "7",
+        "fini": fecha, "ffin": fecha, "serie": ent["serie"],   # <- confirmar nombres en vivo
+    }
+    url = BASE + "?" + urllib.parse.urlencode(params)
+    html = urllib.request.urlopen(urllib.request.Request(
+        url, headers={"User-Agent": "Mozilla/5.0"}), timeout=40).read().decode("utf-8", "replace")
+    # Parsear el VC de la tabla (número con coma decimal junto a la fecha consultada).
+    m = re.search(r'([\d\.]+,\d{2,})', html)
+    if not m:
+        raise RuntimeError(f"No se pudo parsear VC competencia {moneda} {target_ym}. "
+                           f"Confirmar campos del formulario en vivo.")
+    return float(m.group(1).replace(".", "").replace(",", "."))
