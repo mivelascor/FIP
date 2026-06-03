@@ -136,9 +136,15 @@ def _scrape_valor(rut: str, serie: str, anio: int, mes: int) -> float | None:
             popup_text = popup.inner_text("body")
             browser.close()
 
-            # Diagnostico: volcar inicio del popup para entender el formato real
-            print(f"    [CMF debug {anio}-{mes_str}] popup: "
-                  + popup_text[:700].replace(chr(10), " | ").replace(chr(9), " "))
+            # Diagnostico: volcar la region ALREDEDOR de la primera fecha (la fila de datos)
+            _dbg = re.search(rf"\d{{2}}/{mes_str}/{anio}", popup_text)
+            if _dbg:
+                _ini = max(0, _dbg.start()-20)
+                print(f"    [CMF debug {anio}-{mes_str}] fila: "
+                      + popup_text[_ini:_ini+260].replace(chr(10), " | ").replace(chr(9), " <TAB> "))
+            else:
+                print(f"    [CMF debug {anio}-{mes_str}] sin fecha; head: "
+                      + popup_text[:200].replace(chr(10)," | "))
 
             # Parseo robusto: por cada fecha DD/MM/YYYY del mes, tomar el primer numero
             # formato chileno (1.234,5678) en rango plausible de valor cuota (1..1e6).
