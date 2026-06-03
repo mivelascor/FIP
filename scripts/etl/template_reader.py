@@ -630,22 +630,31 @@ def _build_usd_output(nombre_fondo, display, tmpl_file, icp, vc_comp, y, m, is_u
 
     acum_label = str(ws.cell(1,24).value or f'Acum. {y} (*)').replace('\n',' ').strip()
 
-    def rw(r):
-        return {k: ws.cell(r,c).value for k,c in zip(['nombre','m','t','s','a','ac'],[19,20,21,22,23,24])}
-
-    if is_usd:
-        # USD templates: R2=Comp/benchmark, R3=FIP, R4=empty
-        r_icp, r_comp, r_fip = rw(2), rw(2), rw(3)
-    else:
-        # CLP templates: R2=ICP, R3=Comp, R4=FIP  
-        r_icp, r_comp, r_fip = rw(2), rw(3), rw(4)
-
-    icp_row  = {'nombre': 'ICP (Benchmark)', 'es_icp': True,  'es_comp': False, 'es_fip': False,
-                'm': r_icp['m'], 't': r_icp['t'], 's': r_icp['s'], 'a': r_icp['a'], 'ac': r_icp['ac']}
-    comp_row = {'nombre': 'Competencia',     'es_icp': False, 'es_comp': True,  'es_fip': False,
-                'm': r_comp['m'], 't': r_comp['t'], 's': r_comp['s'], 'a': r_comp['a'], 'ac': r_comp['ac']}
-    fip_row  = {'nombre': display,            'es_icp': False, 'es_comp': False, 'es_fip': True,
-                'm': r_fip['m'], 't': r_fip['t'], 's': r_fip['s'], 'a': r_fip['a'], 'ac': r_fip['ac']}
+    # Resumen USD: COMPUTAR para el mes objetivo desde los datos (col G + dividendo).
+    # M/T/S/A anualizados (/dias*360); Acum = (H/H_ene-1)/n*12. No leer las celdas de
+    # formula del resumen (quedan None tras actualizar el template con openpyxl).
+    wsd = wb['Datos ICP (2)']
+    g_vc, k_vc = {}, {}
+    for rr in range(3, wsd.max_row+1):
+        fdate = wsd.cell(rr,6).value
+        if not (fdate and hasattr(fdate,'year')): continue
+        ym = (fdate.year, fdate.month)
+        gv = wsd.cell(rr,7).value; kv = wsd.cell(rr,11).value
+        if isinstance(gv,(int,float)): g_vc[ym] = float(gv)
+        if isinstance(kv,(int,float)): k_vc[ym] = float(kv)
+    try:
+        from calculos.rentabilidades import DIVIDENDOS
+        _div = DIVIDENDOS.get(nombre_fondo, 0.0)
+    except Exception:
+        _div = 0.0
+    h_vc = {ym: v + _div for ym, v in g_vc.items()}   # nivel H = VC + dividendo
+    fip_m  = {'m': _annualized(h_vc,y,m,1), 't': _annualized(h_vc,y,m,3),
+              's': _annualized(h_vc,y,m,6), 'a': _annualized(h_vc,y,m,12), 'ac': _ytd(h_vc,y,m)}
+    comp_m = {'m': _annualized(k_vc,y,m,1), 't': _annualized(k_vc,y,m,3),
+              's': _annualized(k_vc,y,m,6), 'a': _annualized(k_vc,y,m,12), 'ac': _ytd(k_vc,y,m)}
+    icp_row  = {'nombre': 'ICP (Benchmark)', 'es_icp': True,  'es_comp': False, 'es_fip': False, **comp_m}
+    comp_row = {'nombre': 'Competencia',     'es_icp': False, 'es_comp': True,  'es_fip': False, **comp_m}
+    fip_row  = {'nombre': display,            'es_icp': False, 'es_comp': False, 'es_fip': True,  **fip_m}
 
     # Historical from template
     hist_raw = _get_tmpl_hist(tmpl_file)
