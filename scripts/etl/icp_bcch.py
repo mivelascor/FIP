@@ -105,8 +105,11 @@ def icp_mes_bcch(y: int, m: int, anchor_val: float) -> float | None:
     if not (user and pwd):
         return None
     try:
+        # pedir desde el mes ANTERIOR para que el forward-fill cubra los primeros dias
+        # del mes objetivo (1-may es feriado; sin esto se subcuentan dias).
+        py, pm = (y-1, 12) if m == 1 else (y, m-1)
         params = {"user":user,"pass":pwd,"function":"GetSeries","timeseries":SERIE_TIB,
-                  "firstdate":f"{y}-{m:02d}-01","lastdate":_date.today().strftime("%Y-%m-%d")}
+                  "firstdate":f"{py}-{pm:02d}-01","lastdate":_date.today().strftime("%Y-%m-%d")}
         d = requests.get(BCCH_API, params=params, timeout=30).json()
         if d.get("Codigo")!=0: return None
         rate={}
