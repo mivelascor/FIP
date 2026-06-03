@@ -1,34 +1,26 @@
 #!/usr/bin/env python3
 """
-build_dataset.py — Motor de datos para los folletos FIP Vantrust (versión final).
+build_dataset.py - Motor de datos para los folletos FIP Vantrust (final).
 
-PRINCIPIO RECTOR: los templates son la fuente histórica INTOCABLE. La historia
-(fondo / ICP / competencia) se LEE tal cual de la hoja `rentabilidad` de cada
-template. Solo se CALCULA y agrega el MES NUEVO. Nunca se recalcula lo viejo.
+Principio: los templates son la fuente historica INTOCABLE. Solo se calcula y
+agrega el MES NUEVO. La historia se lee del template.
 
-Los tres insumos automáticos (sin intervención manual):
-  1. ICP        -> API del BCCh (serie TIB promedio) + fórmula de composición.
-  2. Fondo      -> retorno ajustado por dividendo (VC+d)/(VC_prev+d)-1, con d
-                   recuperado automáticamente de la propia historia del template.
-  3. Competencia-> scraping CMF (sin captcha). [implementar scrape del formulario]
+Insumos automaticos:
+  ICP         -> API BCCh (icp_bcch.py). VALIDADO 0.0000% error.
+  Fondo       -> VC del query (valor_cuota.xlsx) + dividendo.
+  Competencia -> CMF sin captcha (competencia_cmf.py): Santander UNIVE / Banchile A.
 
-Fórmulas (validadas al punto base contra VC_para_fichas, mayo 2026):
-  Mensual    = nivel_fin / nivel_mes_anterior - 1
-  Trimestral = nivel_fin / nivel_hace_3_meses - 1
-  Semestral  = nivel_fin / nivel_hace_6_meses - 1
-  Anual      = nivel_fin / nivel_hace_12_meses - 1
-  Acum (*)   = (nivel_fin / nivel_enero_del_año - 1) / n_meses * 12   [anualizada]
-  donde, para el FONDO,  nivel = VC + d (dividendo); para ICP y competencia,
-  nivel = el índice/VC directo (sin dividendo).
+DOS CONVENCIONES DE RETORNO (confirmadas con VC_para_fichas):
+  CLP: retorno ACUMULADO del periodo. nivel = VC + d.
+       M/T/S/A = nivel_fin/nivel_{1,3,6,12} - 1 ; Acum = (fin/enero-1)/n*12.
+       d se recupera de la hoja `rentabilidad` (validado: Alto Aporte 0.62%).
+  USD: retorno ANUALIZADO. nivel H = VC_query + dividendo (columna H del template).
+       cada periodo = (H_fin/H_ini - 1) / dias_calendario * 360.
+       (validado: Dolar Caja mayo = 5.07%). Competencia USD tambien anualizada.
 """
-import openpyxl, datetime, json, os, sys, statistics, urllib.request, urllib.parse
+import openpyxl, datetime, json, os, sys
 from collections import defaultdict
 
-# ── Config BCCh (credenciales por entorno; NO hardcodear) ───────────────────
-BCCH_API  = "https://si3.bcentral.cl/SieteRestWS/SieteRestWS.ashx"
-SERIE_TIB = "F022.TIB.TIP.D001.NO.Z.D"   # Tasa promedio transada interbancaria (%)
-
-# ── Fondos activos CLP (los que llegan a abril/mayo). Los USD requieren FX. ──
 FUNDS_CLP = {
  "TEMPLATE FONDO LIQUIDEZ ACTIVA.xlsx":      "FIP VANTRUST LIQUIDEZ ACTIVA",
  "TEMPLATE FONDO ALTO APORTE.xlsx":          "FIP VANTRUST LIQUIDEZ ALTO APORTE",
@@ -50,19 +42,19 @@ FUNDS_CLP = {
  "TEMPLATE FONDO LIQUIDEZ RENDIMIENTO.xlsx": "FIP VANTRUST LIQUIDEZ RENDIMIENTO",
  "TEMPLATE FONDO LIQUIDEZ SENCILLO.xlsx":    "FIP VANTRUST LIQUIDEZ SENCILLO",
 }
-# USD: necesitan VC(USD) x tipo de cambio para el retorno en CLP del folleto.
 FUNDS_USD = {
  "TEMPLATE FONDO LIQUIDEZ RESERVA DOLAR.xlsx":"FIP VANTRUST LIQUIDEZ RESERVA DOLAR",
  "TEMPLATE FONDO LIQUIDEZ DOLAR.xlsx":        "FIP VANTRUST LIQUIDEZ DOLAR",
  "TEMPLATE FONDO LIQUIDEZ DOLAR CAJA.xlsx":   "FIP VANTRUST LIQUIDEZ DOLAR CAJA",
 }
 
+
 def shift(ym, k=1):
     y, m = map(int, ym.split('-')); m -= k
     while m <= 0: m += 12; y -= 1
     return f"{y}-{m:02d}"
 
-# ── 1. valor_cuota.xlsx -> VC fin de mes por fondo ──────────────────────────
+
 def load_valor_cuota(path):
     wb = openpyxl.load_workbook(path, data_only=True)
     ws = wb["Consulta1 (2)"] if "Consulta1 (2)" in wb.sheetnames else wb[wb.sheetnames[0]]
@@ -75,47 +67,23 @@ def load_valor_cuota(path):
             ld[nm][ym] = f.day; eom[nm][ym] = float(p)
     return eom
 
-# ── 2. ICP desde el BCCh (exacto). Base = último ICP del template. ──────────
-def icp_eom_bcch(icp_base, base_ym, target_ym):
-    """Compone la TIB diaria del BCCh desde fin de base_ym hasta fin de target_ym.
-    ICP_i = ICP_{i-1} * (1 + TIB_{i-1}/100 * Ndias/360). Devuelve nivel ICP EOM."""
-    user = os.environ.get("BCCH_USER", ""); pw = os.environ.get("BCCH_PASS", "")
-    if not user or not pw:
-        raise EnvironmentError("Faltan BCCH_USER / BCCH_PASS en el entorno.")
-    by, bm = map(int, base_ym.split('-')); ty, tm = map(int, target_ym.split('-'))
-    d_ini = datetime.date(by, bm, 1) + datetime.timedelta(days=31)
-    d_ini = (d_ini.replace(day=1) - datetime.timedelta(days=1))  # fin base_ym
-    d_fin = (datetime.date(ty + (tm == 12), (tm % 12) + 1, 1) - datetime.timedelta(days=1))
-    p = {"user": user, "pass": pw, "function": "GetSeries", "timeseries": SERIE_TIB,
-         "firstdate": d_ini.strftime("%Y-%m-%d"), "lastdate": d_fin.strftime("%Y-%m-%d")}
-    raw = urllib.request.urlopen(urllib.request.Request(
-        BCCH_API + "?" + urllib.parse.urlencode(p), headers={"User-Agent": "Mozilla/5.0"}),
-        timeout=60).read().decode("utf-8", "replace")
-    obs = (json.loads(raw).get("Series") or {}).get("Obs") or []
-    tib = {datetime.datetime.strptime(o["indexDateString"], "%d-%m-%Y").date(): float(o["value"])
-           for o in obs if o["statusCode"] == "OK"}
-    icp = float(icp_base); last = tib.get(d_ini) or next(iter(sorted(tib.values())), 4.5)
-    day = d_ini
-    while day < d_fin:
-        t = tib.get(day, last); last = t
-        icp *= (1 + t/100 * 1/360)
-        day += datetime.timedelta(days=1)
-    return icp
 
-# ── 3. Lee historia oficial (rentabilidad) y nivel ICP/comp del template ────
-def read_template_history(tmpl):
-    """Devuelve (icp_levels{ym:val}, comp_levels{ym:val}, fip_returns{ym:r})."""
+def read_template(tmpl):
+    """Niveles ICP(B), comp(K), VC(G), H(H) + fechas(F), y retornos FIP (rentabilidad)."""
     wb = openpyxl.load_workbook(tmpl, data_only=True)
-    icp_lv, comp_lv = {}, {}
     ws = wb["Datos ICP (2)"]
+    icp_lv, comp_lv, G_lv, H_lv, dates = {}, {}, {}, {}, {}
     for row in ws.iter_rows():
-        a = row[0].value
-        if not isinstance(a, datetime.datetime): continue
-        ym = f"{a.year}-{a.month:02d}"
-        b = row[1].value if len(row) > 1 else None
-        k = row[10].value if len(row) > 10 else None
-        if isinstance(b, (int, float)): icp_lv[ym] = float(b)
-        if isinstance(k, (int, float)): comp_lv[ym] = float(k)
+        a = row[0].value if len(row) > 0 else None
+        f = row[5].value if len(row) > 5 else None
+        if isinstance(a, datetime.datetime):
+            ym = f"{a.year}-{a.month:02d}"
+            if isinstance(row[1].value, (int, float)): icp_lv[ym] = float(row[1].value)
+            if len(row) > 10 and isinstance(row[10].value, (int, float)): comp_lv[ym] = float(row[10].value)
+        if isinstance(f, datetime.datetime):
+            ym = f"{f.year}-{f.month:02d}"; dates[ym] = f.date()
+            if isinstance(row[6].value, (int, float)): G_lv[ym] = float(row[6].value)
+            if isinstance(row[7].value, (int, float)): H_lv[ym] = float(row[7].value)
     fip = {}
     if "rentabilidad" in wb.sheetnames:
         wr = wb["rentabilidad"]; cy = None
@@ -124,92 +92,106 @@ def read_template_history(tmpl):
             if isinstance(c, (int, float)) and 2000 < c < 2100: cy = int(c)
             if d and isinstance(d, str):
                 du = d.strip().upper()
-                isfip = du != "ICP" and "COMPETENCIA" not in du and \
-                        ("FIP" in du or "LIQUIDEZ" in du or "ALTO" in du)
-                if isfip and cy:
+                if du != "ICP" and "COMPETENCIA" not in du and ("FIP" in du or "LIQUIDEZ" in du or "ALTO" in du) and cy:
                     for mi in range(12):
                         v = wr.cell(r, 5 + mi).value
                         if isinstance(v, (int, float)) and v != 0:
                             fip[f"{cy}-{mi+1:02d}"] = float(v)
-    return icp_lv, comp_lv, fip
+    return icp_lv, comp_lv, G_lv, H_lv, dates, fip
+
 
 def recover_dividend(vc, fip_ret):
-    """Recupera d del mes oficial MÁS RECIENTE y lo valida contra el mes previo.
-    Si el historial no es consistente con (VC+d) (p.ej. fondos cuyo retorno oficial
-    NO sale del VC del query), devuelve 0.0 -> se usa el VC crudo del query."""
+    """CLP: d del mes oficial mas reciente, validado contra el previo. 0.0 si no calza."""
     oms = [m for m in sorted(fip_ret) if m in vc and shift(m) in vc]
     if not oms: return 0.0
     m = oms[-1]; r = fip_ret[m]
     if r == 0: return 0.0
     d = (vc[m] - (1 + r) * vc[shift(m)]) / r
-    # validación: ¿d reproduce el mes previo? si no, el historial no viene del VC.
     if len(oms) >= 2:
-        p = oms[-2]
-        calc = (vc[p] + d) / (vc[shift(p)] + d) - 1
-        if abs(calc - fip_ret[p]) > 0.0005:
-            return 0.0
+        p = oms[-2]; calc = (vc[p] + d) / (vc[shift(p)] + d) - 1
+        if abs(calc - fip_ret[p]) > 0.0005: return 0.0
     return d
 
-# ── 4. Métricas de período sobre una serie de niveles ──────────────────────
-def metrics(levels, end):
+
+def metrics_clp(levels, end):
     def ret(e, a):
-        return None if (e not in levels or a not in levels or not levels[a]) \
-               else round((levels[e]/levels[a] - 1) * 100, 2)
+        return None if (e not in levels or a not in levels or not levels[a]) else round((levels[e]/levels[a]-1)*100, 2)
     y = end.split('-')[0]; jan = f"{y}-01"
     months = [k for k in levels if k.startswith(y) and k <= end]
-    acum = None
-    if jan in levels and levels[jan] and months:
-        acum = round((levels[end]/levels[jan] - 1)/len(months) * 12 * 100, 2)
+    acum = round((levels[end]/levels[jan]-1)/len(months)*12*100, 2) if (jan in levels and levels.get(jan) and months) else None
     return {"mensual": ret(end, shift(end, 1)), "trimestral": ret(end, shift(end, 3)),
-            "semestral": ret(end, shift(end, 6)), "anual": ret(end, shift(end, 12)),
-            "acum": acum}
+            "semestral": ret(end, shift(end, 6)), "anual": ret(end, shift(end, 12)), "acum": acum}
 
-# ── 5. Orquestación: agrega SOLO el mes nuevo, lee historia del template ────
+
+def metrics_usd(levels, dates, end):
+    """Anualizado: (H_fin/H_ini - 1) / dias_calendario * 360."""
+    def ann(k):
+        a = shift(end, k)
+        if end in levels and a in levels and a in dates and end in dates and levels[a]:
+            dias = (dates[end] - dates[a]).days
+            return round((levels[end]/levels[a]-1)/dias*360*100, 2) if dias else None
+        return None
+    y = end.split('-')[0]; jan = f"{y}-01"
+    acum = None
+    if jan in levels and end in dates and jan in dates and levels.get(jan):
+        dias = (dates[end] - dates[jan]).days
+        acum = round((levels[end]/levels[jan]-1)/dias*360*100, 2) if dias else None
+    return {"mensual": ann(1), "trimestral": ann(3), "semestral": ann(6), "anual": ann(12), "acum": acum}
+
+
 def build(valor_cuota_path, templates_dir, end):
     eom = load_valor_cuota(valor_cuota_path)
     dataset = {}
-    todos = [(t, n, "CLP") for t, n in FUNDS_CLP.items()] + \
-            [(t, n, "USD") for t, n in FUNDS_USD.items()]
-    for tmpl, nemo, moneda in todos:
-        path = os.path.join(templates_dir, tmpl)
-        if not os.path.exists(path): continue
-        vc = eom.get(nemo, {})
-        if end not in vc:                       # inactivo o sin VC del mes
-            continue
-        icp_lv, comp_lv, fip_ret = read_template_history(path)
-        base_ym = max(icp_lv)                    # último ICP histórico del template
-        # nivel ICP del mes nuevo desde BCCh (si falla, deja el último histórico)
-        try:
-            icp_lv[end] = icp_eom_bcch(icp_lv[base_ym], base_ym, end)
-        except Exception as e:
-            icp_lv[end] = icp_lv[base_ym]
-        # fondo: nivel H = VC + d
-        d = recover_dividend(vc, fip_ret)
-        H = {m: v + d for m, v in vc.items()}
-        # competencia del mes nuevo: CMF (Santander CLP / Banchile USD)
-        try:
-            from competencia_cmf import valor_cuota_competencia
-            comp_lv[end] = valor_cuota_competencia(moneda, end)
-        except Exception:
-            if comp_lv and end not in comp_lv:
-                comp_lv[end] = comp_lv[max(comp_lv)]
-        dataset[nemo] = {
-            "template": tmpl, "moneda": moneda, "mes": end,
-            "dividendo": round(d, 4), "vc": round(vc[end], 4),
-            "fondo": metrics(H, end),
-            "icp": metrics(icp_lv, end),
-            "competencia": metrics(comp_lv, end) if comp_lv else None,
-        }
+    for funds, moneda in [(FUNDS_CLP, "CLP"), (FUNDS_USD, "USD")]:
+        for tmpl, nemo in funds.items():
+            path = os.path.join(templates_dir, tmpl)
+            if not os.path.exists(path): continue
+            vc = eom.get(nemo, {})
+            if end not in vc: continue
+            icp_lv, comp_lv, G_lv, H_lv, dates, fip_ret = read_template(path)
+            if not dates.get(end):
+                y, m = map(int, end.split('-')); dates[end] = datetime.date(y+(m == 12), (m % 12)+1, 1) - datetime.timedelta(days=1)
+            # ICP mes nuevo desde BCCh
+            base = max(icp_lv) if icp_lv else None
+            try:
+                from icp_bcch import icp_fin_de_mes
+                if base and end not in icp_lv: icp_lv[end] = icp_fin_de_mes(icp_lv[base], base, end)
+            except Exception:
+                if base and end not in icp_lv: icp_lv[end] = icp_lv[base]
+            # competencia mes nuevo desde CMF
+            try:
+                from competencia_cmf import valor_cuota_competencia
+                comp_lv[end] = valor_cuota_competencia(moneda, end)
+            except Exception:
+                if comp_lv and end not in comp_lv: comp_lv[end] = comp_lv[max(comp_lv)]
+
+            if moneda == "CLP":
+                d = recover_dividend(vc, fip_ret)
+                Hf = {m: v + d for m, v in vc.items()}
+                fondo = metrics_clp(Hf, end)
+                comp = metrics_clp(comp_lv, end) if comp_lv else None
+                icp = metrics_clp(icp_lv, end)
+            else:  # USD: anualizado, nivel H = VC_query + dividendo
+                common = sorted(set(H_lv) & set(G_lv))
+                d = (H_lv[common[-1]] - G_lv[common[-1]]) if common else 0.0
+                Hf = dict(H_lv)
+                if end not in Hf: Hf[end] = vc[end] + d
+                fondo = metrics_usd(Hf, dates, end)
+                comp = metrics_usd(comp_lv, dates, end) if comp_lv else None
+                icp = metrics_usd(icp_lv, dates, end)
+            dataset[nemo] = {"template": tmpl, "moneda": moneda, "mes": end,
+                             "dividendo": round(d, 6), "vc": round(vc[end], 4),
+                             "fondo": fondo, "icp": icp, "competencia": comp}
     return dataset
+
 
 if __name__ == "__main__":
     vc_path = sys.argv[1] if len(sys.argv) > 1 else "inputs/valor_cuota.xlsx"
     tdir    = sys.argv[2] if len(sys.argv) > 2 else "inputs/templates"
     end     = sys.argv[3] if len(sys.argv) > 3 else datetime.date.today().strftime("%Y-%m")
     ds = build(vc_path, tdir, end)
-    print(f"[{end}] {len(ds)} fondos CLP procesados")
-    for nemo, d in ds.items():
-        f = d["fondo"]
-        print(f"  {nemo.replace('FIP VANTRUST LIQUIDEZ ',''):<16} "
-              f"M={f['mensual']} T={f['trimestral']} S={f['semestral']} "
-              f"A={f['anual']} Acum={f['acum']}  (div={d['dividendo']})")
+    print(f"[{end}] {len(ds)} fondos")
+    for nemo, x in ds.items():
+        f = x["fondo"]
+        print(f"  [{x['moneda']}] {nemo.replace('FIP VANTRUST LIQUIDEZ ', ''):<14} "
+              f"M={f['mensual']} T={f['trimestral']} S={f['semestral']} A={f['anual']} Acum={f['acum']}")
