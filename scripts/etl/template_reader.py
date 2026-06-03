@@ -539,7 +539,7 @@ def leer_datos_template(nombre_fondo, target_year=None, target_month=None):
     is_usd    = nombre_fondo in FONDOS_USD
     tmpl_file = FUND_TEMPLATE_MAP.get(nombre_fondo)
     icp       = _get_icp_series()
-    vc_comp   = _comp_clp_con_cmf()  # CLP Santander MM: auto CMF + cache JSON
+    vc_comp   = _load_json("comp_clp.json")  # CLP Santander MM (cache JSON; fetch CMF se hace early en main)
 
     # ── For USD: read summary and historico directly from template ───────────
     # USD funds: use template for both summary and historico
