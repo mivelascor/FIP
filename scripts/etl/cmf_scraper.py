@@ -111,7 +111,7 @@ def _scrape_valor(rut: str, serie: str, anio: int, mes: int) -> float | None:
             page.wait_for_timeout(3000)
 
             page.select_option("select[name='se']",  serie)
-            page.fill("input[name='ddi']",            "01")
+            page.fill("input[name='ddi']",            ult_dia)  # protocolo: último día en inicio y término
             page.fill("input[name='aai']",            str(anio))
             page.select_option("select[name='mmi']",  mes_str)
             page.fill("input[name='ddf']",            ult_dia)
