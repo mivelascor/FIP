@@ -168,6 +168,11 @@ def _actualizar_referencias(year: int, month: int):
             elif not df.empty:
                 row = df[df["fecha"].astype(str).str.startswith(key)]
                 if not row.empty: v = float(row.iloc[-1]["valor_cuota"])
+            # guardrail: rango plausible (Santander ~3000-20000; Banchile ~500-5000)
+            rng = (500, 5000) if label == "Banchile" else (3000, 20000)
+            if v and not (rng[0] <= v <= rng[1]):
+                log(f"  [WARN] {label} {key}={v} fuera de rango {rng}; se ignora (revisar parseo CMF)")
+                v = None
             if v:
                 comp[key] = round(v, 4)
                 p.write_text(json.dumps(comp, indent=2, ensure_ascii=False), encoding="utf-8")
