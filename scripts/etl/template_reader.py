@@ -114,7 +114,8 @@ def _get_icp_series():
     if _ICP_CACHE: return _ICP_CACHE
     clicp = _load_json("icp_clicp.json")
     after, base = (max(clicp.keys()), clicp[max(clicp.keys())]) if clicp else ((2005,12), 10000.0)
-    _extend_tpm(clicp, after, base)
+    if not _extend_bcch(clicp, after, base):
+        _extend_tpm(clicp, after, base)
     _ICP_CACHE = clicp
     return _ICP_CACHE
 
@@ -133,6 +134,67 @@ def _extend_tpm(series, after_ym, base_val):
                 prev = prev * (1 + row["tpm"] / 1200)
                 series[ym] = prev
         except: pass
+
+def _extend_bcch(series, after_ym, base_val):
+    """Extiende la serie ICP desde after_ym usando la TIB diaria del BCCh,
+    compuesta sobre TODOS los dias calendario (forward-fill de la tasa).
+    Ancla en el ultimo valor oficial del JSON; solo agrega meses COMPLETOS.
+    Devuelve True si extendio (o no habia nada que extender) usando BCCh; False si no hay credenciales/datos."""
+    user = os.environ.get("BCCH_USER",""); pwd = os.environ.get("BCCH_PASS","")
+    if not (user and pwd): return False
+    import calendar as _cal
+    from datetime import timedelta as _td
+    try:
+        start = f"{after_ym[0]}-{after_ym[1]:02d}-01"
+        params = {"user":user,"pass":pwd,"function":"GetSeries",
+                  "timeseries":"F022.TIB.TIP.D001.NO.Z.D",
+                  "firstdate":start,"lastdate":date.today().strftime("%Y-%m-%d")}
+        d = requests.get("https://si3.bcentral.cl/SieteRestWS/SieteRestWS.ashx",
+                         params=params, timeout=30).json()
+        if d.get("Codigo")!=0: return False
+        rate={}
+        for o in d["Series"]["Obs"]:
+            v=o.get("value","")
+            if v and v not in ("","NaN","ND"):
+                rate[pd.to_datetime(o["indexDateString"],dayfirst=True).date()]=float(v)
+        if not rate: return False
+        keys=sorted(rate); last_day=keys[-1]
+        def rate_on(dd):
+            prev=[k for k in keys if k<=dd]
+            return rate[prev[-1]] if prev else None
+        prev_val=base_val; cy,cm = (after_ym[0]+1,1) if after_ym[1]==12 else (after_ym[0],after_ym[1]+1)
+        today=date.today()
+        while (cy,cm) <= (today.year, today.month):
+            eom=date(cy,cm,_cal.monthrange(cy,cm)[1])
+            if last_day < eom: break   # mes incompleto: no extender
+            nivel=prev_val; dd=date(cy,cm,1)
+            while dd<=eom:
+                r=rate_on(dd)
+                if r is not None: nivel*=(1+r/100/360)
+                dd+=_td(days=1)
+            series[(cy,cm)]=nivel; prev_val=nivel
+            print(f"    [ICP] {cy}-{cm:02d} desde BCCh: {nivel:.2f}")
+            cy,cm = (cy+1,1) if cm==12 else (cy,cm+1)
+        return True
+    except Exception as e:
+        print(f"    [WARN] BCCh ICP no disponible: {e}")
+        return False
+
+def _comp_clp_con_cmf():
+    """Carga comp_clp.json y, si falta el mes objetivo, lo agrega scrapeando CMF
+    (Santander MM serie UNIVE). Si CMF falla, usa el fallback del scraper (extrapolacion)."""
+    vc = _load_json("comp_clp.json")
+    try:
+        from etl.cmf_scraper import get_competencia_clp
+        df, val_nuevo, fecha_nueva = get_competencia_clp()
+        for _, row in df.iterrows():
+            ts = pd.to_datetime(row["fecha"]); key=(ts.year, ts.month)
+            if key not in vc:
+                vc[key]=float(row["valor_cuota"])
+                print(f"    [CMF] comp CLP {key} = {vc[key]:.4f}")
+    except Exception as e:
+        print(f"    [WARN] CMF comp no disponible: {e}")
+    return vc
 
 # ── ODS fetch ─────────────────────────────────────────────────────────────────
 def _get_ods_vc(nombre):
@@ -477,7 +539,7 @@ def leer_datos_template(nombre_fondo, target_year=None, target_month=None):
     is_usd    = nombre_fondo in FONDOS_USD
     tmpl_file = FUND_TEMPLATE_MAP.get(nombre_fondo)
     icp       = _get_icp_series()
-    vc_comp   = _load_json("comp_clp.json")  # CLP Santander MM for all funds
+    vc_comp   = _comp_clp_con_cmf()  # CLP Santander MM: auto CMF + cache JSON
 
     # ── For USD: read summary and historico directly from template ───────────
     # USD funds: use template for both summary and historico
