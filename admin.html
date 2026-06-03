@@ -139,7 +139,7 @@ textarea::placeholder{color:var(--muted);}
   <div class="card">
     <div class="card-head">
       <div>
-        <div class="card-title">Planilla Valores Cuota <span style="font-size:9px;background:var(--red);color:#fff;padding:2px 6px;letter-spacing:1px;vertical-align:middle">REQUERIDO</span></div>
+        <div class="card-title">Planilla Valores Cuota <span style="font-size:9px;background:#1a7f37;color:#fff;padding:2px 6px;letter-spacing:1px;vertical-align:middle">OPCIONAL</span></div>
         <div class="card-desc">El Excel que generas desde la query de PUBLICADOR_PRECIO. Debe tener columnas <strong>FECHA</strong>, <strong>NEMOTECNICO</strong> y <strong>PRECIO</strong>.</div>
       </div>
       <div class="card-status" id="st-vc">Pendiente</div>
@@ -155,8 +155,8 @@ textarea::placeholder{color:var(--muted);}
   <!-- ICP y Competencia -->
   <div class="card">
     <div class="card-head">
-      <div><div class="card-title">Valores de referencia <span style="font-size:9px;background:var(--red);color:#fff;padding:2px 6px;letter-spacing:1px;vertical-align:middle">REQUERIDO</span></div>
-        <div class="card-desc">ICP (CLICP) y Santander MM del último día del mes. Estos no están en la planilla GPI.</div>
+      <div><div class="card-title">Valores de referencia <span style="font-size:9px;background:#1a7f37;color:#fff;padding:2px 6px;letter-spacing:1px;vertical-align:middle">OPCIONAL</span></div>
+        <div class="card-desc">Se obtienen automáticamente: ICP desde la API del Banco Central y Santander MM desde la CMF. Déjalos en blanco salvo que quieras forzar un valor manual.</div>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;">
