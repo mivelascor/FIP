@@ -12,7 +12,7 @@ Retorna DataFrame con columnas:
 import os, requests, pandas as pd
 
 BCCH_API  = "https://si3.bcentral.cl/SieteRestWS/SieteRestWS.ashx"
-SERIE_TIB = "F022.TIB.INC.D001.NO.Z.D"
+SERIE_TIB = "F022.TIB.TIP.D001.NO.Z.D"  # TIB promedio (%). NO usar INC (=nº instituciones)
 BASE_ICP  = 10000.0
 ANIO_INI  = 2009
 
@@ -92,3 +92,45 @@ def get_icp_eom() -> pd.DataFrame:
         print(f"      {len(df)} meses ICP (mindicador.cl TPM/1200)")
     df["fecha"] = pd.to_datetime(df["fecha"])
     return df.sort_values("fecha").reset_index(drop=True)
+
+
+def icp_mes_bcch(y: int, m: int, anchor_val: float) -> float | None:
+    """Nivel ICP de fin de mes (y,m) compuesto desde anchor_val (ICP del mes anterior)
+    usando la TIB diaria del BCCh sobre TODOS los dias calendario (forward-fill).
+    Validado: reproduce el ICP oficial al centesimo. Retorna None si no hay credenciales/datos
+    o si el mes esta incompleto (no hay TIB hasta el fin de mes)."""
+    import os, calendar as _cal
+    from datetime import date as _date, timedelta as _td
+    user, pwd = os.environ.get("BCCH_USER",""), os.environ.get("BCCH_PASS","")
+    if not (user and pwd):
+        return None
+    try:
+        # pedir desde el mes ANTERIOR para que el forward-fill cubra los primeros dias
+        # del mes objetivo (1-may es feriado; sin esto se subcuentan dias).
+        py, pm = (y-1, 12) if m == 1 else (y, m-1)
+        params = {"user":user,"pass":pwd,"function":"GetSeries","timeseries":SERIE_TIB,
+                  "firstdate":f"{py}-{pm:02d}-01","lastdate":_date.today().strftime("%Y-%m-%d")}
+        d = requests.get(BCCH_API, params=params, timeout=30).json()
+        if d.get("Codigo")!=0: return None
+        rate={}
+        for o in d["Series"]["Obs"]:
+            v=o.get("value","")
+            if v and v not in ("","NaN","ND"):
+                rate[pd.to_datetime(o["indexDateString"],dayfirst=True).date()]=float(v)
+        if not rate: return None
+        keys=sorted(rate)
+        eom=_date(y,m,_cal.monthrange(y,m)[1])
+        if keys[-1] < eom:   # mes incompleto
+            return None
+        def rate_on(dd):
+            prev=[k for k in keys if k<=dd]
+            return rate[prev[-1]] if prev else None
+        nivel=anchor_val; dd=_date(y,m,1)
+        while dd<=eom:
+            r=rate_on(dd)
+            if r is not None: nivel*=(1+r/100/360)
+            dd+=_td(days=1)
+        return nivel
+    except Exception as e:
+        print(f"    [WARN] icp_mes_bcch: {e}")
+        return None

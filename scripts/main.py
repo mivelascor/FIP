@@ -121,6 +121,88 @@ def _fecha_ref() -> tuple[int, int]:
 def log(msg): print(msg, flush=True)
 
 
+def _icp_mes_tpm(year: int, month: int, anchor_val: float):
+    """Fallback ICP sin BCCh: estima el nivel del mes con la TPM promedio (mindicador.cl).
+    ICP_mes = anchor * (1 + TPM_prom/1200). Aproximado (~0.01-0.02 pp/mes)."""
+    try:
+        r = requests.get(f"https://mindicador.cl/api/tpm/{year}", timeout=15)
+        vals = [float(i["valor"]) for i in r.json().get("serie", [])
+                if i["fecha"][:7] == f"{year}-{month:02d}"]
+        if not vals: return None
+        tpm = sum(vals)/len(vals)
+        return anchor_val * (1 + tpm/1200)
+    except Exception:
+        return None
+
+
+def _actualizar_referencias(year: int, month: int):
+    """Antes de actualizar templates: asegura que ICP (BCCh), Santander (CMF) y
+    Banchile (CMF) del mes objetivo esten en los JSON. Asi template_updater puede
+    construir la fila nueva sin ingreso manual. Degrada con gracia (no rompe si falla)."""
+    inp = Path(__file__).parent.parent / "inputs"
+    key = f"{year}-{month:02d}"
+
+    def _load(name):
+        p = inp / name
+        try: return p, json.loads(p.read_text(encoding="utf-8"))
+        except Exception: return p, {}
+
+    # ── ICP via BCCh ──────────────────────────────────────────────────────────
+    try:
+        p, icp = _load("icp_clicp.json")
+        if key not in icp:
+            ks = sorted(icp.keys())
+            if ks:
+                from etl.icp_bcch import icp_mes_bcch
+                anchor = float(icp[ks[-1]])
+                val = icp_mes_bcch(year, month, anchor); fuente = "BCCh"
+                if not val:
+                    val = _icp_mes_tpm(year, month, anchor); fuente = "TPM aprox"
+                if val:
+                    icp[key] = round(val, 2)
+                    p.write_text(json.dumps(icp, indent=2, ensure_ascii=False), encoding="utf-8")
+                    log(f"  ✓ ICP {key} = {icp[key]} ({fuente})")
+                    if fuente != "BCCh":
+                        log("    [NOTA] ICP aproximado por TPM. Configura BCCH_USER/BCCH_PASS para valor exacto.")
+                else:
+                    log(f"  [WARN] ICP {key}: no se pudo obtener (ni BCCh ni TPM)")
+        else:
+            log(f"  · ICP {key} ya presente ({icp[key]})")
+    except Exception as e:
+        log(f"  [WARN] ICP no actualizado: {e}")
+
+    # ── Competencia CLP (Santander) y USD (Banchile) via CMF ───────────────────
+    try:
+        from etl.cmf_scraper import get_competencia_clp, get_competencia_usd
+        for name, getter, label in [("comp_clp.json", get_competencia_clp, "Santander"),
+                                     ("comp_usd.json", get_competencia_usd, "Banchile")]:
+            p, comp = _load(name)
+            if key in comp:
+                log(f"  · {label} {key} ya presente ({comp[key]})")
+                continue
+            df, val_nuevo, fecha_nueva = getter()
+            v = None
+            if val_nuevo and fecha_nueva and fecha_nueva.startswith(key):
+                v = float(val_nuevo)
+            elif not df.empty:
+                row = df[df["fecha"].astype(str).str.startswith(key)]
+                if not row.empty: v = float(row.iloc[-1]["valor_cuota"])
+            # guardrail: rango plausible (Santander ~3000-20000; Banchile ~500-5000)
+            rng = (500, 5000) if label == "Banchile" else (3000, 20000)
+            if v and not (rng[0] <= v <= rng[1]):
+                log(f"  [WARN] {label} {key}={v} fuera de rango {rng}; se ignora (revisar parseo CMF)")
+                v = None
+            if v:
+                comp[key] = round(v, 4)
+                p.write_text(json.dumps(comp, indent=2, ensure_ascii=False), encoding="utf-8")
+                src_lbl = "CMF" if (val_nuevo and fecha_nueva and fecha_nueva.startswith(key)) else "CMF/extrapolado"
+                log(f"  ✓ {label} {key} = {comp[key]} ({src_lbl})")
+            else:
+                log(f"  [WARN] {label} {key}: CMF no devolvio valor")
+    except Exception as e:
+        log(f"  [WARN] Competencia no actualizada: {e}")
+
+
 def run(comentario_clp: str, comentario_usd: str):
     year, month = _fecha_ref()
     # Write detected month for workflow commit message
@@ -136,6 +218,10 @@ def run(comentario_clp: str, comentario_usd: str):
     BASE_DIR = Path(__file__).parent.parent
 
     # ── Step 0: Update templates with current month data ──────────────────────
+    # ── Referencias automaticas (ICP BCCh + competencia CMF) ANTES de templates ──
+    log("[0/5] Actualizando referencias (ICP/competencia) automaticamente...")
+    _actualizar_referencias(year, month)
+
     log("[0/4] Actualizando templates con datos del mes...")
     try:
         from etl.template_updater import run_update

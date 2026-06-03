@@ -111,7 +111,7 @@ def _scrape_valor(rut: str, serie: str, anio: int, mes: int) -> float | None:
             page.wait_for_timeout(3000)
 
             page.select_option("select[name='se']",  serie)
-            page.fill("input[name='ddi']",            "01")
+            page.fill("input[name='ddi']",            ult_dia)  # protocolo: último día en inicio y término
             page.fill("input[name='aai']",            str(anio))
             page.select_option("select[name='mmi']",  mes_str)
             page.fill("input[name='ddf']",            ult_dia)
@@ -136,17 +136,42 @@ def _scrape_valor(rut: str, serie: str, anio: int, mes: int) -> float | None:
             popup_text = popup.inner_text("body")
             browser.close()
 
-            # Buscar filas: DD/MM/YYYY <tab> valor_cuota
+            # Diagnostico: volcar la region ALREDEDOR de la primera fecha (la fila de datos)
+            _dbg = re.search(rf"\d{{2}}/{mes_str}/{anio}", popup_text)
+            if _dbg:
+                _ini = max(0, _dbg.start()-20)
+                print(f"    [CMF debug {anio}-{mes_str}] fila: "
+                      + popup_text[_ini:_ini+260].replace(chr(10), " | ").replace(chr(9), " <TAB> "))
+            else:
+                print(f"    [CMF debug {anio}-{mes_str}] sin fecha; head: "
+                      + popup_text[:200].replace(chr(10)," | "))
+
+            # Parseo robusto: por cada fecha DD/MM/YYYY del mes, tomar el primer numero
+            # formato chileno (1.234,5678) en rango plausible de valor cuota (1..1e6).
+            # Patrimonio (millones) y participes (enteros) quedan excluidos.
+            val = None
+            for mt in re.finditer(rf"\d{{2}}/{mes_str}/{anio}", popup_text):
+                window = popup_text[mt.end(): mt.end()+90]
+                nums = re.findall(r"\d{1,3}(?:\.\d{3})*,\d{2,}", window)
+                plaus = [float(n.replace(".", "").replace(",", ".")) for n in nums]
+                plaus = [c for c in plaus if 100 < c < 20_000]   # valor cuota MM (excluye columnas espurias)
+                if plaus:
+                    val = plaus[0]   # se queda con el del ultimo dia (EOM) al iterar en orden
+            if val:
+                print(f"    [CMF] {anio}-{mes_str} scraped: {val:.4f}")
+                return val
+
+            # Fallback al metodo simple
             matches = re.findall(
                 rf"(\d{{2}}/{mes_str}/{anio})\s+([\d.,]+)",
                 popup_text
             )
             if matches:
-                # Último día con datos = EOM
                 fecha_str, val_str = matches[-1]
                 val = float(val_str.replace(".", "").replace(",", "."))
-                print(f"    [CMF] {anio}-{mes_str} scraped: {val:.4f}")
-                return val
+                if val > 0:
+                    print(f"    [CMF] {anio}-{mes_str} scraped (fallback): {val:.4f}")
+                    return val
 
     except Exception as e:
         log.warning(f"Playwright falló (rut={rut} serie={serie}): {e}")

@@ -114,7 +114,8 @@ def _get_icp_series():
     if _ICP_CACHE: return _ICP_CACHE
     clicp = _load_json("icp_clicp.json")
     after, base = (max(clicp.keys()), clicp[max(clicp.keys())]) if clicp else ((2005,12), 10000.0)
-    _extend_tpm(clicp, after, base)
+    if not _extend_bcch(clicp, after, base):
+        _extend_tpm(clicp, after, base)
     _ICP_CACHE = clicp
     return _ICP_CACHE
 
@@ -133,6 +134,67 @@ def _extend_tpm(series, after_ym, base_val):
                 prev = prev * (1 + row["tpm"] / 1200)
                 series[ym] = prev
         except: pass
+
+def _extend_bcch(series, after_ym, base_val):
+    """Extiende la serie ICP desde after_ym usando la TIB diaria del BCCh,
+    compuesta sobre TODOS los dias calendario (forward-fill de la tasa).
+    Ancla en el ultimo valor oficial del JSON; solo agrega meses COMPLETOS.
+    Devuelve True si extendio (o no habia nada que extender) usando BCCh; False si no hay credenciales/datos."""
+    user = os.environ.get("BCCH_USER",""); pwd = os.environ.get("BCCH_PASS","")
+    if not (user and pwd): return False
+    import calendar as _cal
+    from datetime import timedelta as _td
+    try:
+        start = f"{after_ym[0]}-{after_ym[1]:02d}-01"
+        params = {"user":user,"pass":pwd,"function":"GetSeries",
+                  "timeseries":"F022.TIB.TIP.D001.NO.Z.D",
+                  "firstdate":start,"lastdate":date.today().strftime("%Y-%m-%d")}
+        d = requests.get("https://si3.bcentral.cl/SieteRestWS/SieteRestWS.ashx",
+                         params=params, timeout=30).json()
+        if d.get("Codigo")!=0: return False
+        rate={}
+        for o in d["Series"]["Obs"]:
+            v=o.get("value","")
+            if v and v not in ("","NaN","ND"):
+                rate[pd.to_datetime(o["indexDateString"],dayfirst=True).date()]=float(v)
+        if not rate: return False
+        keys=sorted(rate); last_day=keys[-1]
+        def rate_on(dd):
+            prev=[k for k in keys if k<=dd]
+            return rate[prev[-1]] if prev else None
+        prev_val=base_val; cy,cm = (after_ym[0]+1,1) if after_ym[1]==12 else (after_ym[0],after_ym[1]+1)
+        today=date.today()
+        while (cy,cm) <= (today.year, today.month):
+            eom=date(cy,cm,_cal.monthrange(cy,cm)[1])
+            if last_day < eom: break   # mes incompleto: no extender
+            nivel=prev_val; dd=date(cy,cm,1)
+            while dd<=eom:
+                r=rate_on(dd)
+                if r is not None: nivel*=(1+r/100/360)
+                dd+=_td(days=1)
+            series[(cy,cm)]=nivel; prev_val=nivel
+            print(f"    [ICP] {cy}-{cm:02d} desde BCCh: {nivel:.2f}")
+            cy,cm = (cy+1,1) if cm==12 else (cy,cm+1)
+        return True
+    except Exception as e:
+        print(f"    [WARN] BCCh ICP no disponible: {e}")
+        return False
+
+def _comp_clp_con_cmf():
+    """Carga comp_clp.json y, si falta el mes objetivo, lo agrega scrapeando CMF
+    (Santander MM serie UNIVE). Si CMF falla, usa el fallback del scraper (extrapolacion)."""
+    vc = _load_json("comp_clp.json")
+    try:
+        from etl.cmf_scraper import get_competencia_clp
+        df, val_nuevo, fecha_nueva = get_competencia_clp()
+        for _, row in df.iterrows():
+            ts = pd.to_datetime(row["fecha"]); key=(ts.year, ts.month)
+            if key not in vc:
+                vc[key]=float(row["valor_cuota"])
+                print(f"    [CMF] comp CLP {key} = {vc[key]:.4f}")
+    except Exception as e:
+        print(f"    [WARN] CMF comp no disponible: {e}")
+    return vc
 
 # ── ODS fetch ─────────────────────────────────────────────────────────────────
 def _get_ods_vc(nombre):
@@ -477,7 +539,7 @@ def leer_datos_template(nombre_fondo, target_year=None, target_month=None):
     is_usd    = nombre_fondo in FONDOS_USD
     tmpl_file = FUND_TEMPLATE_MAP.get(nombre_fondo)
     icp       = _get_icp_series()
-    vc_comp   = _load_json("comp_clp.json")  # CLP Santander MM for all funds
+    vc_comp   = _load_json("comp_clp.json")  # CLP Santander MM (cache JSON; fetch CMF se hace early en main)
 
     # ── For USD: read summary and historico directly from template ───────────
     # USD funds: use template for both summary and historico
@@ -498,6 +560,17 @@ def leer_datos_template(nombre_fondo, target_year=None, target_month=None):
             tmpl_vc = _build_clp_vc_from_template(tmpl_file)
             if tmpl_vc and tmpl_vc.get((y, m)):
                 vc_fip = tmpl_vc
+
+    # Retorno total del FIP: nivel = VC + dividendos historicos (igual que datos_manager).
+    # ICP y Competencia NO llevan dividendo. Sin esto el fondo sale en crudo (~0.65 vs 0.62).
+    try:
+        from calculos.rentabilidades import DIVIDENDOS
+        _div = DIVIDENDOS.get(nombre_fondo, 0.0)
+    except Exception:
+        _div = 0.0
+    if _div:
+        vc_fip = {k: v + _div for k, v in vc_fip.items()}
+
     has_12  = bool(vc_fip.get(_prev(y, m, 12)))
 
     def calc(vc, es_icp, es_comp, es_fip, name):
@@ -619,22 +692,31 @@ def _build_usd_output(nombre_fondo, display, tmpl_file, icp, vc_comp, y, m, is_u
 
     acum_label = str(ws.cell(1,24).value or f'Acum. {y} (*)').replace('\n',' ').strip()
 
-    def rw(r):
-        return {k: ws.cell(r,c).value for k,c in zip(['nombre','m','t','s','a','ac'],[19,20,21,22,23,24])}
-
-    if is_usd:
-        # USD templates: R2=Comp/benchmark, R3=FIP, R4=empty
-        r_icp, r_comp, r_fip = rw(2), rw(2), rw(3)
-    else:
-        # CLP templates: R2=ICP, R3=Comp, R4=FIP  
-        r_icp, r_comp, r_fip = rw(2), rw(3), rw(4)
-
-    icp_row  = {'nombre': 'ICP (Benchmark)', 'es_icp': True,  'es_comp': False, 'es_fip': False,
-                'm': r_icp['m'], 't': r_icp['t'], 's': r_icp['s'], 'a': r_icp['a'], 'ac': r_icp['ac']}
-    comp_row = {'nombre': 'Competencia',     'es_icp': False, 'es_comp': True,  'es_fip': False,
-                'm': r_comp['m'], 't': r_comp['t'], 's': r_comp['s'], 'a': r_comp['a'], 'ac': r_comp['ac']}
-    fip_row  = {'nombre': display,            'es_icp': False, 'es_comp': False, 'es_fip': True,
-                'm': r_fip['m'], 't': r_fip['t'], 's': r_fip['s'], 'a': r_fip['a'], 'ac': r_fip['ac']}
+    # Resumen USD: COMPUTAR para el mes objetivo desde los datos (col G + dividendo).
+    # M/T/S/A anualizados (/dias*360); Acum = (H/H_ene-1)/n*12. No leer las celdas de
+    # formula del resumen (quedan None tras actualizar el template con openpyxl).
+    wsd = wb['Datos ICP (2)']
+    g_vc, k_vc = {}, {}
+    for rr in range(3, wsd.max_row+1):
+        fdate = wsd.cell(rr,6).value
+        if not (fdate and hasattr(fdate,'year')): continue
+        ym = (fdate.year, fdate.month)
+        gv = wsd.cell(rr,7).value; kv = wsd.cell(rr,11).value
+        if isinstance(gv,(int,float)): g_vc[ym] = float(gv)
+        if isinstance(kv,(int,float)): k_vc[ym] = float(kv)
+    try:
+        from calculos.rentabilidades import DIVIDENDOS
+        _div = DIVIDENDOS.get(nombre_fondo, 0.0)
+    except Exception:
+        _div = 0.0
+    h_vc = {ym: v + _div for ym, v in g_vc.items()}   # nivel H = VC + dividendo
+    fip_m  = {'m': _annualized(h_vc,y,m,1), 't': _annualized(h_vc,y,m,3),
+              's': _annualized(h_vc,y,m,6), 'a': _annualized(h_vc,y,m,12), 'ac': _ytd(h_vc,y,m)}
+    comp_m = {'m': _annualized(k_vc,y,m,1), 't': _annualized(k_vc,y,m,3),
+              's': _annualized(k_vc,y,m,6), 'a': _annualized(k_vc,y,m,12), 'ac': _ytd(k_vc,y,m)}
+    icp_row  = {'nombre': 'ICP (Benchmark)', 'es_icp': True,  'es_comp': False, 'es_fip': False, **comp_m}
+    comp_row = {'nombre': 'Competencia',     'es_icp': False, 'es_comp': True,  'es_fip': False, **comp_m}
+    fip_row  = {'nombre': display,            'es_icp': False, 'es_comp': False, 'es_fip': True,  **fip_m}
 
     # Historical from template
     hist_raw = _get_tmpl_hist(tmpl_file)
