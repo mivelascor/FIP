@@ -136,17 +136,36 @@ def _scrape_valor(rut: str, serie: str, anio: int, mes: int) -> float | None:
             popup_text = popup.inner_text("body")
             browser.close()
 
-            # Buscar filas: DD/MM/YYYY <tab> valor_cuota
+            # Diagnostico: volcar inicio del popup para entender el formato real
+            print(f"    [CMF debug {anio}-{mes_str}] popup: "
+                  + popup_text[:700].replace(chr(10), " | ").replace(chr(9), " "))
+
+            # Parseo robusto: por cada fecha DD/MM/YYYY del mes, tomar el primer numero
+            # formato chileno (1.234,5678) en rango plausible de valor cuota (1..1e6).
+            # Patrimonio (millones) y participes (enteros) quedan excluidos.
+            val = None
+            for mt in re.finditer(rf"\d{{2}}/{mes_str}/{anio}", popup_text):
+                window = popup_text[mt.end(): mt.end()+90]
+                nums = re.findall(r"\d{1,3}(?:\.\d{3})*,\d{2,}", window)
+                plaus = [float(n.replace(".", "").replace(",", ".")) for n in nums]
+                plaus = [c for c in plaus if 1 < c < 1_000_000]
+                if plaus:
+                    val = plaus[0]   # se queda con el del ultimo dia (EOM) al iterar en orden
+            if val:
+                print(f"    [CMF] {anio}-{mes_str} scraped: {val:.4f}")
+                return val
+
+            # Fallback al metodo simple
             matches = re.findall(
                 rf"(\d{{2}}/{mes_str}/{anio})\s+([\d.,]+)",
                 popup_text
             )
             if matches:
-                # Último día con datos = EOM
                 fecha_str, val_str = matches[-1]
                 val = float(val_str.replace(".", "").replace(",", "."))
-                print(f"    [CMF] {anio}-{mes_str} scraped: {val:.4f}")
-                return val
+                if val > 0:
+                    print(f"    [CMF] {anio}-{mes_str} scraped (fallback): {val:.4f}")
+                    return val
 
     except Exception as e:
         log.warning(f"Playwright falló (rut={rut} serie={serie}): {e}")
