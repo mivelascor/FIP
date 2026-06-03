@@ -35,6 +35,8 @@ jobs:
       - name: Generar folletos
         env:
           TARGET_MONTH: ${{ github.event.inputs.target_month || github.event.client_payload.target_month || '' }}
+          BCCH_USER: ${{ secrets.BCCH_USER }}
+          BCCH_PASS: ${{ secrets.BCCH_PASS }}
         run: |
           cd scripts
           python3 main.py
