@@ -134,12 +134,21 @@ def read_template_history(tmpl):
     return icp_lv, comp_lv, fip
 
 def recover_dividend(vc, fip_ret):
-    """Recupera d del mes oficial MÁS RECIENTE (post último dividendo)."""
+    """Recupera d del mes oficial MÁS RECIENTE y lo valida contra el mes previo.
+    Si el historial no es consistente con (VC+d) (p.ej. fondos cuyo retorno oficial
+    NO sale del VC del query), devuelve 0.0 -> se usa el VC crudo del query."""
     oms = [m for m in sorted(fip_ret) if m in vc and shift(m) in vc]
     if not oms: return 0.0
     m = oms[-1]; r = fip_ret[m]
     if r == 0: return 0.0
-    return (vc[m] - (1 + r) * vc[shift(m)]) / r
+    d = (vc[m] - (1 + r) * vc[shift(m)]) / r
+    # validación: ¿d reproduce el mes previo? si no, el historial no viene del VC.
+    if len(oms) >= 2:
+        p = oms[-2]
+        calc = (vc[p] + d) / (vc[shift(p)] + d) - 1
+        if abs(calc - fip_ret[p]) > 0.0005:
+            return 0.0
+    return d
 
 # ── 4. Métricas de período sobre una serie de niveles ──────────────────────
 def metrics(levels, end):
@@ -159,7 +168,9 @@ def metrics(levels, end):
 def build(valor_cuota_path, templates_dir, end):
     eom = load_valor_cuota(valor_cuota_path)
     dataset = {}
-    for tmpl, nemo in FUNDS_CLP.items():
+    todos = [(t, n, "CLP") for t, n in FUNDS_CLP.items()] + \
+            [(t, n, "USD") for t, n in FUNDS_USD.items()]
+    for tmpl, nemo, moneda in todos:
         path = os.path.join(templates_dir, tmpl)
         if not os.path.exists(path): continue
         vc = eom.get(nemo, {})
@@ -175,11 +186,15 @@ def build(valor_cuota_path, templates_dir, end):
         # fondo: nivel H = VC + d
         d = recover_dividend(vc, fip_ret)
         H = {m: v + d for m, v in vc.items()}
-        # competencia del mes nuevo: TODO scrape CMF; por ahora extiende plano
-        if comp_lv and end not in comp_lv:
-            comp_lv[end] = comp_lv[max(comp_lv)]
+        # competencia del mes nuevo: CMF (Santander CLP / Banchile USD)
+        try:
+            from competencia_cmf import valor_cuota_competencia
+            comp_lv[end] = valor_cuota_competencia(moneda, end)
+        except Exception:
+            if comp_lv and end not in comp_lv:
+                comp_lv[end] = comp_lv[max(comp_lv)]
         dataset[nemo] = {
-            "template": tmpl, "moneda": "CLP", "mes": end,
+            "template": tmpl, "moneda": moneda, "mes": end,
             "dividendo": round(d, 4), "vc": round(vc[end], 4),
             "fondo": metrics(H, end),
             "icp": metrics(icp_lv, end),
