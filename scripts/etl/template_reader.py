@@ -659,7 +659,11 @@ def _build_clp_historico(y, m, icp, vc_comp, vc_fip, display, tmpl_hist, nombre_
             # Determine total using template stored values (correct formula from Excel)
             # _get_tmpl_hist now computes totals correctly from G/K column data
             total = None
-            if yr_tmpl:
+            if yr == y:
+                # Anio en curso: el Total debe IGUALAR el Acum de la evolucion (_ytd).
+                # (El total guardado en el template no lleva dividendo -> daba 6.14 vs 5.82.)
+                total = _ytd(vc, y, last_m)
+            elif yr_tmpl:
                 if lbl == 'ICP (Benchmark)':
                     entry = _icp_row_from_hist(yr_tmpl)
                 elif lbl == 'Competencia':
@@ -750,8 +754,11 @@ def _build_usd_output(nombre_fondo, display, tmpl_file, icp, vc_comp, y, m, is_u
                 months_out = [row_months[mm-1] if mm<=last_m and mm<=len(row_months) else None
                               for mm in range(1,13)]
                 if any(v is not None for v in months_out):
-                    # Use stored template total, else compute compound
-                    total = _entry_total(entry) if 'entry' in dir() and entry else None
+                    # Anio en curso + fila FIP: Total = Acum de la evolucion (_ytd sobre H).
+                    if yr == y and lbl == display:
+                        total = _ytd(h_vc, y, last_m)
+                    else:
+                        total = _entry_total(entry) if 'entry' in dir() and entry else None
                     if total is None:
                         non_none = [v for v in months_out[:last_m] if v is not None]
                         if non_none:
