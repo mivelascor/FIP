@@ -43,6 +43,7 @@ FUND_TEMPLATE_MAP = {
     'FIP VANTRUST LIQUIDEZ PRESENTE':      'TEMPLATE FONDO LIQUIDEZ Presente.xlsx',
     'FIP VANTRUST LIQUIDEZ RENDIMIENTO':   'TEMPLATE FONDO LIQUIDEZ RENDIMIENTO.xlsx',
     'FIP VANTRUST LIQUIDEZ RESERVA DÓLAR': 'TEMPLATE FONDO LIQUIDEZ RESERVA DOLAR.xlsx',
+    'FIP VANTRUST LIQUIDEZ FLEXIBLE DOLAR':'TEMPLATE FONDO LIQUIDEZ FLEXIBLE DOLAR.xlsx',
     'FIP VANTRUST LIQUIDEZ SENCILLO':      'TEMPLATE FONDO LIQUIDEZ SENCILLO.xlsx',
 }
 
@@ -50,6 +51,7 @@ FONDOS_USD = {
     'FIP VANTRUST LIQUIDEZ DOLAR',
     'FIP VANTRUST LIQUIDEZ DOLAR CAJA',
     'FIP VANTRUST LIQUIDEZ RESERVA DÓLAR',
+    'FIP VANTRUST LIQUIDEZ FLEXIBLE DOLAR',
 }
 
 # Funds where template summary is used (instead of ODS calculation).
@@ -84,6 +86,7 @@ NOMBRE_DISPLAY = {
     'FIP VANTRUST LIQUIDEZ RECURRENTE':    'FIP Liquidez Recurrente',
     'FIP VANTRUST LIQUIDEZ RENDIMIENTO':   'FIP Liquidez Rendimiento',
     'FIP VANTRUST LIQUIDEZ RESERVA DÓLAR': 'FIP Liquidez Reserva Dólar',
+    'FIP VANTRUST LIQUIDEZ FLEXIBLE DOLAR':'FIP Liquidez Flexible Dólar',
     'FIP VANTRUST LIQUIDEZ SENCILLO':      'FIP Liquidez Sencillo',
     'FIP VANTRUST LIQUIDEZ TEMPORAL':      'FIP Liquidez Temporal',
 }
@@ -816,35 +819,58 @@ def _build_usd_output(nombre_fondo, display, tmpl_file, icp, vc_comp, y, m, is_u
     #    (VC, sobrevive el save) con el mismo metodo del template (H=VC+div,
     #    anualizado por dias *360). Total del anio en curso = _ytd (= Acum).
     historico = []
-    for yr in [y-2, y-1, y]:
-        yr_data = frozen.get(str(yr), {})
-        filas   = []
-        for lbl in sorted(yr_data.keys(), key=lambda x: 0 if x.lower() == 'competencia' else 1):
-            if 'ICP' in lbl.upper():
+    has_frozen = any(frozen.get(str(yy)) for yy in (y-2, y-1, y))
+    if not has_frozen:
+        # Fondo NUEVO sin grilla congelada: sintetizar Competencia + FIP desde el
+        # VC (col G) y Banchile (col K). El primer mes del fondo es base (sin
+        # retorno); la Competencia se muestra alineada al primer mes activo del FIP.
+        for yr in [y-2, y-1, y]:
+            last_m = m if yr == y else 12
+            fip_months  = [_annualized(h_vc, yr, mm, 1) for mm in range(1, 13)]
+            comp_months = [_annualized(k_vc, yr, mm, 1) for mm in range(1, 13)]
+            fip_months  = [fip_months[i]  if i < last_m else None for i in range(12)]
+            comp_months = [comp_months[i] if i < last_m else None for i in range(12)]
+            active = [i for i in range(last_m) if fip_months[i] is not None]
+            if not active:
                 continue
-            entry  = yr_data[lbl]
-            is_fip = lbl.lower() != 'competencia'
-            src    = h_vc if is_fip else k_vc
-            months = list(entry['months'])
-            total  = entry.get('total')
-            if yr == y:
-                # rellenar meses faltantes (incl. el mes nuevo) desde col G/K
-                for mm in range(1, m+1):
-                    if months[mm-1] is None:
-                        r = _annualized(src, y, mm, 1)
-                        if r is not None:
-                            months[mm-1] = r
-                months = [months[i] if i < m else None for i in range(12)]
-                total  = _ytd(src, y, m)
-            if any(v is not None for v in months) or total is not None:
-                filas.append({
-                    'nombre': display if is_fip else 'Competencia',
-                    'meses':  months,
-                    'total':  total,
-                    'es_icp': False, 'es_comp': (not is_fip), 'es_fip': is_fip,
-                })
-        if filas:
-            historico.append({'año': yr, 'filas': filas})
+            first = active[0]
+            comp_months = [comp_months[i] if first <= i < last_m else None for i in range(12)]
+            historico.append({'año': yr, 'filas': [
+                {'nombre': 'Competencia', 'meses': comp_months, 'total': _ytd(k_vc, yr, last_m),
+                 'es_icp': False, 'es_comp': True,  'es_fip': False},
+                {'nombre': display,       'meses': fip_months,  'total': _ytd(h_vc, yr, last_m),
+                 'es_icp': False, 'es_comp': False, 'es_fip': True},
+            ]})
+    else:
+        for yr in [y-2, y-1, y]:
+            yr_data = frozen.get(str(yr), {})
+            filas   = []
+            for lbl in sorted(yr_data.keys(), key=lambda x: 0 if x.lower() == 'competencia' else 1):
+                if 'ICP' in lbl.upper():
+                    continue
+                entry  = yr_data[lbl]
+                is_fip = lbl.lower() != 'competencia'
+                src    = h_vc if is_fip else k_vc
+                months = list(entry['months'])
+                total  = entry.get('total')
+                if yr == y:
+                    # rellenar meses faltantes (incl. el mes nuevo) desde col G/K
+                    for mm in range(1, m+1):
+                        if months[mm-1] is None:
+                            r = _annualized(src, y, mm, 1)
+                            if r is not None:
+                                months[mm-1] = r
+                    months = [months[i] if i < m else None for i in range(12)]
+                    total  = _ytd(src, y, m)
+                if any(v is not None for v in months) or total is not None:
+                    filas.append({
+                        'nombre': display if is_fip else 'Competencia',
+                        'meses':  months,
+                        'total':  total,
+                        'es_icp': False, 'es_comp': (not is_fip), 'es_fip': is_fip,
+                    })
+            if filas:
+                historico.append({'año': yr, 'filas': filas})
 
     # Chart from ODS
     vc_ods = _get_ods_vc(nombre_fondo)

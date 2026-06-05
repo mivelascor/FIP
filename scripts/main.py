@@ -36,6 +36,7 @@ DISPLAY_MAP = {
     "Liquidez Dólar Caja":   "FIP VANTRUST LIQUIDEZ DOLAR CAJA",
     "Liquidez Efectivo":     "FIP VANTRUST LIQUIDEZ EFECTIVO",
     "Liquidez Flexible":     "FIP VANTRUST LIQUIDEZ FLEXIBLE",
+    "Liquidez Flexible Dólar":"FIP VANTRUST LIQUIDEZ FLEXIBLE DOLAR",
     "Liquidez Uno":          "FIP VANTRUST LIQUIDEZ I",
     "Liquidez Local":        "FIP VANTRUST LIQUIDEZ LOCAL",
     "Liquidez Monetario I":  "FIP VANTRUST LIQUIDEZ MONETARIO I",
@@ -62,6 +63,7 @@ PDF_NAME_MAP = {
     "Liquidez Dólar Caja":   "FIP_VANTRUST_LIQUIDEZ_DOLAR_CAJA",
     "Liquidez Efectivo":     "FIP_VANTRUST_LIQUIDEZ_EFECTIVO",
     "Liquidez Flexible":     "FIP_VANTRUST_LIQUIDEZ_FLEXIBLE",
+    "Liquidez Flexible Dólar":"FIP_VANTRUST_LIQUIDEZ_FLEXIBLE_DOLAR",
     "Liquidez Uno":          "FIP_VANTRUST_LIQUIDEZ_I",
     "Liquidez Local":        "FIP_VANTRUST_LIQUIDEZ_LOCAL",
     "Liquidez Monetario I":  "FIP_VANTRUST_LIQUIDEZ_MONETARIO_I",
@@ -73,6 +75,12 @@ PDF_NAME_MAP = {
     "Liquidez Reserva Dólar":"FIP_VANTRUST_LIQUIDEZ_RESERVA_DOLAR",
     "Liquidez Sencillo":     "FIP_VANTRUST_LIQUIDEZ_SENCILLO",
     "Liquidez Temporal":     "FIP_VANTRUST_LIQUIDEZ_TEMPORAL",
+}
+
+# Fondos que solo deben publicarse a partir de cierto mes (YYYY-MM).
+# Útil para fondos nuevos sin historia suficiente para la rentabilidad.
+FONDO_PUBLICAR_DESDE = {
+    "Liquidez Flexible Dólar": "2026-06",
 }
 
 
@@ -243,6 +251,10 @@ def run(comentario_clp: str, comentario_usd: str):
     html_paths, errores = [], []
 
     for display_name, ods_name in DISPLAY_MAP.items():
+        _desde = FONDO_PUBLICAR_DESDE.get(display_name)
+        if _desde and f"{year}-{month:02d}" < _desde:
+            log(f"  → {display_name}: omitido (publica desde {_desde})")
+            continue
         try:
             is_usd     = any(x in display_name.upper() for x in ("DÓLAR","DOLAR","USD","DOLLAR"))
             comentario = comentario_usd if is_usd else comentario_clp

@@ -36,6 +36,7 @@ FONDOS_CON_FOLLETO = [
     "FIP VANTRUST LIQUIDEZ DOLAR CAJA",
     "FIP VANTRUST LIQUIDEZ EFECTIVO",
     "FIP VANTRUST LIQUIDEZ FLEXIBLE",
+    "FIP VANTRUST LIQUIDEZ FLEXIBLE DOLAR",
     "FIP VANTRUST LIQUIDEZ I",
     "FIP VANTRUST LIQUIDEZ LOCAL",
     "FIP VANTRUST LIQUIDEZ MONETARIO I",
@@ -197,6 +198,13 @@ _INFO = {
         "moneda":       "CLP",
         "fecha_inicio": "Julio 2021",
         "remuneracion": "El menor valor entre 0,25% anual + IVA sobre el patrimonio neto",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
+    "FIP VANTRUST LIQUIDEZ FLEXIBLE DOLAR": {
+        "rut":          "Por confirmar",
+        "moneda":       "USD",
+        "fecha_inicio": "Marzo 2026",
+        "remuneracion": "Por confirmar",
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
     "FIP VANTRUST LIQUIDEZ RESERVA DOLAR": {
