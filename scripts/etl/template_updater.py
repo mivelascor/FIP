@@ -411,6 +411,61 @@ def update_template(tmpl_file: str, y: int, m: int,
 
 
 # ── Main entry point ──────────────────────────────────────────────────────────
+def snapshot_usd_frozen() -> dict:
+    """Captura la grilla historica CONGELADA (retornos anualizados) y el dividendo
+    de los templates USD ANTES de que update_template los sobreescriba (openpyxl
+    borra los caches de formula al guardar). Escribe inputs/hist_usd_frozen.json:
+        {tmpl_file: {"div": float, "frozen": {year: {label: {months,total}}}}}
+    Los templates del repo permanecen pristinos (el workflow no los commitea), por
+    lo que cada corrida captura los meses previos oficiales tal cual."""
+    out = {}
+    for tmpl_file in USD_TEMPLATES:
+        path = _TMPL_DIR / tmpl_file
+        if not path.exists():
+            continue
+        try:
+            wb = openpyxl.load_workbook(path, data_only=True)
+        except Exception:
+            continue
+        ent = {'div': 0.0, 'frozen': {}}
+        # dividendo: nivel H = VC(col G) + div  ->  div = H - G (ultimo mes con ambos)
+        if 'Datos ICP (2)' in wb.sheetnames:
+            wsd = wb['Datos ICP (2)']
+            for r in range(3, wsd.max_row + 1):
+                d = wsd.cell(r, 6).value
+                if not (d and hasattr(d, 'year')):
+                    continue
+                g = wsd.cell(r, 7).value; h = wsd.cell(r, 8).value
+                if isinstance(g, (int, float)) and isinstance(h, (int, float)):
+                    ent['div'] = round(float(h) - float(g), 6)
+        # grilla congelada (hoja 'rentabilidad': col C=Año, D=serie, E-P=Ene-Dic, Q=Total)
+        if 'rentabilidad' in wb.sheetnames:
+            ws = wb['rentabilidad']; cur = None
+            for r in range(7, ws.max_row + 1):
+                yv = ws.cell(r, 3).value
+                if isinstance(yv, (int, float)):
+                    cur = int(yv)
+                lbl = ws.cell(r, 4).value
+                if not (lbl and isinstance(lbl, str) and cur):
+                    continue
+                months = [(ws.cell(r, c).value if isinstance(ws.cell(r, c).value, (int, float)) else None)
+                          for c in range(5, 17)]
+                tot = ws.cell(r, 17).value
+                tot = float(tot) if isinstance(tot, (int, float)) else None
+                if any(v is not None for v in months) or tot is not None:
+                    ent['frozen'].setdefault(str(cur), {})[lbl.strip()] = {'months': months, 'total': tot}
+        wb.close()
+        out[tmpl_file] = ent
+    if out:
+        try:
+            with open(_INPUTS / "hist_usd_frozen.json", "w", encoding="utf-8") as f:
+                json.dump(out, f, ensure_ascii=False, indent=1)
+            print(f"  ✓ Snapshot congelado USD: {len(out)} fondos -> hist_usd_frozen.json")
+        except Exception as e:
+            print(f"  [WARN] snapshot_usd_frozen no pudo escribir JSON: {e}")
+    return out
+
+
 def run_update(target_year: int = None, target_month: int = None) -> dict:
     if not target_year:
         tm = os.environ.get("TARGET_MONTH", "").strip()
@@ -430,6 +485,9 @@ def run_update(target_year: int = None, target_month: int = None) -> dict:
     sant_vc  = _get_santander(y, m)
     banchile = _get_banchile(y, m)
     planilla = _read_planilla(y, m)
+
+    # Capturar grilla historica congelada USD ANTES de sobreescribir templates.
+    snapshot_usd_frozen()
 
     print(f"  ICP {y}-{m:02d}:       {icp_val}")
     print(f"  Santander MM:  {sant_vc}")

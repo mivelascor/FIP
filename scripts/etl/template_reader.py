@@ -91,7 +91,95 @@ NOMBRE_DISPLAY = {
 _ICP_CACHE:  dict = {}
 _VC_CACHE:   dict = {}
 _HIST_CACHE: dict = {}
+_HIST_FROZEN_CACHE: dict = {}
+_DIV_CACHE:  dict = {}
 _ODS_API = "https://claudeods.vantrustcapital.cl/query"
+
+
+def _read_frozen_grid(path):
+    """Read the FROZEN annualized monthly returns from a template's
+    'rentabilidad' sheet (cached values). Only works on a PRISTINE template
+    (openpyxl save wipes formula caches). Returns {str(year): {label: {months,total}}}."""
+    import openpyxl
+    if not path.exists():
+        return {}
+    try:
+        wb = openpyxl.load_workbook(path, data_only=True)
+    except Exception:
+        return {}
+    if 'rentabilidad' not in wb.sheetnames:
+        wb.close(); return {}
+    ws = wb['rentabilidad']
+    out = {}
+    cur_yr = None
+    for r in range(7, ws.max_row + 1):
+        yv = ws.cell(r, 3).value
+        if isinstance(yv, (int, float)):
+            cur_yr = int(yv)
+        lbl = ws.cell(r, 4).value
+        if not (lbl and isinstance(lbl, str) and cur_yr):
+            continue
+        months = []
+        for c in range(5, 17):
+            v = ws.cell(r, c).value
+            months.append(float(v) if isinstance(v, (int, float)) else None)
+        tot = ws.cell(r, 17).value
+        tot = float(tot) if isinstance(tot, (int, float)) else None
+        if any(v is not None for v in months) or tot is not None:
+            out.setdefault(str(cur_yr), {})[lbl.strip()] = {'months': months, 'total': tot}
+    wb.close()
+    return out
+
+
+def _read_div_from_template(path):
+    """Derive dividend (nivel H = VC col G + div) from col H - col G, most recent
+    month with both. Only works on a PRISTINE template (col H is a formula)."""
+    import openpyxl
+    if not path.exists():
+        return 0.0
+    try:
+        wb = openpyxl.load_workbook(path, data_only=True)
+    except Exception:
+        return 0.0
+    div = 0.0
+    if 'Datos ICP (2)' in wb.sheetnames:
+        ws = wb['Datos ICP (2)']
+        for r in range(3, ws.max_row + 1):
+            d = ws.cell(r, 6).value
+            if not (d and hasattr(d, 'year')):
+                continue
+            g = ws.cell(r, 7).value; h = ws.cell(r, 8).value
+            if isinstance(g, (int, float)) and isinstance(h, (int, float)):
+                div = round(float(h) - float(g), 6)
+    wb.close()
+    return div
+
+
+def _get_usd_frozen(tmpl_file):
+    """Return (frozen_grid, dividend) for a USD fund. Prefers the snapshot JSON
+    (inputs/hist_usd_frozen.json) written by template_updater BEFORE it overwrites
+    the template (which wipes formula caches). Falls back to reading a pristine
+    template directly (e.g. local use). Cached per template."""
+    if tmpl_file in _HIST_FROZEN_CACHE:
+        return _HIST_FROZEN_CACHE[tmpl_file]
+    frozen, div = {}, 0.0
+    snap_path = _INPUTS_DIR / "hist_usd_frozen.json"
+    if snap_path.exists():
+        try:
+            with open(snap_path, encoding="utf-8") as f:
+                snap = json.load(f)
+            ent = snap.get(tmpl_file)
+            if ent:
+                frozen = ent.get('frozen', {})
+                div    = float(ent.get('div', 0.0) or 0.0)
+        except Exception:
+            frozen, div = {}, 0.0
+    if not frozen:   # fallback: pristine template
+        path  = _TMPL_DIR / tmpl_file
+        frozen = _read_frozen_grid(path)
+        div    = _read_div_from_template(path)
+    _HIST_FROZEN_CACHE[tmpl_file] = (frozen, div)
+    return frozen, div
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 def _load_json(fn):
@@ -708,65 +796,53 @@ def _build_usd_output(nombre_fondo, display, tmpl_file, icp, vc_comp, y, m, is_u
         gv = wsd.cell(rr,7).value; kv = wsd.cell(rr,11).value
         if isinstance(gv,(int,float)): g_vc[ym] = float(gv)
         if isinstance(kv,(int,float)): k_vc[ym] = float(kv)
-    try:
-        from calculos.rentabilidades import DIVIDENDOS
-        _div = DIVIDENDOS.get(nombre_fondo, 0.0)
-    except Exception:
-        _div = 0.0
+    # nivel H = VC + dividendo. El dividendo se obtiene del snapshot congelado
+    # (capturado del template pristino antes de sobreescribirlo).
+    frozen, _div = _get_usd_frozen(tmpl_file)
     h_vc = {ym: v + _div for ym, v in g_vc.items()}   # nivel H = VC + dividendo
     fip_m  = {'m': _annualized(h_vc,y,m,1), 't': _annualized(h_vc,y,m,3),
               's': _annualized(h_vc,y,m,6), 'a': _annualized(h_vc,y,m,12), 'ac': _ytd(h_vc,y,m)}
     comp_m = {'m': _annualized(k_vc,y,m,1), 't': _annualized(k_vc,y,m,3),
               's': _annualized(k_vc,y,m,6), 'a': _annualized(k_vc,y,m,12), 'ac': _ytd(k_vc,y,m)}
-    icp_row  = {'nombre': 'ICP (Benchmark)', 'es_icp': True,  'es_comp': False, 'es_fip': False, **comp_m}
-    comp_row = {'nombre': 'Competencia',     'es_icp': False, 'es_comp': True,  'es_fip': False, **comp_m}
-    fip_row  = {'nombre': display,            'es_icp': False, 'es_comp': False, 'es_fip': True,  **fip_m}
+    # Resumen USD: solo Competencia + FIP (los folletos oficiales USD no muestran
+    # fila ICP en la tabla de evolucion ni en la grilla).
+    comp_row = {'nombre': 'Competencia', 'es_icp': False, 'es_comp': True,  'es_fip': False, **comp_m}
+    fip_row  = {'nombre': display,        'es_icp': False, 'es_comp': False, 'es_fip': True,  **fip_m}
 
-    # Historical from template
-    hist_raw = _get_tmpl_hist(tmpl_file)
     wb.close()
 
+    # ── Historico USD: meses previos CONGELADOS tal cual (grilla anualizada del
+    #    template); meses posteriores al ultimo congelado se calculan desde col G
+    #    (VC, sobrevive el save) con el mismo metodo del template (H=VC+div,
+    #    anualizado por dias *360). Total del anio en curso = _ytd (= Acum).
     historico = []
     for yr in [y-2, y-1, y]:
-        last_m  = m if yr==y else 12
-        yr_data = hist_raw.get(yr, {})
+        yr_data = frozen.get(str(yr), {})
         filas   = []
-        for lbl, is_icp_like in [('ICP (Benchmark)', True), ('Competencia', False), (display, False)]:
-            # Find the right row in template hist
-            row_months = None
-            if is_icp_like:
-                icp_entry = _icp_row_from_hist(yr_data)
-                row_months = _entry_months(icp_entry) if icp_entry else None
-                entry = icp_entry
-                if row_months is None:
-                    # Use ICP series for historical ICP
-                    row_months = [_simple(icp, yr, mm) for mm in range(1,13)]
-                    entry = None
-            else:
-                comp_rows = [(k,v) for k,v in yr_data.items() if k.lower() == 'competencia']
-                if lbl == 'Competencia':
-                    entry = comp_rows[0][1] if comp_rows else None
-                else:
-                    entry = _fip_row_from_hist(yr_data, nombre_fondo)
-                row_months = _entry_months(entry)
-
-            if row_months:
-                months_out = [row_months[mm-1] if mm<=last_m and mm<=len(row_months) else None
-                              for mm in range(1,13)]
-                if any(v is not None for v in months_out):
-                    # Anio en curso + fila FIP: Total = Acum de la evolucion (_ytd sobre H).
-                    if yr == y and lbl == display:
-                        total = _ytd(h_vc, y, last_m)
-                    else:
-                        total = _entry_total(entry) if 'entry' in dir() and entry else None
-                    if total is None:
-                        non_none = [v for v in months_out[:last_m] if v is not None]
-                        if non_none:
-                            compound = 1.0
-                            for r in non_none: compound *= (1+r)
-                            n = len(non_none)
-                            total = (compound - 1) / n * 12
-                    filas.append({'nombre': lbl, 'meses': months_out, 'total': total})
+        for lbl in sorted(yr_data.keys(), key=lambda x: 0 if x.lower() == 'competencia' else 1):
+            if 'ICP' in lbl.upper():
+                continue
+            entry  = yr_data[lbl]
+            is_fip = lbl.lower() != 'competencia'
+            src    = h_vc if is_fip else k_vc
+            months = list(entry['months'])
+            total  = entry.get('total')
+            if yr == y:
+                # rellenar meses faltantes (incl. el mes nuevo) desde col G/K
+                for mm in range(1, m+1):
+                    if months[mm-1] is None:
+                        r = _annualized(src, y, mm, 1)
+                        if r is not None:
+                            months[mm-1] = r
+                months = [months[i] if i < m else None for i in range(12)]
+                total  = _ytd(src, y, m)
+            if any(v is not None for v in months) or total is not None:
+                filas.append({
+                    'nombre': display if is_fip else 'Competencia',
+                    'meses':  months,
+                    'total':  total,
+                    'es_icp': False, 'es_comp': (not is_fip), 'es_fip': is_fip,
+                })
         if filas:
             historico.append({'año': yr, 'filas': filas})
 
@@ -775,7 +851,7 @@ def _build_usd_output(nombre_fondo, display, tmpl_file, icp, vc_comp, y, m, is_u
     labels, c_icp, c_comp, c_fip = _build_chart(y, m, icp, vc_comp, vc_ods)
 
     return {'nombre_fip': display, 'acum_label': acum_label,
-            'resumen': [icp_row, comp_row, fip_row],
+            'resumen': [comp_row, fip_row],
             'historico': historico,
             'grafico': {'labels': labels, 'icp': c_icp, 'comp': c_comp, 'fip': c_fip}}
 
