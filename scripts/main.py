@@ -26,6 +26,7 @@ API_SQL = "https://claudeods.vantrustcapital.cl/query"
 DISPLAY_MAP = {
     "Alto Aporte":           "FIP VANTRUST LIQUIDEZ ALTO APORTE",
     "Alto Capital":          "FIP VANTRUST LIQUIDEZ ALTO CAPITAL",
+    "Factura Dólar":         "FIP VANTRUST LIQUIDEZ ALTO MONTO",
     "Liquidez Activa":       "FIP VANTRUST LIQUIDEZ ACTIVA",
     "Liquidez Caja":         "FIP VANTRUST LIQUIDEZ CAJA",
     "Liquidez Continua":     "FIP VANTRUST LIQUIDEZ CONTINUA",
@@ -36,6 +37,7 @@ DISPLAY_MAP = {
     "Liquidez Dólar Caja":   "FIP VANTRUST LIQUIDEZ DOLAR CAJA",
     "Liquidez Efectivo":     "FIP VANTRUST LIQUIDEZ EFECTIVO",
     "Liquidez Flexible":     "FIP VANTRUST LIQUIDEZ FLEXIBLE",
+    "Liquidez Flexible Dólar":"FIP VANTRUST LIQUIDEZ FLEXIBLE DOLAR",
     "Liquidez Uno":          "FIP VANTRUST LIQUIDEZ I",
     "Liquidez Local":        "FIP VANTRUST LIQUIDEZ LOCAL",
     "Liquidez Monetario I":  "FIP VANTRUST LIQUIDEZ MONETARIO I",
@@ -52,6 +54,7 @@ DISPLAY_MAP = {
 PDF_NAME_MAP = {
     "Alto Aporte":           "FIP_VANTRUST_LIQUIDEZ_ALTO_APORTE",
     "Alto Capital":          "FIP_VANTRUST_LIQUIDEZ_ALTO_CAPITAL",
+    "Factura Dólar":         "FIP_VANTRUST_LIQUIDEZ_ALTO_MONTO",
     "Liquidez Activa":       "FIP_VANTRUST_LIQUIDEZ_ACTIVA",
     "Liquidez Caja":         "FIP_VANTRUST_LIQUIDEZ_CAJA",
     "Liquidez Continua":     "FIP_VANTRUST_LIQUIDEZ_CONTINUA",
@@ -62,6 +65,7 @@ PDF_NAME_MAP = {
     "Liquidez Dólar Caja":   "FIP_VANTRUST_LIQUIDEZ_DOLAR_CAJA",
     "Liquidez Efectivo":     "FIP_VANTRUST_LIQUIDEZ_EFECTIVO",
     "Liquidez Flexible":     "FIP_VANTRUST_LIQUIDEZ_FLEXIBLE",
+    "Liquidez Flexible Dólar":"FIP_VANTRUST_LIQUIDEZ_FLEXIBLE_DOLAR",
     "Liquidez Uno":          "FIP_VANTRUST_LIQUIDEZ_I",
     "Liquidez Local":        "FIP_VANTRUST_LIQUIDEZ_LOCAL",
     "Liquidez Monetario I":  "FIP_VANTRUST_LIQUIDEZ_MONETARIO_I",
