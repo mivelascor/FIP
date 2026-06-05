@@ -77,6 +77,12 @@ PDF_NAME_MAP = {
     "Liquidez Temporal":     "FIP_VANTRUST_LIQUIDEZ_TEMPORAL",
 }
 
+# Fondos que solo deben publicarse a partir de cierto mes (YYYY-MM).
+# Útil para fondos nuevos sin historia suficiente para la rentabilidad.
+FONDO_PUBLICAR_DESDE = {
+    "Liquidez Flexible Dólar": "2026-06",
+}
+
 
 def _detect_last_complete_month() -> tuple[int, int]:
     """
@@ -245,6 +251,10 @@ def run(comentario_clp: str, comentario_usd: str):
     html_paths, errores = [], []
 
     for display_name, ods_name in DISPLAY_MAP.items():
+        _desde = FONDO_PUBLICAR_DESDE.get(display_name)
+        if _desde and f"{year}-{month:02d}" < _desde:
+            log(f"  → {display_name}: omitido (publica desde {_desde})")
+            continue
         try:
             is_usd     = any(x in display_name.upper() for x in ("DÓLAR","DOLAR","USD","DOLLAR"))
             comentario = comentario_usd if is_usd else comentario_clp
