@@ -81,6 +81,8 @@ PDF_NAME_MAP = {
 # Útil para fondos nuevos sin historia suficiente para la rentabilidad.
 FONDO_PUBLICAR_DESDE = {
     "Liquidez Flexible Dólar": "2026-06",
+    "Liquidez Temporal":       "2026-06",
+    "Liquidez Recurrente":     "2026-06",
 }
 
 
