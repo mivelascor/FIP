@@ -223,7 +223,7 @@ _INFO = {
     },
     "FIP VANTRUST LIQUIDEZ TEMPORAL": {
         "rut":          "76,637,334-8",
-        "moneda":       "USD",
+        "moneda":       "CLP",
         "fecha_inicio": "Marzo 2017",
         "remuneracion": "0,295% IVA Incluido",
         "benchmark":    "Índice Cámara Promedio (ICP)",
