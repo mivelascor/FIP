@@ -48,6 +48,7 @@ DISPLAY_MAP = {
     "Liquidez Reserva Dólar":"FIP VANTRUST LIQUIDEZ RESERVA DÓLAR",
     "Liquidez Sencillo":     "FIP VANTRUST LIQUIDEZ SENCILLO",
     "Liquidez Temporal":     "FIP VANTRUST LIQUIDEZ TEMPORAL",
+    "Liquidez Horizonte":    "FIP VANTRUST LIQUIDEZ HORIZONTE",
 }
 
 PDF_NAME_MAP = {
@@ -75,6 +76,7 @@ PDF_NAME_MAP = {
     "Liquidez Reserva Dólar":"FIP_VANTRUST_LIQUIDEZ_RESERVA_DOLAR",
     "Liquidez Sencillo":     "FIP_VANTRUST_LIQUIDEZ_SENCILLO",
     "Liquidez Temporal":     "FIP_VANTRUST_LIQUIDEZ_TEMPORAL",
+    "Liquidez Horizonte":    "FIP_VANTRUST_LIQUIDEZ_HORIZONTE",
 }
 
 # Fondos que solo deben publicarse a partir de cierto mes (YYYY-MM).
@@ -83,6 +85,7 @@ FONDO_PUBLICAR_DESDE = {
     "Liquidez Flexible Dólar": "2026-06",
     "Liquidez Temporal":       "2026-06",
     "Liquidez Recurrente":     "2026-06",
+    "Liquidez Horizonte":      "2026-07",
 }
 
 
