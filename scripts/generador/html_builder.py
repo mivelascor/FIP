@@ -81,6 +81,13 @@ def _svg(chart_pts, has_icp):
                     lines.append(f'  <text x="{x}" y="127.0" text-anchor="middle" font-size="6.5" fill="#999" font-family="Barlow,sans-serif">{yr2}</text>')
                     seen.add(yr2)
             except: pass
+    # Si el rango no incluye ningun enero (fondo nuevo, p.ej. solo 2026), etiquetar
+    # el anio del primer punto para no dejar el eje sin marca.
+    if not seen and chart_pts:
+        lbl0=str(chart_pts[0]['date'])
+        if len(lbl0)>=4 and lbl0[:4].isdigit():
+            x0,_=xy(0,ymi)
+            lines.append(f'  <text x="{x0}" y="127.0" text-anchor="start" font-size="6.5" fill="#999" font-family="Barlow,sans-serif">{lbl0[:4]}</text>')
     lines.append(f'  <line x1="{xl}" x2="{xr}" y1="{yb}" y2="{yb}" stroke="#ccc" stroke-width="0.5"/>')
     return f'<svg viewBox="0 0 500 130" width="100%" height="130" xmlns="http://www.w3.org/2000/svg">\n'+'\n'.join(lines)+'\n</svg>'
 
