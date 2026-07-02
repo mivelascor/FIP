@@ -461,14 +461,32 @@ def snapshot_usd_frozen() -> dict:
                     ent['frozen'].setdefault(str(cur), {})[lbl.strip()] = {'months': months, 'total': tot}
         wb.close()
         out[tmpl_file] = ent
-    if out:
+    # Guard: no sobrescribir un snapshot bueno con uno vacio. Si un template quedo
+    # NO-pristino (openpyxl borra caches de formula al guardarlo), su grilla saldra
+    # vacia; en ese caso conservamos la entrada previa del JSON. Asi el historico USD
+    # sigue funcionando aunque los templates del repo hayan sido actualizados.
+    path = _INPUTS / "hist_usd_frozen.json"
+    prev = {}
+    try:
+        with open(path, encoding="utf-8") as f:
+            prev = json.load(f)
+    except Exception:
+        prev = {}
+    merged = dict(prev)
+    for k, ent in out.items():
+        prev_n = len(prev.get(k, {}).get("frozen", {}) or {})
+        new_n  = len(ent.get("frozen", {}) or {})
+        if new_n >= prev_n:            # usar nuevo solo si es igual o mas completo
+            merged[k] = ent
+        # si el nuevo es mas pobre (template no-pristino) -> conservar el previo bueno
+    if merged:
         try:
-            with open(_INPUTS / "hist_usd_frozen.json", "w", encoding="utf-8") as f:
-                json.dump(out, f, ensure_ascii=False, indent=1)
-            print(f"  ✓ Snapshot congelado USD: {len(out)} fondos -> hist_usd_frozen.json")
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(merged, f, ensure_ascii=False, indent=1)
+            print(f"  ✓ Snapshot congelado USD: {len(merged)} fondos -> hist_usd_frozen.json")
         except Exception as e:
             print(f"  [WARN] snapshot_usd_frozen no pudo escribir JSON: {e}")
-    return out
+    return merged
 
 
 def run_update(target_year: int = None, target_month: int = None) -> dict:
