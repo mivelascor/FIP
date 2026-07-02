@@ -45,6 +45,9 @@ FUND_TEMPLATE_MAP = {
     'FIP VANTRUST LIQUIDEZ RESERVA DÓLAR': 'TEMPLATE FONDO LIQUIDEZ RESERVA DOLAR.xlsx',
     'FIP VANTRUST LIQUIDEZ FLEXIBLE DOLAR':'TEMPLATE FONDO LIQUIDEZ FLEXIBLE DOLAR.xlsx',
     'FIP VANTRUST LIQUIDEZ SENCILLO':      'TEMPLATE FONDO LIQUIDEZ SENCILLO.xlsx',
+    'FIP VANTRUST LIQUIDEZ RECURRENTE':    'TEMPLATE FONDO LIQUIDEZ RECURRENTE.xlsx',
+    'FIP VANTRUST LIQUIDEZ TEMPORAL':      'TEMPLATE FONDO LIQUIDEZ TEMPORAL.xlsx',
+    'FIP VANTRUST LIQUIDEZ HORIZONTE':     'TEMPLATE FONDO LIQUIDEZ HORIZONTE.xlsx',
 }
 
 FONDOS_USD = {
@@ -89,6 +92,7 @@ NOMBRE_DISPLAY = {
     'FIP VANTRUST LIQUIDEZ FLEXIBLE DOLAR':'FIP Liquidez Flexible Dólar',
     'FIP VANTRUST LIQUIDEZ SENCILLO':      'FIP Liquidez Sencillo',
     'FIP VANTRUST LIQUIDEZ TEMPORAL':      'FIP Liquidez Temporal',
+    'FIP VANTRUST LIQUIDEZ HORIZONTE':     'FIP Liquidez Horizonte',
 }
 
 _ICP_CACHE:  dict = {}
@@ -799,6 +803,9 @@ def _build_usd_output(nombre_fondo, display, tmpl_file, icp, vc_comp, y, m, is_u
         gv = wsd.cell(rr,7).value; kv = wsd.cell(rr,11).value
         if isinstance(gv,(int,float)): g_vc[ym] = float(gv)
         if isinstance(kv,(int,float)): k_vc[ym] = float(kv)
+    # Competencia USD = Banchile desde comp_usd.json (autoritativo; trae el mes nuevo
+    # via CMF). Se superpone a col K del template para llenar el mes en curso.
+    k_vc.update(_load_json("comp_usd.json"))
     # nivel H = VC + dividendo. El dividendo se obtiene del snapshot congelado
     # (capturado del template pristino antes de sobreescribirlo).
     frozen, _div = _get_usd_frozen(tmpl_file)
@@ -872,9 +879,21 @@ def _build_usd_output(nombre_fondo, display, tmpl_file, icp, vc_comp, y, m, is_u
             if filas:
                 historico.append({'año': yr, 'filas': filas})
 
-    # Chart from ODS
-    vc_ods = _get_ods_vc(nombre_fondo)
-    labels, c_icp, c_comp, c_fip = _build_chart(y, m, icp, vc_comp, vc_ods)
+    # Chart USD: fondo (col G, indice base) + competencia Banchile (k_vc),
+    # normalizados a base 100 sobre [y-2 .. y,m]. Sin linea ICP (has_icp=False).
+    start = (y-2, 1)
+    ch_months = sorted(k for k in g_vc if start <= k <= (y, m))
+    labels, c_icp, c_comp, c_fip = [], [], [], []
+    if ch_months:
+        base = ch_months[0]
+        bf = g_vc.get(base) or 1
+        bc = k_vc.get(base) or next((v for kk, v in sorted(k_vc.items()) if kk >= base), 1) or 1
+        for k in ch_months:
+            labels.append(f"{k[0]}-{k[1]:02d}")
+            c_fip.append(round(g_vc[k] / bf * 100, 4))
+            kv = k_vc.get(k)
+            c_comp.append(round(kv / bc * 100, 4) if kv else None)
+            c_icp.append(None)
 
     return {'nombre_fip': display, 'acum_label': acum_label,
             'resumen': [comp_row, fip_row],

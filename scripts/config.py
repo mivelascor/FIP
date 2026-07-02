@@ -48,13 +48,14 @@ FONDOS_CON_FOLLETO = [
     "FIP VANTRUST LIQUIDEZ RESERVA DOLAR",
     "FIP VANTRUST LIQUIDEZ SENCILLO",
     "FIP VANTRUST LIQUIDEZ TEMPORAL",
+    "FIP VANTRUST LIQUIDEZ HORIZONTE",
 ]
 
 # ── Info específica por fondo (extraída de PDFs de referencia abril 2026) ─────
 # Campos: rut, moneda, fecha_inicio, remuneracion, benchmark, objetivo, inversionistas
 _INFO = {
     "FIP VANTRUST LIQUIDEZ ACTIVA": {
-        "rut":          "76,637,334-8",
+        "rut":          "76.637.334-8",
         "moneda":       "CLP",
         "fecha_inicio": "Febrero 2025",
         "remuneracion": "0,50% de la TPM vigente + IVA",
@@ -63,7 +64,7 @@ _INFO = {
     "FIP VANTRUST LIQUIDEZ ALTO APORTE": {
         "rut":          "77.270.966-8",
         "moneda":       "CLP",
-        "fecha_inicio": "Julio 2022",
+        "fecha_inicio": "Julio 2020",
         "remuneracion": "0,1785% IVA Incluido",
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
@@ -75,7 +76,7 @@ _INFO = {
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
     "FIP VANTRUST LIQUIDEZ ALTO MONTO": {
-        "rut":          "77,414,857-4",
+        "rut":          "77.414.857-4",
         "moneda":       "CLP",
         "fecha_inicio": "Febrero 2025",
         "remuneracion": "0,25% anual + IVA",
@@ -89,44 +90,44 @@ _INFO = {
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
     "FIP VANTRUST LIQUIDEZ CONTINUA": {
-        "rut":          "77,806,944-K",
+        "rut":          "77.806.944-K",
         "moneda":       "CLP",
         "fecha_inicio": "Septiembre 2023",
         "remuneracion": "Menor valor entre 0,25% anual + IVA y 50% de rentabilidad + IVA",
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
     "FIP VANTRUST LIQUIDEZ CORRIENTE": {
-        "rut":          "77,428,236-K",
+        "rut":          "77.428.236-K",
         "moneda":       "CLP",
         "fecha_inicio": "Febrero 2025",
         "remuneracion": "Menor valor entre 0,25% anual + IVA y 50% de rentabilidad + IVA",
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
     "FIP VANTRUST LIQUIDEZ CORTO PLAZO": {
-        "rut":          "77,806,943-1",
+        "rut":          "77.806.943-1",
         "moneda":       "CLP",
         "fecha_inicio": "Septiembre 2023",
         "remuneracion": "Menor valor entre 0,25% anual + IVA y 50% de rentabilidad + IVA",
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
     "FIP VANTRUST LIQUIDEZ DISPONIBLE I": {
-        "rut":          "76.727.565-K",
+        "rut":          "76.623.064-4",
         "moneda":       "CLP",
-        "fecha_inicio": "Marzo 2017",
+        "fecha_inicio": "Abril 2024",
         "remuneracion": "0,75% IVA Incluido",
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
     "FIP VANTRUST LIQUIDEZ DOLAR": {
-        "rut":          "77.270.966-8",
+        "rut":          "77.270.965-K",
         "moneda":       "USD",
-        "fecha_inicio": "Julio 2022",
+        "fecha_inicio": "Junio 2021",
         "remuneracion": "0,1785% IVA Incluido",
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
     "FIP VANTRUST LIQUIDEZ DOLAR CAJA": {
-        "rut":          "76.933.989-2",
+        "rut":          "77.697.015-8",
         "moneda":       "USD",
-        "fecha_inicio": "Diciembre 2017",
+        "fecha_inicio": "Enero 2023",
         "remuneracion": "Menor valor entre 0,50% anual + IVA y 50% de rentabilidad + IVA",
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
@@ -138,7 +139,7 @@ _INFO = {
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
     "FIP VANTRUST LIQUIDEZ FLEXIBLE": {
-        "rut":          "76,637,336-4",
+        "rut":          "76.637.336-4",
         "moneda":       "CLP",
         "fecha_inicio": "Febrero 2025",
         "remuneracion": "Menor valor entre 0,25% anual + IVA y 50% de rentabilidad + IVA",
@@ -166,31 +167,31 @@ _INFO = {
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
     "FIP VANTRUST LIQUIDEZ PERMANENTE": {
-        "rut":          "77,806,942-3",
+        "rut":          "77.806.942-3",
         "moneda":       "CLP",
         "fecha_inicio": "Septiembre 2023",
         "remuneracion": "Menor valor entre 0,25% anual + IVA y 50% de rentabilidad + IVA",
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
     "FIP VANTRUST LIQUIDEZ PLUS": {
-        "rut":          "77,414,858-2",
+        "rut":          "77.414.858-2",
         "moneda":       "CLP",
         "fecha_inicio": "Julio 2022",
         "remuneracion": "El menor valor entre 0,25% anual + IVA sobre el patrimonio neto",
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
     "FIP VANTRUST LIQUIDEZ PRESENTE": {
-        "rut":          "77,414,855-8",
+        "rut":          "77.414.855-8",
         "moneda":       "CLP",
         "fecha_inicio": "Abril 2024",
         "remuneracion": "Menor valor entre 0,25% anual + IVA y 50% de rentabilidad + IVA",
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
     "FIP VANTRUST LIQUIDEZ RECURRENTE": {
-        "rut":          "76,637,334-8",
+        "rut":          "76.639.712-3",
         "moneda":       "CLP",
-        "fecha_inicio": "Agosto 2020",
-        "remuneracion": "0,295% IVA Incluido",
+        "fecha_inicio": "Febrero 2026",
+        "remuneracion": "Menor valor entre 0,50% de la TPM vigente + IVA y una tasa 0,9520% (IVA incluido)",
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
     "FIP VANTRUST LIQUIDEZ RENDIMIENTO": {
@@ -201,13 +202,13 @@ _INFO = {
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
     "FIP VANTRUST LIQUIDEZ FLEXIBLE DOLAR": {
-        "rut":          "Por confirmar",
+        "rut":          "76.637.326-7",
         "moneda":       "USD",
-        "fecha_inicio": "Marzo 2026",
-        "remuneracion": "Por confirmar",
+        "fecha_inicio": "Febrero 2026",
+        "remuneracion": "Menor valor entre 0,50% de la TPM vigente + IVA y una tasa 0,9520% (IVA incluido)",
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
-    "FIP VANTRUST LIQUIDEZ RESERVA DOLAR": {
+    "FIP VANTRUST LIQUIDEZ RESERVA DÓLAR": {
         "rut":          "76.637.335-6",
         "moneda":       "USD",
         "fecha_inicio": "Febrero 2025",
@@ -222,10 +223,17 @@ _INFO = {
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
     "FIP VANTRUST LIQUIDEZ TEMPORAL": {
-        "rut":          "76,637,334-8",
+        "rut":          "76.639.716-6",
         "moneda":       "CLP",
-        "fecha_inicio": "Marzo 2017",
-        "remuneracion": "0,295% IVA Incluido",
+        "fecha_inicio": "Febrero 2026",
+        "remuneracion": "Menor valor entre 0,50% de la TPM vigente + IVA y una tasa 0,9520% (IVA incluido)",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
+    "FIP VANTRUST LIQUIDEZ HORIZONTE": {
+        "rut":          "76.639.719-0",
+        "moneda":       "CLP",
+        "fecha_inicio": "Junio 2026",
+        "remuneracion": "Menor valor entre 0,50% de la TPM vigente + IVA y una tasa 0,9520% (IVA incluido)",
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
 }

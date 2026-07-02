@@ -81,6 +81,13 @@ def _svg(chart_pts, has_icp):
                     lines.append(f'  <text x="{x}" y="127.0" text-anchor="middle" font-size="6.5" fill="#999" font-family="Barlow,sans-serif">{yr2}</text>')
                     seen.add(yr2)
             except: pass
+    # Si el rango no incluye ningun enero (fondo nuevo, p.ej. solo 2026), etiquetar
+    # el anio del primer punto para no dejar el eje sin marca.
+    if not seen and chart_pts:
+        lbl0=str(chart_pts[0]['date'])
+        if len(lbl0)>=4 and lbl0[:4].isdigit():
+            x0,_=xy(0,ymi)
+            lines.append(f'  <text x="{x0}" y="127.0" text-anchor="start" font-size="6.5" fill="#999" font-family="Barlow,sans-serif">{lbl0[:4]}</text>')
     lines.append(f'  <line x1="{xl}" x2="{xr}" y1="{yb}" y2="{yb}" stroke="#ccc" stroke-width="0.5"/>')
     return f'<svg viewBox="0 0 500 130" width="100%" height="130" xmlns="http://www.w3.org/2000/svg">\n'+'\n'.join(lines)+'\n</svg>'
 
@@ -110,14 +117,14 @@ body{font-family:'Barlow',Arial,sans-serif;background:#fff;color:#0a0a0a;-webkit
 .logo-fondo-row{display:table;width:100%;margin-top:10pt;padding-bottom:10pt;border-bottom:0.75pt solid #fff;}
 .logo-fondo-spacer{display:table-cell;}
 .logo-sub{display:table-cell;font-size:6pt;letter-spacing:3.5pt;color:#fff;font-weight:400;text-transform:uppercase;text-align:right;white-space:nowrap;vertical-align:bottom;}
-.left-section{padding:11pt 16pt 10pt;border-bottom:1pt solid rgba(255,255,255,0.08);}
+.left-section{padding:8.5pt 16pt 8pt;border-bottom:1pt solid rgba(255,255,255,0.08);}
 .left-section-title{font-size:8pt;font-weight:700;color:#fff;letter-spacing:.3pt;margin-bottom:9pt;}
 .info-table{width:100%;border-collapse:collapse;}
-.info-table tr td{padding:2.8pt 0;border-bottom:1pt solid rgba(255,255,255,0.06);vertical-align:top;font-size:8pt;line-height:1.4;}
+.info-table tr td{padding:2.2pt 0;border-bottom:1pt solid rgba(255,255,255,0.06);vertical-align:top;font-size:8pt;line-height:1.32;}
 .info-table tr:last-child td{border-bottom:none;}
 .info-table td.label{color:rgba(255,255,255,0.55);white-space:nowrap;padding-right:5pt;width:44%;}
 .info-table td.value{color:#fff;}
-.left-text{font-size:8.5pt;color:rgba(255,255,255,0.55);line-height:1.6;}
+.left-text{font-size:8.5pt;color:rgba(255,255,255,0.55);line-height:1.45;}
 .comp-item{padding:3.5pt 0;border-bottom:1pt solid rgba(255,255,255,0.05);}
 .comp-item:last-child{border-bottom:none;}
 .comp-row{display:table;width:100%;}
@@ -127,14 +134,14 @@ body{font-family:'Barlow',Arial,sans-serif;background:#fff;color:#0a0a0a;-webkit
 .bar-fill{height:2.5pt;border-radius:1pt;background:rgba(255,255,255,0.60);}
 
 /* ── Right column ── */
-.right-inner{padding:24pt 22pt 18pt 20pt;}
+.right-inner{padding:18pt 22pt 14pt 20pt;}
 .section-title{font-family:'EB Garamond',serif;font-size:15pt;font-weight:500;border-bottom:1.5pt solid #0a0a0a;padding-bottom:4pt;margin-bottom:9pt;letter-spacing:-0.2pt;}
 
 /* Comentario — bigger and taller */
-.comentario-box{border-left:2.5pt solid #0a0a0a;padding:9pt 11pt;font-size:9pt;color:#1c1c1c;line-height:1.7;font-style:italic;background:#f7f7f5;margin-bottom:13pt;}
+.comentario-box{border-left:2.5pt solid #0a0a0a;padding:8pt 10pt;font-size:8.7pt;color:#1c1c1c;line-height:1.5;font-style:italic;background:#f7f7f5;margin-bottom:10pt;}
 
 /* Chart */
-.chart-section{margin-bottom:13pt;}
+.chart-section{margin-bottom:9pt;}
 .chart-container{border:0.75pt solid #d8d8d8;background:#f7f7f5;padding:8pt 8pt 5pt;}
 .chart-label-row{display:table;width:100%;margin-bottom:3pt;}
 .chart-label{display:table-cell;font-size:7pt;letter-spacing:.8pt;text-transform:uppercase;color:#aaa;}
@@ -145,7 +152,7 @@ body{font-family:'Barlow',Arial,sans-serif;background:#fff;color:#0a0a0a;-webkit
 .legend-line-dashed{display:inline-block;width:14pt;height:0;border-top:1.5pt dashed #aaa;vertical-align:middle;margin-right:3pt;}
 
 /* Summary table */
-.tbl-resumen{width:100%;border-collapse:collapse;margin-bottom:12pt;font-size:8.5pt;}
+.tbl-resumen{width:100%;border-collapse:collapse;margin-bottom:9pt;font-size:8.5pt;}
 .tbl-resumen thead th{background:#0a0a0a;color:#fff;padding:5pt 4pt;text-align:center;font-weight:500;font-size:7.5pt;white-space:nowrap;}
 .tbl-resumen thead th:first-child{text-align:left;padding-left:7pt;}
 .tbl-resumen tbody td{padding:5pt 4pt;text-align:center;border-bottom:0.75pt solid #d8d8d8;font-size:8.5pt;}
@@ -251,9 +258,9 @@ def generar_html_folleto(display_name, periodo, comentario, datos_template,
     fi      = FUND_INFO.get(display_name, {})
     rut     = str(info.get('rut') or fi.get('rut', '')).strip()
     moneda  = str(info.get('moneda') or fi.get('moneda','CLP')).strip()
-    tipo    = str(fi.get('tipo', _DEFAULTS.get('tipo','Fondo de Inversión Privado'))).strip()
+    tipo    = str(info.get('tipo') or fi.get('tipo') or _DEFAULTS.get('tipo','Fondo de Inversión Privado')).strip()
     fecha_s = str(info.get('fecha_inicio','') or fi.get('fecha_inicio','')).strip()
-    remun   = str(fi.get('remuneracion','—')).strip()
+    remun   = str(info.get('remuneracion') or fi.get('remuneracion') or '—').strip()
     custodio= str(_DEFAULTS.get('custodio','Vantrust Capital C. de Bolsa')).strip()
     forma   = ("La moneda en que el inversionista entra al fondo es aportando dólares estadounidenses, y al rescate de las cuotas, el fondo le entrega dólares estadounidenses." if moneda=="USD"
                else "La moneda en que el inversionista entra al fondo es aportando pesos chilenos, y al rescate de las cuotas, el fondo le entrega pesos chilenos.")
