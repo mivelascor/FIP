@@ -706,6 +706,22 @@ def leer_datos_template(nombre_fondo, target_year=None, target_month=None):
             'grafico': {'labels': labels, 'icp': c_icp, 'comp': c_comp, 'fip': c_fip}}
 
 
+# Fondos cuyas celdas MENSUALES de la tabla histórica se muestran normalizadas a 30
+# días (detectado desde los Excel hechos a mano: (ratio-1)/días_del_mes*30). El
+# resumen (M/T/S/A/Ac) y los totales anuales siguen siendo crudos en TODOS los fondos.
+FIP_RET_NORM30 = {
+    'FIP VANTRUST LIQUIDEZ ALTO CAPITAL',
+    'FIP VANTRUST LIQUIDEZ CAJA',
+    'FIP VANTRUST LIQUIDEZ SENCILLO',
+}
+
+def _dias_mes(y, m):
+    import calendar
+    from datetime import date as _d
+    prev = _d(y-1, 12, 31) if m == 1 else _d(y, m-1, calendar.monthrange(y, m-1)[1])
+    return (_d(y, m, calendar.monthrange(y, m)[1]) - prev).days
+
+
 def _build_clp_historico(y, m, icp, vc_comp, vc_fip, display, tmpl_hist, nombre_fondo):
     """Build historical table rows for CLP fund.
     Total rule: use template stored total when data is pre-ODS; otherwise _ytd.
@@ -747,6 +763,11 @@ def _build_clp_historico(y, m, icp, vc_comp, vc_fip, display, tmpl_hist, nombre_
                     months_out.append(val)
                 else:
                     months_out.append(_simple(vc, yr, mm))
+
+            # Fila del fondo con método normalizado a 30 días (solo esos fondos)
+            if lbl == display and nombre_fondo in FIP_RET_NORM30:
+                months_out = [(v * 30.0 / _dias_mes(yr, i + 1)) if v is not None else None
+                              for i, v in enumerate(months_out)]
 
             if not any(v is not None for v in months_out):
                 continue
