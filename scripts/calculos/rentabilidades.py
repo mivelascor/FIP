@@ -37,7 +37,7 @@ DIVIDENDOS = {
     "FIP VANTRUST LIQUIDEZ RECURRENTE":     0.0,  # fondo nuevo (2026), sin reparto; 177.5114 era erroneo (RUT heredado)
     "FIP VANTRUST LIQUIDEZ RENDIMIENTO":   70.4139,
     "FIP VANTRUST LIQUIDEZ RESERVA DOLAR":  0.0239,
-    "FIP VANTRUST LIQUIDEZ SENCILLO":      71.9851,
+    "FIP VANTRUST LIQUIDEZ SENCILLO":      65.3358,  # H-G del Excel actual (antes 71.9851, desactualizado)
     "FIP VANTRUST LIQUIDEZ TEMPORAL":       0.0173,
 }
 
