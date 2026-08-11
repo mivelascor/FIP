@@ -85,7 +85,7 @@ FONDO_PUBLICAR_DESDE = {
     "Liquidez Flexible Dólar": "2026-06",
     "Liquidez Temporal":       "2026-06",
     "Liquidez Recurrente":     "2026-06",
-    "Liquidez Horizonte":      "2026-07",
+    "Liquidez Horizonte":      "2027-01",  # sin valor cuota en la planilla aún; bajar cuando aparezca
 }
 
 
