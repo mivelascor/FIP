@@ -135,6 +135,7 @@ body{font-family:'Barlow',Arial,sans-serif;background:#fff;color:#0a0a0a;-webkit
 
 /* ── Right column ── */
 .right-inner{padding:18pt 22pt 14pt 20pt;}
+.disclaimer{font-size:6pt;color:#9a9a9a;font-style:italic;margin-top:6pt;line-height:1.3;}
 .section-title{font-family:'EB Garamond',serif;font-size:15pt;font-weight:500;border-bottom:1.5pt solid #0a0a0a;padding-bottom:4pt;margin-bottom:9pt;letter-spacing:-0.2pt;}
 
 /* Comentario — bigger and taller */
@@ -261,6 +262,15 @@ def generar_html_folleto(display_name, periodo, comentario, datos_template,
     tipo    = str(info.get('tipo') or fi.get('tipo') or _DEFAULTS.get('tipo','Fondo de Inversión Privado')).strip()
     fecha_s = str(info.get('fecha_inicio','') or fi.get('fecha_inicio','')).strip()
     remun   = str(info.get('remuneracion') or fi.get('remuneracion') or '—').strip()
+    _usd = (moneda == "USD")
+    rentab_txt = ("La rentabilidad esperada de los fondos de liquidez en dólares de Vantrust Capital "
+                  "está vinculada a las tasas del mercado monetario (Money Market) en dólares."
+                  if _usd else
+                  "La rentabilidad esperada de los fondos de liquidez de Vantrust Capital es la Tasa "
+                  "Política Monetaria (TPM) promedio del Banco Central de Chile.")
+    disclaimer_txt = ("(*) Las rentabilidades están expresadas en términos anualizados."
+                      if _usd else
+                      "(*) Las rentabilidades están expresadas en términos mensuales.")
     custodio= str(_DEFAULTS.get('custodio','Vantrust Capital C. de Bolsa')).strip()
     forma   = ("La moneda en que el inversionista entra al fondo es aportando dólares estadounidenses, y al rescate de las cuotas, el fondo le entrega dólares estadounidenses." if moneda=="USD"
                else "La moneda en que el inversionista entra al fondo es aportando pesos chilenos, y al rescate de las cuotas, el fondo le entrega pesos chilenos.")
@@ -288,8 +298,8 @@ def generar_html_folleto(display_name, periodo, comentario, datos_template,
         <tr><td class="label">Custodio</td><td class="value">{custodio}</td></tr>
       </table></div>
     <div class="left-section"><div class="left-section-title">Objetivo</div><p class="left-text">Invertir los recursos del fondo en instrumentos de deuda de corto y mediano plazo, en una cartera diversificada, obteniendo una rentabilidad igual o superior al ICP.</p></div>
-    <div class="left-section"><div class="left-section-title">Rentabilidad</div><p class="left-text">La rentabilidad esperada del Fondo Vantrust {display_name} es la tasa de política monetaria promedio del Banco Central de Chile.</p></div>
-    <div class="left-section"><div class="left-section-title">Inversionistas</div><p class="left-text">Dirigida a empresas y personas que buscan invertir sus excedentes de caja con una rentabilidad de corto plazo y baja tolerancia al riesgo.</p></div>
+    <div class="left-section"><div class="left-section-title">Rentabilidad</div><p class="left-text">{rentab_txt}</p></div>
+    <div class="left-section"><div class="left-section-title">Inversionistas</div><p class="left-text">Dirigida a empresas y personas que buscan invertir sus excedentes de caja con una rentabilidad de corto plazo y fondos de alta liquidez.</p></div>
   </div>
   <div class="col-right"><div class="right-inner">
     <div class="section-title">Comentario Portafolio Manager</div>
@@ -312,6 +322,7 @@ def generar_html_folleto(display_name, periodo, comentario, datos_template,
       <tbody>
 {hist_html}      </tbody>
     </table>
+    <p class="disclaimer">{disclaimer_txt}</p>
   </div></div>
 </div>
 <div class="page">
