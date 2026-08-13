@@ -85,7 +85,7 @@ FONDO_PUBLICAR_DESDE = {
     "Liquidez Flexible Dólar": "2026-06",
     "Liquidez Temporal":       "2026-06",
     "Liquidez Recurrente":     "2026-06",
-    "Liquidez Horizonte":      "2027-01",  # sin valor cuota en la planilla aún; bajar cuando aparezca
+    "Liquidez Horizonte":      "2026-07",
 }
 
 
@@ -161,24 +161,29 @@ def _actualizar_referencias(year: int, month: int):
     # ── ICP via BCCh ──────────────────────────────────────────────────────────
     try:
         p, icp = _load("icp_clicp.json")
-        if key not in icp:
-            ks = sorted(icp.keys())
-            if ks:
-                from etl.icp_bcch import icp_mes_bcch
-                anchor = float(icp[ks[-1]])
-                val = icp_mes_bcch(year, month, anchor); fuente = "BCCh"
-                if not val:
-                    val = _icp_mes_tpm(year, month, anchor); fuente = "TPM aprox"
-                if val:
-                    icp[key] = round(val, 2)
-                    p.write_text(json.dumps(icp, indent=2, ensure_ascii=False), encoding="utf-8")
-                    log(f"  ✓ ICP {key} = {icp[key]} ({fuente})")
-                    if fuente != "BCCh":
-                        log("    [NOTA] ICP aproximado por TPM. Configura BCCH_USER/BCCH_PASS para valor exacto.")
-                else:
-                    log(f"  [WARN] ICP {key}: no se pudo obtener (ni BCCh ni TPM)")
-        else:
-            log(f"  · ICP {key} ya presente ({icp[key]})")
+        ks = sorted(icp.keys())
+        if ks:
+            from etl.icp_bcch import icp_mes_bcch
+            from datetime import date as _d
+            from dateutil.relativedelta import relativedelta as _rd
+            ly, lm = int(ks[-1][:4]), int(ks[-1][5:7])
+            cur, tgt = _d(ly, lm, 1) + _rd(months=1), _d(year, month, 1)
+            wrote = False
+            while cur <= tgt:  # rellenar EN CADENA todos los meses faltantes hasta el objetivo
+                k2 = f"{cur.year}-{cur.month:02d}"
+                if k2 not in icp:
+                    anchor = float(icp[sorted(icp.keys())[-1]])  # mes previo (secuencial)
+                    val = icp_mes_bcch(cur.year, cur.month, anchor); fuente = "BCCh"
+                    if not val:
+                        val = _icp_mes_tpm(cur.year, cur.month, anchor); fuente = "TPM aprox"
+                    if val:
+                        icp[k2] = round(val, 2); wrote = True
+                        log(f"  ✓ ICP {k2} = {icp[k2]} ({fuente})")
+                    else:
+                        log(f"  [WARN] ICP {k2}: no se pudo obtener")
+                cur += _rd(months=1)
+            if wrote:
+                p.write_text(json.dumps(icp, indent=2, ensure_ascii=False), encoding="utf-8")
     except Exception as e:
         log(f"  [WARN] ICP no actualizado: {e}")
 
