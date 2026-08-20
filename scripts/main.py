@@ -27,6 +27,7 @@ DISPLAY_MAP = {
     "Alto Aporte":           "FIP VANTRUST LIQUIDEZ ALTO APORTE",
     "Alto Capital":          "FIP VANTRUST LIQUIDEZ ALTO CAPITAL",
     "Liquidez Activa":       "FIP VANTRUST LIQUIDEZ ACTIVA",
+    "Liquidez Alto Monto":   "FIP VANTRUST LIQUIDEZ ALTO MONTO",
     "Liquidez Caja":         "FIP VANTRUST LIQUIDEZ CAJA",
     "Liquidez Continua":     "FIP VANTRUST LIQUIDEZ CONTINUA",
     "Liquidez Corriente":    "FIP VANTRUST LIQUIDEZ CORRIENTE",
@@ -55,6 +56,7 @@ PDF_NAME_MAP = {
     "Alto Aporte":           "FIP_VANTRUST_LIQUIDEZ_ALTO_APORTE",
     "Alto Capital":          "FIP_VANTRUST_LIQUIDEZ_ALTO_CAPITAL",
     "Liquidez Activa":       "FIP_VANTRUST_LIQUIDEZ_ACTIVA",
+    "Liquidez Alto Monto":   "FIP_VANTRUST_LIQUIDEZ_ALTO_MONTO",
     "Liquidez Caja":         "FIP_VANTRUST_LIQUIDEZ_CAJA",
     "Liquidez Continua":     "FIP_VANTRUST_LIQUIDEZ_CONTINUA",
     "Liquidez Corriente":    "FIP_VANTRUST_LIQUIDEZ_CORRIENTE",
@@ -87,6 +89,86 @@ FONDO_PUBLICAR_DESDE = {
     "Liquidez Recurrente":     "2026-06",
     "Liquidez Horizonte":      "2026-07",
 }
+
+
+# ── Fondos nuevos: se incorporan solos cuando aparece su valor cuota ──────────
+# Regla acordada (ago-2026): si el valor cuota del fondo está en la planilla mensual
+# (inputs/planilla_vc.xlsx), se genera el folleto — da igual si en el menú figura como
+# vigente o vencido. El estado de vigencia solo controla el filtro de MenuFF.html.
+#
+# Estos fondos tienen reglamento interno vigente pero todavía NO tienen folleto.
+# Se activan automáticamente en cuanto se cumplan LAS DOS condiciones:
+#   (a) su nemotécnico aparece en inputs/planilla_vc.xlsx, y
+#   (b) existe su template Excel registrado en etl/template_reader.FUND_TEMPLATE_MAP.
+# Mientras falte cualquiera de las dos, se omiten con un aviso en el log.
+FONDOS_NUEVOS = {
+    "Liquidez Estratégico": "FIP VANTRUST LIQUIDEZ ESTRATEGICO",
+    "Liquidez Reserva": "FIP VANTRUST LIQUIDEZ RESERVA",
+    "Liquidez Inmediata": "FIP VANTRUST LIQUIDEZ INMEDIATA",
+    "Liquidez Mercado Monetario": "FIP VANTRUST LIQUIDEZ MERCADO MONETARIO",
+    "Liquidez Remanente": "FIP VANTRUST LIQUIDEZ REMANENTE",
+    "Liquidez Flotante": "FIP VANTRUST LIQUIDEZ FLOTANTE",
+    "Liquidez Transitorio": "FIP VANTRUST LIQUIDEZ TRANSITORIO",
+    "Liquidez Adicional": "FIP VANTRUST LIQUIDEZ ADICIONAL",
+    "Liquidez Incremental": "FIP VANTRUST LIQUIDEZ INCREMENTAL",
+    "Liquidez Gestión Caja": "FIP VANTRUST LIQUIDEZ GESTION CAJA",
+    "Deuda Privada": "FIP VANTRUST DEUDA PRIVADA",
+    "Tesorería": "FIP VANTRUST TESORERIA",
+    "USD Money Market": "FIP VANTRUST USD MONEY MARKET",
+    "Liquidez Gran Patrimonio": "FIP VANTRUST LIQUIDEZ ALTO PATRIMONIO",
+    "Liquidez II": "FIP VANTRUST LIQUIDEZ II",
+    "Liquidez Disponible": "FIP VANTRUST LIQUIDEZ DISPONIBLE",
+    "Liquidez Monetario": "FIP VANTRUST LIQUIDEZ MONETARIO",
+    "Vantrust Liquidez": "FIP VANTRUST LIQUIDEZ",
+    "Extra": "FIP VANTRUST EXTRA",
+}
+
+
+def _nemotecnicos_planilla() -> set:
+    """Nemotécnicos presentes en inputs/planilla_vc.xlsx (columna NEMOTECNICO)."""
+    ruta = Path(__file__).parent.parent / "inputs" / "planilla_vc.xlsx"
+    if not ruta.exists():
+        return set()
+    try:
+        import openpyxl
+        wb = openpyxl.load_workbook(ruta, data_only=True, read_only=True)
+        ws = wb[wb.sheetnames[0]]
+        out = set()
+        for row in ws.iter_rows(min_row=2, min_col=2, max_col=2, values_only=True):
+            v = row[0]
+            if v:
+                out.add(str(v).strip().strip("'").upper())
+        wb.close()
+        return out
+    except Exception as e:
+        log(f"  [WARN] No se pudo leer planilla_vc.xlsx: {e}")
+        return set()
+
+
+def _habilitar_fondos_nuevos():
+    """Agrega a DISPLAY_MAP/PDF_NAME_MAP los fondos nuevos que ya tienen datos."""
+    if not FONDOS_NUEVOS:
+        return
+    try:
+        from etl.template_reader import FUND_TEMPLATE_MAP
+    except Exception:
+        FUND_TEMPLATE_MAP = {}
+    _TMPL_DIR = Path(__file__).parent.parent / "inputs" / "templates"
+    nemos = _nemotecnicos_planilla()
+    for display, ods in FONDOS_NUEVOS.items():
+        if display in DISPLAY_MAP:
+            continue
+        if ods.upper() not in nemos:
+            log(f"  · {display}: sin valor cuota en la planilla — folleto omitido")
+            continue
+        tmpl = FUND_TEMPLATE_MAP.get(ods)
+        if not tmpl or not (_TMPL_DIR / tmpl).exists():
+            log(f"  [PENDIENTE] {display}: hay valor cuota pero falta el template Excel "
+                f"(agregar a inputs/templates/ y a FUND_TEMPLATE_MAP)")
+            continue
+        DISPLAY_MAP[display]  = ods
+        PDF_NAME_MAP[display] = "FIP_" + ods.replace("FIP ", "").replace(" ", "_")
+        log(f"  ✓ {display}: fondo nuevo incorporado al folleto del mes")
 
 
 def _detect_last_complete_month() -> tuple[int, int]:
@@ -230,6 +312,9 @@ def run(comentario_clp: str, comentario_usd: str):
     periodo   = f"{MESES_ES[month]} {year}"
 
     log(f"\n{'='*60}\n FOLLETOS {periodo} — {mes_str}\n{'='*60}\n")
+
+    log("[0/5] Revisando fondos nuevos con valor cuota disponible...")
+    _habilitar_fondos_nuevos()
 
     BASE_DIR = Path(__file__).parent.parent
 

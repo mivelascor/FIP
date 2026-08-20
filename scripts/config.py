@@ -236,7 +236,144 @@ _INFO = {
         "remuneracion": "cobrara una comision anual ascendente al menor valor entre: 1.-Un monto equivalente al 0,50% de la TPM vigente a la fecha de cálculo más IVA 2.- y una tasa 0,9520% (IVA incluido), esta comision se ira devengando en forma diaria.",
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
+
+# ── Fondos nuevos 2025-2026 (reglamento interno vigente entregado en ago-2026) ──
+# Todavía sin folleto: falta template Excel y/o valor cuota en la planilla mensual.
+# La remuneración está pendiente: los reglamentos vienen escaneados (imagen).
+    "FIP VANTRUST LIQUIDEZ ESTRATEGICO": {
+        "rut":          "76.639.718-2",
+        "moneda":       "CLP",
+        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
+    "FIP VANTRUST LIQUIDEZ RESERVA": {
+        "rut":          "76.639.715-8",
+        "moneda":       "CLP",
+        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
+    "FIP VANTRUST LIQUIDEZ INMEDIATA": {
+        "rut":          "76.650.244-K",
+        "moneda":       "CLP",
+        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
+    "FIP VANTRUST LIQUIDEZ MERCADO MONETARIO": {
+        "rut":          "76.650.253-9",
+        "moneda":       "CLP",
+        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
+    "FIP VANTRUST LIQUIDEZ REMANENTE": {
+        "rut":          "76.650.254-7",
+        "moneda":       "CLP",
+        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
+    "FIP VANTRUST LIQUIDEZ FLOTANTE": {
+        "rut":          "76.650.256-3",
+        "moneda":       "CLP",
+        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
+    "FIP VANTRUST LIQUIDEZ TRANSITORIO": {
+        "rut":          "76.650.237-7",
+        "moneda":       "CLP",
+        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
+    "FIP VANTRUST LIQUIDEZ ADICIONAL": {
+        "rut":          "76.650.243-1",
+        "moneda":       "CLP",
+        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
+    "FIP VANTRUST LIQUIDEZ INCREMENTAL": {
+        "rut":          "76.650.242-3",
+        "moneda":       "CLP",
+        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
+    "FIP VANTRUST LIQUIDEZ GESTION CAJA": {
+        "rut":          "76.650.252-0",
+        "moneda":       "CLP",
+        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
+    "FIP VANTRUST DEUDA PRIVADA": {
+        "rut":          "POR CONFIRMAR",
+        "moneda":       "CLP",
+        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
+    "FIP VANTRUST TESORERIA": {
+        "rut":          "POR CONFIRMAR",
+        "moneda":       "CLP",
+        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
+    "FIP VANTRUST USD MONEY MARKET": {
+        "rut":          "POR CONFIRMAR",
+        "moneda":       "USD",
+        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
+    "FIP VANTRUST LIQUIDEZ ALTO PATRIMONIO": {
+        "rut":          "76.623.035-0",
+        "moneda":       "CLP",
+        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
+    "FIP VANTRUST LIQUIDEZ II": {
+        "rut":          "POR CONFIRMAR",
+        "moneda":       "CLP",
+        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
+    "FIP VANTRUST LIQUIDEZ DISPONIBLE": {
+        "rut":          "POR CONFIRMAR",
+        "moneda":       "CLP",
+        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
+    "FIP VANTRUST LIQUIDEZ MONETARIO": {
+        "rut":          "POR CONFIRMAR",
+        "moneda":       "CLP",
+        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
+    "FIP VANTRUST LIQUIDEZ": {
+        "rut":          "POR CONFIRMAR",
+        "moneda":       "CLP",
+        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
+    "FIP VANTRUST EXTRA": {
+        "rut":          "POR CONFIRMAR",
+        "moneda":       "CLP",
+        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "benchmark":    "Índice Cámara Promedio (ICP)",
+    },
 }
+
+# ── Estado de vigencia (fuente: reglamentos internos entregados en agosto 2026) ──
+# "vigente" = el fondo tiene reglamento interno y/o acta de prórroga vigente en regl.int/
+# "vencido" = no llegó reglamento ni prórroga en la entrega de agosto 2026.
+# OJO: un fondo marcado "vencido" IGUAL genera folleto si su valor cuota aparece en
+# la planilla mensual. El estado solo controla el filtro del menú (MenuFF.html).
+# Hoy no hay ningún fondo marcado como vencido (confirmado por la usuaria, ago-2026:
+# los 5 fondos sin reglamento en la entrega — Continua, Corto Plazo, Permanente,
+# Recurrente y Temporal — siguen vigentes; solo faltaba el documento).
+# Para marcar uno como vencido: agregar aquí la línea y volver a correr
+#   python scripts/generar_menu.py
+FONDOS_ESTADO = {
+    # "FIP VANTRUST LIQUIDEZ CONTINUA": "vencido",
+}
+
+
+def estado_fondo(nombre: str) -> str:
+    """Devuelve 'vigente' o 'vencido' para un fondo (por nombre ODS)."""
+    return FONDOS_ESTADO.get(nombre, "vigente")
 
 # ── Defaults compartidos ──────────────────────────────────────────────────────
 _DEFAULTS = {

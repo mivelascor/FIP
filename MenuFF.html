@@ -6,7 +6,7 @@
 <title>Fichas de Fondos — Vantrust</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
-:root{--bg:#0a0a0a;--surface:#111;--s2:#161616;--border:#1e1e1e;--border2:#2a2a2a;--text:#e8e8e8;--muted:#555;--muted2:#777;--blue:#3b82f6;}
+:root{--bg:#0a0a0a;--surface:#111;--s2:#161616;--border:#1e1e1e;--border2:#2a2a2a;--text:#e8e8e8;--muted:#555;--muted2:#777;--blue:#3b82f6;--green:#22c55e;--amber:#d19a3a;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;}
 
@@ -16,25 +16,42 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .tb-sep{color:var(--border2);font-size:16px;}
 .tb-title{font-family:'DM Serif Display',serif;font-size:17px;font-weight:400;}
 
-.search-wrap{padding:28px 40px 0;display:flex;align-items:center;gap:12px;}
-.search-box{width:320px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 14px;outline:none;transition:border-color .15s;border-radius:2px;}
+.controls{padding:28px 40px 0;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.search-box{width:300px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 14px;outline:none;transition:border-color .15s;border-radius:2px;}
 .search-box:focus{border-color:var(--border2);}
 .search-box::placeholder{color:var(--muted);}
-.search-count{font-size:12px;color:var(--muted);margin-left:4px;}
-.eyebrow{padding:20px 40px 14px;font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);}
+
+/* ── Toggle Todos / Vigentes / Vencidos ── */
+.seg{display:inline-flex;border:1px solid var(--border2);border-radius:2px;overflow:hidden;background:var(--surface);}
+.seg button{background:transparent;border:none;border-right:1px solid var(--border2);color:var(--muted2);
+  font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.3px;
+  padding:10px 18px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:7px;}
+.seg button:last-child{border-right:none;}
+.seg button:hover{color:var(--text);background:var(--s2);}
+.seg button.on{background:var(--text);color:var(--bg);}
+.seg button .n{font-size:10px;font-weight:700;opacity:.6;}
+.seg button.on .n{opacity:.5;}
+.search-count{font-size:12px;color:var(--muted);}
+
+.eyebrow{padding:22px 40px 14px;font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);}
 
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin:0 40px 44px;}
-.card{background:var(--bg);padding:26px 22px;text-decoration:none;color:var(--text);transition:background .15s;display:flex;flex-direction:column;gap:8px;min-height:100px;}
+.card{background:var(--bg);padding:22px;text-decoration:none;color:var(--text);transition:background .15s;display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-height:104px;}
 .card:hover{background:var(--surface);}
 .card-name{font-size:13px;font-weight:500;line-height:1.4;}
+.card-foot{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
 .card-tag{font-size:10px;color:var(--muted);letter-spacing:.3px;font-weight:500;}
 .card-tag.usd{color:var(--blue);}
+.chip{font-size:9px;font-weight:600;letter-spacing:.5px;padding:2px 6px;border-radius:2px;border:1px solid;}
+.chip.ven{color:var(--amber);border-color:#4a3308;background:#231a06;}
+.chip.sin{color:var(--muted2);border-color:var(--border2);background:var(--surface);}
+.empty{padding:40px;text-align:center;color:var(--muted);font-size:13px;grid-column:1/-1;background:var(--bg);}
 
 /* ── Downloads ── */
 .dl-section{margin:0 40px;background:var(--surface);border:1px solid var(--border);padding:32px 32px 28px;}
 .dl-title{font-family:'DM Serif Display',serif;font-size:24px;font-weight:400;margin-bottom:6px;}
 .dl-sub{font-size:12px;color:var(--muted);margin-bottom:28px;line-height:1.55;}
-.dl-primary-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;}
+.dl-primary-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px;}
 .btn-big{display:flex;align-items:center;gap:14px;background:var(--s2);border:1px solid var(--border2);padding:18px 20px;cursor:pointer;transition:all .18s;border-radius:2px;width:100%;text-align:left;color:var(--text);font-family:'DM Sans',sans-serif;}
 .btn-big:hover{border-color:var(--text);background:var(--border);}
 .btn-big:disabled{opacity:.35;cursor:not-allowed;}
@@ -54,11 +71,11 @@ select:focus{border-color:var(--muted2);}
 .btn-sm:hover{border-color:var(--text);color:var(--text);}
 .dl-hint{font-size:11px;color:var(--muted);margin-top:10px;min-height:16px;}
 
-@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr);}.dl-primary-row{grid-template-columns:1fr;}.topbar,.search-wrap,.eyebrow,.dl-section{padding-left:20px;padding-right:20px;}.grid,.dl-section{margin-left:0;margin-right:0;}}
-</style>
+.site-footer{border-top:1px solid var(--border);margin-top:60px;padding:20px 40px;font-size:11px;color:var(--muted);line-height:1.6;}
 
-<style>
-.site-footer{border-top:1px solid var(--border,#1e1e1e);margin-top:60px;padding:20px 40px;font-size:11px;color:var(--muted,#555);line-height:1.6;}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr);}.dl-primary-row{grid-template-columns:1fr;}
+  .topbar,.controls,.eyebrow,.dl-section{padding-left:20px;padding-right:20px;}
+  .grid,.dl-section{margin-left:0;margin-right:0;}.search-box{width:100%;}}
 </style>
 </head>
 <body>
@@ -69,40 +86,65 @@ select:focus{border-color:var(--muted2);}
   <span class="tb-title">Fichas de Fondos</span>
 </div>
 
-<div class="search-wrap">
+<div class="controls">
   <input class="search-box" id="q" type="search" placeholder="Buscar fondo..." oninput="filtrar()">
+  <div class="seg" id="seg">
+    <button class="on" data-f="todos">Todos <span class="n">45</span></button>
+    <button data-f="vigente">Vigentes <span class="n">45</span></button>
+    <button data-f="vencido">Vencidos <span class="n">0</span></button>
+  </div>
   <span class="search-count" id="ct"></span>
 </div>
 
-<div class="eyebrow">Fondos activos</div>
+<div class="eyebrow" id="eyebrow">Todos los fondos</div>
 
 <div class="grid" id="grid">
-  <a class="card" href="O1FipVantrustLiquidezActiva.html"><div class="card-name">FIP Liquidez Activa</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O2FipVantrustLiquidezAltoAporte.html"><div class="card-name">FIP Liquidez Alto Aporte</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O3FipVantrustLiquidezAltoCapital.html"><div class="card-name">FIP Liquidez Alto Capital</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O4FipVantrustLiquidezAltoMonto.html"><div class="card-name">FIP Liquidez Alto Monto</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O5FipVantrustLiquidezCaja.html"><div class="card-name">FIP Liquidez Caja</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O6FipVantrustLiquidezContinua.html"><div class="card-name">FIP Liquidez Continua</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O7FipVantrustLiquidezCorriente.html"><div class="card-name">FIP Liquidez Corriente</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O8FipVantrustLiquidezCortoPlazo.html"><div class="card-name">FIP Liquidez Corto Plazo</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O9FipVantrustLiquidezDisponibleI.html"><div class="card-name">FIP Liquidez Disponible I</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O12FipVantrustLiquidezEfectivo.html"><div class="card-name">FIP Liquidez Efectivo</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O13FipVantrustLiquidezFlexible.html"><div class="card-name">FIP Liquidez Flexible</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O14FipVantrustLiquidezI.html"><div class="card-name">FIP Liquidez I (Uno)</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O15FipVantrustLiquidezLocal.html"><div class="card-name">FIP Liquidez Local</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O16FipVantrustLiquidezMonetarioI.html"><div class="card-name">FIP Liquidez Monetario I</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O17FipVantrustLiquidezPermanente.html"><div class="card-name">FIP Liquidez Permanente</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O18FipVantrustLiquidezPlus.html"><div class="card-name">FIP Liquidez Plus</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O19FipVantrustLiquidezPresente.html"><div class="card-name">FIP Liquidez Presente</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O20FipVantrustLiquidezRecurrente.html"><div class="card-name">FIP Liquidez Recurrente</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O21FipVantrustLiquidezRendimiento.html"><div class="card-name">FIP Liquidez Rendimiento</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O23FipVantrustLiquidezSencillo.html"><div class="card-name">FIP Liquidez Sencillo</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O10FipVantrustLiquidezDolar.html"><div class="card-name">FIP Liquidez Dólar</div><div class="card-tag usd">USD</div></a>
-  <a class="card" href="O11FipVantrustLiquidezDolarCaja.html"><div class="card-name">FIP Liquidez Dólar Caja</div><div class="card-tag usd">USD</div></a>
-  <a class="card" href="O22FipVantrustLiquidezReservaDolar.html"><div class="card-name">FIP Liquidez Reserva Dólar</div><div class="card-tag usd">USD</div></a>
-  <a class="card" href="O25FipVantrustLiquidezFlexibleDolar.html"><div class="card-name">FIP Liquidez Flexible Dólar</div><div class="card-tag usd">USD</div></a>
-  <a class="card" href="O24FipVantrustLiquidezTemporal.html"><div class="card-name">FIP Liquidez Temporal</div><div class="card-tag">CLP</div></a>
-  <a class="card" href="O26FipVantrustLiquidezHorizonte.html"><div class="card-name">FIP Liquidez Horizonte</div><div class="card-tag">CLP</div></a>
+  <a class="card" href="O37FipVantrustDeudaPrivada.html" data-estado="vigente" data-folleto="no"><div class="card-name">FIP Deuda Privada</div><div class="card-foot"><span class="card-tag">CLP</span><span class="chip sin">Sin folleto</span></div></a>
+  <a class="card" href="O45FipVantrustExtra.html" data-estado="vigente" data-folleto="no"><div class="card-name">FIP Extra</div><div class="card-foot"><span class="card-tag">CLP</span><span class="chip sin">Sin folleto</span></div></a>
+  <a class="card" href="O1FipVantrustLiquidezActiva.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Activa</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O34FipVantrustLiquidezAdicional.html" data-estado="vigente" data-folleto="no"><div class="card-name">FIP Liquidez Adicional</div><div class="card-foot"><span class="card-tag">CLP</span><span class="chip sin">Sin folleto</span></div></a>
+  <a class="card" href="O2FipVantrustLiquidezAltoAporte.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Alto Aporte</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O3FipVantrustLiquidezAltoCapital.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Alto Capital</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O4FipVantrustLiquidezAltoMonto.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Alto Monto</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O5FipVantrustLiquidezCaja.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Caja</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O6FipVantrustLiquidezContinua.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Continua</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O7FipVantrustLiquidezCorriente.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Corriente</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O8FipVantrustLiquidezCortoPlazo.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Corto Plazo</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O42FipVantrustLiquidezDisponible.html" data-estado="vigente" data-folleto="no"><div class="card-name">FIP Liquidez Disponible</div><div class="card-foot"><span class="card-tag">CLP</span><span class="chip sin">Sin folleto</span></div></a>
+  <a class="card" href="O9FipVantrustLiquidezDisponibleI.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Disponible I</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O12FipVantrustLiquidezEfectivo.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Efectivo</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O27FipVantrustLiquidezEstrategico.html" data-estado="vigente" data-folleto="no"><div class="card-name">FIP Liquidez Estratégico</div><div class="card-foot"><span class="card-tag">CLP</span><span class="chip sin">Sin folleto</span></div></a>
+  <a class="card" href="O13FipVantrustLiquidezFlexible.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Flexible</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O32FipVantrustLiquidezFlotante.html" data-estado="vigente" data-folleto="no"><div class="card-name">FIP Liquidez Flotante</div><div class="card-foot"><span class="card-tag">CLP</span><span class="chip sin">Sin folleto</span></div></a>
+  <a class="card" href="O36FipVantrustLiquidezGestionCaja.html" data-estado="vigente" data-folleto="no"><div class="card-name">FIP Liquidez Gestión Caja</div><div class="card-foot"><span class="card-tag">CLP</span><span class="chip sin">Sin folleto</span></div></a>
+  <a class="card" href="O40FipVantrustLiquidezGranPatrimonio.html" data-estado="vigente" data-folleto="no"><div class="card-name">FIP Liquidez Gran Patrimonio</div><div class="card-foot"><span class="card-tag">CLP</span><span class="chip sin">Sin folleto</span></div></a>
+  <a class="card" href="O26FipVantrustLiquidezHorizonte.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Horizonte</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O14FipVantrustLiquidezI.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez I (Uno)</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O41FipVantrustLiquidezII.html" data-estado="vigente" data-folleto="no"><div class="card-name">FIP Liquidez II</div><div class="card-foot"><span class="card-tag">CLP</span><span class="chip sin">Sin folleto</span></div></a>
+  <a class="card" href="O35FipVantrustLiquidezIncremental.html" data-estado="vigente" data-folleto="no"><div class="card-name">FIP Liquidez Incremental</div><div class="card-foot"><span class="card-tag">CLP</span><span class="chip sin">Sin folleto</span></div></a>
+  <a class="card" href="O29FipVantrustLiquidezInmediata.html" data-estado="vigente" data-folleto="no"><div class="card-name">FIP Liquidez Inmediata</div><div class="card-foot"><span class="card-tag">CLP</span><span class="chip sin">Sin folleto</span></div></a>
+  <a class="card" href="O15FipVantrustLiquidezLocal.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Local</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O30FipVantrustLiquidezMercadoMonetario.html" data-estado="vigente" data-folleto="no"><div class="card-name">FIP Liquidez Mercado Monetario</div><div class="card-foot"><span class="card-tag">CLP</span><span class="chip sin">Sin folleto</span></div></a>
+  <a class="card" href="O43FipVantrustLiquidezMonetario.html" data-estado="vigente" data-folleto="no"><div class="card-name">FIP Liquidez Monetario</div><div class="card-foot"><span class="card-tag">CLP</span><span class="chip sin">Sin folleto</span></div></a>
+  <a class="card" href="O16FipVantrustLiquidezMonetarioI.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Monetario I</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O17FipVantrustLiquidezPermanente.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Permanente</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O18FipVantrustLiquidezPlus.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Plus</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O19FipVantrustLiquidezPresente.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Presente</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O20FipVantrustLiquidezRecurrente.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Recurrente</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O31FipVantrustLiquidezRemanente.html" data-estado="vigente" data-folleto="no"><div class="card-name">FIP Liquidez Remanente</div><div class="card-foot"><span class="card-tag">CLP</span><span class="chip sin">Sin folleto</span></div></a>
+  <a class="card" href="O21FipVantrustLiquidezRendimiento.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Rendimiento</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O28FipVantrustLiquidezReserva.html" data-estado="vigente" data-folleto="no"><div class="card-name">FIP Liquidez Reserva</div><div class="card-foot"><span class="card-tag">CLP</span><span class="chip sin">Sin folleto</span></div></a>
+  <a class="card" href="O23FipVantrustLiquidezSencillo.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Sencillo</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O24FipVantrustLiquidezTemporal.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Temporal</div><div class="card-foot"><span class="card-tag">CLP</span></div></a>
+  <a class="card" href="O33FipVantrustLiquidezTransitorio.html" data-estado="vigente" data-folleto="no"><div class="card-name">FIP Liquidez Transitorio</div><div class="card-foot"><span class="card-tag">CLP</span><span class="chip sin">Sin folleto</span></div></a>
+  <a class="card" href="O38FipVantrustTesoreria.html" data-estado="vigente" data-folleto="no"><div class="card-name">FIP Tesorería</div><div class="card-foot"><span class="card-tag">CLP</span><span class="chip sin">Sin folleto</span></div></a>
+  <a class="card" href="O44FipVantrustLiquidez.html" data-estado="vigente" data-folleto="no"><div class="card-name">FIP Vantrust Liquidez</div><div class="card-foot"><span class="card-tag">CLP</span><span class="chip sin">Sin folleto</span></div></a>
+  <a class="card" href="O10FipVantrustLiquidezDolar.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Dólar</div><div class="card-foot"><span class="card-tag usd">USD</span></div></a>
+  <a class="card" href="O11FipVantrustLiquidezDolarCaja.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Dólar Caja</div><div class="card-foot"><span class="card-tag usd">USD</span></div></a>
+  <a class="card" href="O25FipVantrustLiquidezFlexibleDolar.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Flexible Dólar</div><div class="card-foot"><span class="card-tag usd">USD</span></div></a>
+  <a class="card" href="O22FipVantrustLiquidezReservaDolar.html" data-estado="vigente" data-folleto="si"><div class="card-name">FIP Liquidez Reserva Dólar</div><div class="card-foot"><span class="card-tag usd">USD</span></div></a>
+  <a class="card" href="O39FipVantrustUsdMoneyMarket.html" data-estado="vigente" data-folleto="no"><div class="card-name">FIP USD Money Market</div><div class="card-foot"><span class="card-tag usd">USD</span><span class="chip sin">Sin folleto</span></div></a>
+  <div class="empty" id="empty" style="display:none">No hay fondos que coincidan.</div>
 </div>
 
 <div class="dl-section">
@@ -110,7 +152,6 @@ select:focus{border-color:var(--muted2);}
   <div class="dl-sub">Folletos comerciales en PDF — datos del último día del mes anterior.</div>
 
   <div class="dl-primary-row">
-    <!-- PRIMARY: always downloads latest.zip — the last correctly generated batch -->
     <button class="btn-big primary" id="btnLatest" onclick="dlLatest()">
       <span class="btn-icon">📦</span>
       <span class="btn-lbl">
@@ -122,7 +163,14 @@ select:focus{border-color:var(--muted2);}
       <span class="btn-icon">📄</span>
       <span class="btn-lbl">
         <strong>Todos los reglamentos</strong>
-        <span>Descarga masiva de PDFs</span>
+        <span>37 PDFs de reglamentos internos</span>
+      </span>
+    </button>
+    <button class="btn-big" onclick="dlProrrogas()">
+      <span class="btn-icon">🗓️</span>
+      <span class="btn-lbl">
+        <strong>Prórrogas de vigencia</strong>
+        <span>Actas de directorio 2026</span>
       </span>
     </button>
   </div>
@@ -139,96 +187,97 @@ select:focus{border-color:var(--muted2);}
 
 <script>
 const REPO="mivelascor/FIP", BRANCH="main";
+let filtro="todos";
 
-/* ── Detect latest ZIP by looking for folletos_YYYY-MM.zip files at root ── */
-async function cargarMeses() {
-  try {
+/* ── Toggle Todos / Vigentes / Vencidos ── */
+document.getElementById("seg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b) return;
+  [...document.querySelectorAll("#seg button")].forEach(x => x.classList.toggle("on", x===b));
+  filtro = b.dataset.f;
+  document.getElementById("eyebrow").textContent =
+    filtro==="vigente" ? "Fondos vigentes" : filtro==="vencido" ? "Fondos vencidos" : "Todos los fondos";
+  filtrar();
+});
+
+/* quita tildes para que "dolar" encuentre "Dólar" */
+const norm = s => (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
+
+function filtrar(){
+  const q = norm(document.getElementById("q").value);
+  const cards = [...document.querySelectorAll(".card")];
+  let vis = 0;
+  cards.forEach(c => {
+    const okEstado = filtro==="todos" || c.dataset.estado===filtro;
+    const okTexto  = !q || norm(c.innerText).includes(q);
+    const show = okEstado && okTexto;
+    c.style.display = show ? "flex" : "none";
+    if(show) vis++;
+  });
+  const empty = document.getElementById("empty");
+  empty.style.display = vis ? "none" : "block";
+  empty.textContent = (!vis && !q && filtro==="vencido")
+    ? "No hay fondos marcados como vencidos."
+    : "No hay fondos que coincidan.";
+  document.getElementById("ct").textContent =
+    `${vis} fondo${vis!==1?"s":""}` + (q ? " · filtrado" : "");
+}
+
+async function cargarMeses(){
+  try{
     const r = await fetch(`https://api.github.com/repos/${REPO}/contents/folletos`,
       {headers:{"Accept":"application/vnd.github+json"}});
-    if (!r.ok) throw new Error(r.status);
+    if(!r.ok) throw new Error(r.status);
     const items = await r.json();
-
-    // ZIPs named folletos_YYYY-MM.zip are the source of truth
     const zips = items
-      .filter(i => i.type === "file" && /^folletos_\d{4}-\d{2}\.zip$/.test(i.name))
+      .filter(i => i.type==="file" && /^folletos_\d{4}-\d{2}\.zip$/.test(i.name))
       .map(i => i.name.replace("folletos_","").replace(".zip",""))
       .sort().reverse();
-
-    if (zips.length === 0) {
+    if(!zips.length){
       document.getElementById("lbl-mes").textContent = "Sin folletos disponibles";
       document.getElementById("btnLatest").disabled = true;
       document.getElementById("selMes").innerHTML = "<option value=''>Sin historial</option>";
       return;
     }
-
-    // Latest = first after sorting descending
-    const latest = zips[0];
-    document.getElementById("lbl-mes").textContent = latest;
-
-    // Historial = all except latest
+    document.getElementById("lbl-mes").textContent = zips[0];
     const historial = zips.slice(1);
-    const sel = document.getElementById("selMes");
-    if (historial.length > 0) {
-      sel.innerHTML = historial.map(m => `<option value="${m}">${m}</option>`).join("");
-    } else {
-      sel.innerHTML = "<option value=''>Sin historial anterior</option>";
-    }
-  } catch(e) {
-    document.getElementById("lbl-mes").textContent = "Error al cargar";
-    console.error(e);
-  }
+    document.getElementById("selMes").innerHTML = historial.length
+      ? historial.map(m => `<option value="${m}">${m}</option>`).join("")
+      : "<option value=''>Sin historial anterior</option>";
+  }catch(e){ document.getElementById("lbl-mes").textContent = "Error al cargar"; }
 }
 
-function filtrar() {
-  const q = document.getElementById("q").value.toLowerCase();
-  const cards = [...document.querySelectorAll(".card")];
-  let vis = 0;
-  cards.forEach(c => {
-    const show = !q || c.innerText.toLowerCase().includes(q);
-    c.style.display = show ? "flex" : "none";
-    if (show) vis++;
-  });
-  document.getElementById("ct").textContent =
-    q ? `${vis} resultado${vis!==1?"s":""}` : `${cards.length} fondos`;
-}
+function dl(url, name){ const a=document.createElement("a"); a.href=url; a.download=name; a.click(); }
 
-function dl(url, name) {
-  const a = document.createElement("a"); a.href = url; a.download = name; a.click();
-}
-
-function dlLatest() {
-  // Always download latest.zip — guaranteed to be the last complete generation
+function dlLatest(){
   const mes = document.getElementById("lbl-mes").textContent;
   hint(`Descargando folletos ${mes}...`);
-  dl(`https://raw.githubusercontent.com/${REPO}/${BRANCH}/folletos/latest.zip`,
-     `folletos_${mes}.zip`);
-  setTimeout(() => hint(""), 3000);
+  dl(`https://raw.githubusercontent.com/${REPO}/${BRANCH}/folletos/latest.zip`, `folletos_${mes}.zip`);
+  setTimeout(()=>hint(""), 3000);
 }
-
-function dlHistorial() {
+function dlHistorial(){
   const mes = document.getElementById("selMes").value;
-  if (!mes) { alert("Selecciona un mes."); return; }
+  if(!mes){ alert("Selecciona un mes."); return; }
   hint(`Descargando folletos ${mes}...`);
-  dl(`https://raw.githubusercontent.com/${REPO}/${BRANCH}/folletos/folletos_${mes}.zip`,
-     `folletos_${mes}.zip`);
-  setTimeout(() => hint(""), 3000);
+  dl(`https://raw.githubusercontent.com/${REPO}/${BRANCH}/folletos/folletos_${mes}.zip`, `folletos_${mes}.zip`);
+  setTimeout(()=>hint(""), 3000);
 }
-
-async function dlReglamentos() {
-  try {
-    hint("Descargando reglamentos...");
-    const r = await fetch(`https://api.github.com/repos/${REPO}/contents/regl.int`);
+async function dlCarpeta(ruta, etiqueta){
+  try{
+    hint(`Descargando ${etiqueta}...`);
+    const r = await fetch(`https://api.github.com/repos/${REPO}/contents/${ruta}`);
     const data = await r.json();
-    const pdfs = data.filter(f => f.name.endsWith(".pdf"));
-    if (!pdfs.length) { hint("Sin reglamentos disponibles."); return; }
-    pdfs.forEach((f, i) => setTimeout(() => dl(f.download_url, f.name), i * 400));
-    setTimeout(() => hint(""), pdfs.length * 400 + 500);
-  } catch(e) { hint("Error al descargar."); }
+    const pdfs = (Array.isArray(data)?data:[]).filter(f => f.type==="file" && f.name.toLowerCase().endsWith(".pdf"));
+    if(!pdfs.length){ hint("Sin documentos disponibles."); return; }
+    pdfs.forEach((f,i) => setTimeout(()=>dl(f.download_url, f.name), i*400));
+    setTimeout(()=>hint(""), pdfs.length*400 + 500);
+  }catch(e){ hint("Error al descargar."); }
 }
+function dlReglamentos(){ dlCarpeta("regl.int", "reglamentos"); }
+function dlProrrogas(){  dlCarpeta("regl.int/prorrogas", "prórrogas"); }
 
-function hint(msg) { document.getElementById("hint").textContent = msg; }
+function hint(msg){ document.getElementById("hint").textContent = msg; }
 
-document.addEventListener("DOMContentLoaded", () => { filtrar(); cargarMeses(); });
+document.addEventListener("DOMContentLoaded", ()=>{ filtrar(); cargarMeses(); });
 </script>
 <footer class="site-footer">Conforme a la Ley Única de Fondos, las administradoras de fondos de inversión privados están sujetas a las obligaciones de información establecidas por la Comisión para el Mercado Financiero. Tales fondos no están sometidos a fiscalización de la Comisión y no hacemos oferta pública de sus cuotas.</footer>
 </body>
