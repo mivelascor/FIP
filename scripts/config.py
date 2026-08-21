@@ -315,7 +315,7 @@ _INFO = {
     "FIP VANTRUST USD MONEY MARKET": {
         "rut":          "POR CONFIRMAR",
         "moneda":       "USD",
-        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "remuneracion": "El menor valor entre 0,75% anual y la mitad de la rentabilidad del Fondo, más IVA",
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
     "FIP VANTRUST LIQUIDEZ ALTO PATRIMONIO": {
@@ -351,14 +351,14 @@ _INFO = {
     "FIP VANTRUST EXTRA": {
         "rut":          "POR CONFIRMAR",
         "moneda":       "CLP",
-        "remuneracion": "POR CONFIRMAR — ver Reglamento Interno en regl.int/",
+        "remuneracion": "Comisión fija mensual equivalente a un doceavo de 1,19% (IVA incluido), es decir 1,19% anual",
         "benchmark":    "Índice Cámara Promedio (ICP)",
     },
 }
 
 # ── Estado de vigencia (fuente: reglamentos internos entregados en agosto 2026) ──
-# "vigente" = el fondo tiene reglamento interno y/o acta de prórroga vigente en regl.int/
-# "vencido" = no llegó reglamento ni prórroga en la entrega de agosto 2026.
+# "vencido" = su reglamento vino en Vencidos.zip, O su valor cuota no aparece en
+#             inputs/planilla_vc.xlsx desde mayo de 2026. En la duda se deja "vigente".
 # OJO: un fondo marcado "vencido" IGUAL genera folleto si su valor cuota aparece en
 # la planilla mensual. El estado solo controla el filtro del menú (MenuFF.html).
 # Hoy no hay ningún fondo marcado como vencido (confirmado por la usuaria, ago-2026:
@@ -367,7 +367,14 @@ _INFO = {
 # Para marcar uno como vencido: agregar aquí la línea y volver a correr
 #   python scripts/generar_menu.py
 FONDOS_ESTADO = {
-    # "FIP VANTRUST LIQUIDEZ CONTINUA": "vencido",
+    # Su reglamento vino en Vencidos.zip:
+    "FIP VANTRUST LIQUIDEZ ALTO PATRIMONIO": "vencido",   # ult. valor cuota 05-ene-2026
+    "FIP VANTRUST USD MONEY MARKET":         "vencido",   # ult. valor cuota 05-feb-2026
+    "FIP VANTRUST EXTRA":                    "vencido",   # nunca aparecio en la planilla
+    # Sin valor cuota en la planilla desde antes de mayo de 2026:
+    "FIP VANTRUST LIQUIDEZ":                 "vencido",   # ult. valor cuota 26-dic-2025
+    "FIP VANTRUST LIQUIDEZ DISPONIBLE":      "vencido",   # ult. valor cuota 22-dic-2025
+    "FIP VANTRUST LIQUIDEZ MONETARIO":       "vencido",   # ult. valor cuota 15-dic-2025
 }
 
 

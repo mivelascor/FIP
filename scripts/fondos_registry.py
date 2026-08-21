@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 # id, nombre_menu, titulo_l1, titulo_l2, rut, moneda, estado, reglamento, prorroga, folleto_pdf
+#
+# CRITERIO DE VIGENCIA (acordado con la usuaria, ago-2026):
+#   vencido = su reglamento vino en Vencidos.zip  O  su valor cuota no aparece en
+#             inputs/planilla_vc.xlsx desde mayo de 2026.
+#   En la duda se deja "vigente".
+#   Un fondo vencido IGUAL genera folleto si tiene valor cuota en la planilla:
+#   el estado solo controla el filtro del menu (MenuFF.html).
 R = [
 ("O1FipVantrustLiquidezActiva","FIP Liquidez Activa","Liquidez","ACTIVA","76.637.334-8","CLP","vigente","76637334-8 FIP Vantrust Liquidez Activa.pdf",None,"FIP_VANTRUST_LIQUIDEZ_ACTIVA"),
 ("O2FipVantrustLiquidezAltoAporte","FIP Liquidez Alto Aporte","Liquidez","ALTO APORTE","77.270.966-8","CLP","vigente",None,"Prorroga FIP Vantrust Liquidez Alto Aporte (2026-01).pdf","FIP_VANTRUST_LIQUIDEZ_ALTO_APORTE"),
@@ -40,11 +47,11 @@ R = [
 ("O36FipVantrustLiquidezGestionCaja","FIP Liquidez Gestión Caja","Liquidez","GESTIÓN CAJA","76.650.252-0","CLP","vigente","76650252-0 FIP Vantrust Liquidez Gestion Caja.pdf",None,None),
 ("O37FipVantrustDeudaPrivada","FIP Deuda Privada","Deuda","PRIVADA","","CLP","vigente","FIP Vantrust Deuda Privada.pdf",None,None),
 ("O38FipVantrustTesoreria","FIP Tesorería","","TESORERÍA","","CLP","vigente","FIP Vantrust Tesoreria.pdf",None,None),
-("O39FipVantrustUsdMoneyMarket","FIP USD Money Market","USD","MONEY MARKET","","USD","vigente","FIP Vantrust USD Money Market.pdf",None,None),
-("O40FipVantrustLiquidezGranPatrimonio","FIP Liquidez Gran Patrimonio","Liquidez","GRAN PATRIMONIO","76.623.035-0","CLP","vigente","76623035-0 FIP Vantrust Liquidez Gran Patrimonio.pdf",None,None),
+("O39FipVantrustUsdMoneyMarket","FIP USD Money Market","USD","MONEY MARKET","","USD","vencido","FIP Vantrust USD Money Market.pdf",None,None),
+("O40FipVantrustLiquidezGranPatrimonio","FIP Liquidez Gran Patrimonio","Liquidez","GRAN PATRIMONIO","76.623.035-0","CLP","vencido","76623035-0 FIP Vantrust Liquidez Gran Patrimonio.pdf",None,None),
 ("O41FipVantrustLiquidezII","FIP Liquidez II","Liquidez","II","","CLP","vigente","FIP Vantrust Liquidez II.pdf",None,None),
-("O42FipVantrustLiquidezDisponible","FIP Liquidez Disponible","Liquidez","DISPONIBLE","","CLP","vigente","FIP Vantrust Liquidez Disponible.pdf",None,None),
-("O43FipVantrustLiquidezMonetario","FIP Liquidez Monetario","Liquidez","MONETARIO","","CLP","vigente","FIP Vantrust Liquidez Monetario.pdf",None,None),
-("O44FipVantrustLiquidez","FIP Vantrust Liquidez","","LIQUIDEZ","","CLP","vigente","FIP Vantrust Liquidez.pdf",None,None),
-("O45FipVantrustExtra","FIP Extra","","EXTRA","","CLP","vigente","FIP Vantrust Extra.pdf",None,None),
+("O42FipVantrustLiquidezDisponible","FIP Liquidez Disponible","Liquidez","DISPONIBLE","","CLP","vencido","FIP Vantrust Liquidez Disponible.pdf",None,None),
+("O43FipVantrustLiquidezMonetario","FIP Liquidez Monetario","Liquidez","MONETARIO","","CLP","vencido","FIP Vantrust Liquidez Monetario.pdf",None,None),
+("O44FipVantrustLiquidez","FIP Vantrust Liquidez","","LIQUIDEZ","","CLP","vencido","FIP Vantrust Liquidez.pdf",None,None),
+("O45FipVantrustExtra","FIP Extra","","EXTRA","","CLP","vencido","FIP Vantrust Extra.pdf",None,None),
 ]
